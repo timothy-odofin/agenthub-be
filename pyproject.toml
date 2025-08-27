@@ -1,0 +1,68 @@
+[tool.poetry]
+name = "agenthub-be"
+version = "0.1.0"
+description = "A modular AI assistant platform that acts as a central hub for knowledge retrieval and tool integration"
+authors = ["Your Name <your.email@example.com>"]
+readme = "README.md"
+packages = [
+    { include = "app", from = "src" }
+]
+
+[tool.poetry.dependencies]
+python = "^3.12"
+fastapi = "^0.109.0"
+uvicorn = "^0.27.0"
+pydantic = "^2.6"
+sqlalchemy = "^2.0.27"
+alembic = "^1.13.1"
+psycopg2-binary = "^2.9.9"
+redis = "^5.0.1"
+celery = "^5.3.6"
+python-dotenv = "^1.0.1"
+langchain = "^0.3.0"
+langchain-groq = "^0.3.7"
+pgvector = "^0.2.5"
+python-jose = {extras = ["cryptography"], version = "^3.3.0"}
+passlib = {extras = ["bcrypt"], version = "^1.7.4"}
+python-multipart = "^0.0.9"
+httpx = "^0.26.0"
+openai = "^1.12.0"
+numpy = "^1.26.4"
+tenacity = "^8.2.3"
+tiktoken = "^0.6.0"
+
+[tool.poetry.group.dev.dependencies]
+pytest = "^8.0.0"
+pytest-cov = "^4.1.0"
+pytest-asyncio = "^0.23.0"
+black = "^24.1.0"
+isort = "^5.13.0"
+flake8 = "^7.0.0"
+mypy = "^1.8.0"
+
+[build-system]
+requires = ["poetry-core"]
+build-backend = "poetry.core.masonry.api"
+
+[tool.black]
+line-length = 88
+target-version = ['py39']
+include = '\.pyi?$'
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+line_length = 88
+
+[tool.mypy]
+python_version = "3.12"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+check_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+addopts = "-v --cov=app --cov-report=term-missing"
+asyncio_mode = "auto"
