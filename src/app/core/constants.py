@@ -1,0 +1,57 @@
+"""
+Constants used throughout the application.
+"""
+from enum import Enum
+
+
+class DataSourceType(str, Enum):
+    """Supported data source types for ingestion."""
+    S3 = "s3"
+    CONFLUENCE = "confluence"
+    FILE = "file"
+    SHAREPOINT = "sharepoint"
+    DATABASE = "database"
+    URL = "url"
+
+
+class VectorDBType(str, Enum):
+    """Supported vector database types."""
+    PINECONE = "pinecone"
+    WEAVIATE = "weaviate"
+    QDRANT = "qdrant"
+    CHROMA = "chroma"
+    MILVUS = "milvus"
+    PGVECTOR = "pgvector"
+    REDIS = "redis"
+    OPENSEARCH = "opensearch"
+
+
+class GroqModelVersion(str, Enum):
+    """Supported Groq model versions.
+    Reference: https://console.groq.com/docs/models
+    """
+    # Production Models
+    LLAMA_3_1_8B = "llama-3.1-8b-instant"
+    LLAMA_3_3_70B = "llama-3.3-70b-versatile"
+    LLAMA_GUARD_12B = "meta-llama/llama-guard-4-12b"
+    GPT_OSS_120B = "openai/gpt-oss-120b"
+    GPT_OSS_20B = "openai/gpt-oss-20b"
+    WHISPER_LARGE_V3 = "whisper-large-v3"
+    WHISPER_LARGE_V3_TURBO = "whisper-large-v3-turbo"
+    
+    # Preview Models (Not recommended for production)
+    DEEPSEEK_70B = "deepseek-r1-distill-llama-70b"
+    LLAMA_4_MAVERICK = "meta-llama/llama-4-maverick-17b-128e-instruct"
+    LLAMA_4_SCOUT = "meta-llama/llama-4-scout-17b-16e-instruct"
+    KIMI_K2 = "moonshotai/kimi-k2-instruct"
+    QWEN_32B = "qwen/qwen3-32b"
+
+
+class ModelProvider(str, Enum):
+    """Supported model providers."""
+    GROQ = "groq"
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    GOOGLE = "google"
+    META = "meta"
+    MISTRAL = "mistral"

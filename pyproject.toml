@@ -2,14 +2,14 @@
 name = "agenthub-be"
 version = "0.1.0"
 description = "A modular AI assistant platform that acts as a central hub for knowledge retrieval and tool integration"
-authors = ["Your Name <your.email@example.com>"]
+authors = ["Oyejide Odofin <ai.oyejide@gmail.com>"]
 readme = "README.md"
 packages = [
     { include = "app", from = "src" }
 ]
 
 [tool.poetry.dependencies]
-python = "^3.12"
+python = "^3.11"
 fastapi = "^0.109.0"
 uvicorn = "^0.27.0"
 pydantic = "^2.6"
@@ -19,9 +19,22 @@ psycopg2-binary = "^2.9.9"
 redis = "^5.0.1"
 celery = "^5.3.6"
 python-dotenv = "^1.0.1"
-langchain = "^0.3.0"
-langchain-groq = "^0.3.7"
+langchain = "^0.1.5"
+langchain-community = "^0.0.21"
+langchain-core = "^0.1.23"
+langchain-groq = "^0.0.1"
 pgvector = "^0.2.5"
+pyyaml = "^6.0.1"
+docx2txt = "^0.8"
+pdfminer-six = "^20231228"
+unstructured = {version = "^0.12.3", python = ">=3.11,<3.12"}
+python-magic = "^0.4.27"
+pypdf = "^4.0.1"
+python-docx = "^1.1.0"
+openpyxl = "^3.1.2"
+pytesseract = "^0.3.10"
+pillow = "^10.2.0"
+python-pptx = "^0.6.23"
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
 passlib = {extras = ["bcrypt"], version = "^1.7.4"}
 python-multipart = "^0.0.9"
