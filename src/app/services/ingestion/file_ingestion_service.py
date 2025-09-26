@@ -1,32 +1,32 @@
 
 import os
-from typing import List, Dict, Any
 from datetime import datetime
-from pathlib import Path
-import magic
 from enum import Enum
+from typing import List, Dict, Any
 
+import magic
+from langchain.schema import Document
+from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
     UnstructuredPDFLoader,
-    UnstructuredWordDocument,
+    UnstructuredFileLoader,
+    Docx2txtLoader,
     UnstructuredPowerPointLoader,
     UnstructuredExcelLoader,
     UnstructuredImageLoader,
     TextLoader,
     UnstructuredMarkdownLoader,
     JSONLoader,
-    UnstructuredYAMLLoader,
     UnstructuredXMLLoader,
     UnstructuredHTMLLoader,
     UnstructuredEmailLoader,
     UnstructuredRTFLoader,
 )
-from langchain.text_splitter import RecursiveCharacterTextSplitter
-from langchain.schema import Document
 
-from ...core.constants import DataSourceType
-from ...core.schemas.ingestion_config import DataSourceConfig
-from .base import BaseIngestionService
+from src.app.services.ingestion.base import BaseIngestionService
+from src.app.core.constants import DataSourceType, EmbeddingType
+from src.app.core.schemas.ingestion_config import DataSourceConfig
+from src.app.db.vector.factory import VectorStoreFactory
 
 
 class FileType(str, Enum):
@@ -73,26 +73,62 @@ class FileIngestionService(BaseIngestionService):
             length_function=len,
             is_separator_regex=False,
         )
+        # Initialize loader mapping
+        self._loader_mapping = self._construct_mapping()
+        
+        # Initialize vector store
+        self._vector_store = VectorStoreFactory.get_default_vector_store()
+        self._embedding_type = EmbeddingType.OPENAI_EMBEDDING  # Default embedding type
 
     def validate_config(self) -> None:
         """Validate the file ingestion configuration."""
-        if not self.config.source_paths:
-            raise ValueError("No source paths provided in configuration")
-        for path in self.config.source_paths:
+        if not self.config.sources:
+            raise ValueError("No sources paths provided in configuration")
+        for path in self.config.sources:
             if not os.path.exists(path):
                 raise ValueError(f"Source path does not exist: {path}")
  
     @property
     def source_type(self) -> DataSourceType:
-        """Get the type of data source this service handles."""
+        """Get the type of data sources this service handles."""
         return DataSourceType.FILE
 
     async def ingest(self) -> bool:
         """Ingest all files from the configured sources."""
         success = True
-        for source_path in self.config.source_paths:
-            if not await self.ingest_single(source_path):
+        all_documents = []
+        
+        # Ensure vector store connection
+        await self._vector_store.get_connection()
+        
+        for source_path in self.config.sources:
+            try:
+                documents = await self._process_file(source_path)
+                # Add source path to metadata for tracking
+                for doc in documents:
+                    doc.metadata.update({
+                        "source_path": source_path,
+                        "ingestion_timestamp": datetime.now().isoformat()
+                    })
+                all_documents.extend(documents)
+                self._processed_files[source_path] = True
+            except Exception as e:
+                self._processed_files[source_path] = False
                 success = False
+                print(f"Error processing {source_path}: {str(e)}")
+        
+        # Save all documents to vector store if any were processed
+        if all_documents:
+            try:
+                document_ids = await self._vector_store.save_and_embed(
+                    self._embedding_type, 
+                    all_documents
+                )
+                print(f"Successfully saved {len(document_ids)} document chunks to vector store")
+            except Exception as e:
+                print(f"Error saving documents to vector store: {str(e)}")
+                success = False
+        
         return success
 
     async def ingest_single(self, source: str) -> bool:
@@ -106,40 +142,38 @@ class FileIngestionService(BaseIngestionService):
             bool: True if ingestion was successful
         """
         try:
+            # Ensure vector store connection
+            await self._vector_store.get_connection()
+            
+            # Process the file
             documents = await self._process_file(source)
-            self._processed_files[source] = True
-            # Here you would typically send documents for embedding
-            # This will be handled by the retriever service
-            return True
+            
+            # Add metadata to documents
+            for doc in documents:
+                doc.metadata.update({
+                    "source_path": source,
+                    "ingestion_timestamp": datetime.now().isoformat()
+                })
+            
+            # Save documents to vector store
+            if documents:
+                document_ids = await self._vector_store.save_and_embed(
+                    self._embedding_type, 
+                    documents
+                )
+                print(f"Successfully processed {source}: {len(document_ids)} chunks saved")
+                self._processed_files[source] = True
+                return True
+            else:
+                print(f"No documents extracted from {source}")
+                self._processed_files[source] = False
+                return False
+                
         except Exception as e:
             self._processed_files[source] = False
-            # Log the error
+            print(f"Error processing {source}: {str(e)}")
             return False
 
-    async def source_meta(self, source: str) -> Dict[str, Any]:
-        """Get metadata about a specific file."""
-        if not os.path.exists(source):
-            raise ValueError(f"Source file does not exist: {source}")
-        
-        return {
-            "size": os.path.getsize(source),
-            "created": datetime.fromtimestamp(os.path.getctime(source)),
-            "modified": datetime.fromtimestamp(os.path.getmtime(source)),
-            "mime_type": magic.from_file(source, mime=True),
-            "processed": self._processed_files.get(source, False)
-        }
-
-    def __init__(self, config: DataSourceConfig):
-        super().__init__(config)
-        self._processed_files: Dict[str, bool] = {}
-        self._text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            is_separator_regex=False,
-        )
-        # Initialize loader mapping
-        self._loader_mapping = self._construct_mapping()
 
     def _construct_mapping(self):
         return {
@@ -148,17 +182,13 @@ class FileIngestionService(BaseIngestionService):
                 "mode": "elements",
                 "ocr_enabled": True
             }),
-            FileType.DOC: (UnstructuredWordDocument, {
+            FileType.DOC: (UnstructuredFileLoader, {
                 "mode": "elements",
                 "strategy": "fast",
                 "ocr_enabled": True,
                 "preserve_formatting": True
             }),
-            FileType.DOCX: (UnstructuredWordDocument, {
-                "mode": "elements",
-                "strategy": "fast",
-                "ocr_enabled": True,
-                "preserve_formatting": True
+            FileType.DOCX: (Docx2txtLoader, {
             }),
             FileType.XLS: (UnstructuredExcelLoader, {
                 "mode": "elements",
@@ -196,14 +226,8 @@ class FileIngestionService(BaseIngestionService):
                 "text_content": False,  # Preserve JSON structure
                 "metadata_func": lambda metadata: {"source_type": "json"}
             }),
-            FileType.YAML: (UnstructuredYAMLLoader, {
-                "mode": "elements",
-                "strategy": "fast"
-            }),
-            FileType.YML: (UnstructuredYAMLLoader, {
-                "mode": "elements",
-                "strategy": "fast"
-            }),
+            FileType.YAML: (TextLoader, {}),
+            FileType.YML: (TextLoader, {}),
             FileType.MARKDOWN: (UnstructuredMarkdownLoader, {
                 "mode": "elements",
                 "strategy": "fast",
@@ -386,3 +410,16 @@ class FileIngestionService(BaseIngestionService):
                         continue
 
         return documents
+
+    async def close(self):
+        """Close vector store connections."""
+        if self._vector_store:
+            await self._vector_store.close_connection()
+    
+    def get_processed_files_status(self) -> Dict[str, bool]:
+        """Get the status of processed files."""
+        return self._processed_files.copy()
+    
+    def set_embedding_type(self, embedding_type: EmbeddingType):
+        """Set the embedding type to use."""
+        self._embedding_type = embedding_type

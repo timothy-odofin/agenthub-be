@@ -51,7 +51,7 @@ A modular AI assistant platform that acts as a central hub for knowledge retriev
 
 4. **Activate the virtual environment**
    ```bash
-   source .venv/bin/activate
+   sources .venv/bin/activate
    ```
 
 5. **Run database migrations**

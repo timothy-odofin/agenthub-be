@@ -24,10 +24,10 @@ if ! command -v poetry &> /dev/null; then
     # Add Poetry to PATH permanently
     if [[ -f ~/.zshrc ]]; then
         echo 'export PATH="/Users/$(whoami)/.local/bin:$PATH"' >> ~/.zshrc
-        source ~/.zshrc
+        sources ~/.zshrc
     elif [[ -f ~/.bashrc ]]; then
         echo 'export PATH="/Users/$(whoami)/.local/bin:$PATH"' >> ~/.bashrc
-        source ~/.bashrc
+        sources ~/.bashrc
     fi
 fi
 

@@ -3,16 +3,16 @@ from pydantic import BaseModel, Field, HttpUrl, field_validator
 from ..constants import DataSourceType
 
 class DataSourceConfig(BaseModel):
-    """Configuration for a single data source."""
-    name: str = Field(..., min_length=1, description="Alias for the data source")
-    type: DataSourceType = Field(..., description="Type of data source")
-    sources: List[str] = Field(..., min_items=1, description="List of source identifiers (paths, URLs, IDs)")
-    location: Optional[HttpUrl] = Field(None, description="Base location for the source (e.g. Confluence URL)")
+    """Configuration for a single data sources."""
+    name: str = Field(..., min_length=1, description="Alias for the data sources")
+    type: DataSourceType = Field(..., description="Type of data sources")
+    sources: List[str] = Field(..., min_items=1, description="List of sources identifiers (paths, URLs, IDs)")
+    location: Optional[HttpUrl] = Field(None, description="Base location for the sources (e.g. Confluence URL)")
 
     @field_validator('sources')
     @classmethod
     def validate_sources(cls, v: List[str]) -> List[str]:
-        """Validate that source strings are not empty"""
+        """Validate that sources strings are not empty"""
         if any(not source.strip() for source in v):
             raise ValueError("Source identifiers cannot be empty strings")
         return v

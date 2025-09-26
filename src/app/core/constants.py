@@ -5,7 +5,7 @@ from enum import Enum
 
 
 class DataSourceType(str, Enum):
-    """Supported data source types for ingestion."""
+    """Supported data sources types for ingestion."""
     S3 = "s3"
     CONFLUENCE = "confluence"
     FILE = "file"
@@ -45,6 +45,16 @@ class GroqModelVersion(str, Enum):
     LLAMA_4_SCOUT = "meta-llama/llama-4-scout-17b-16e-instruct"
     KIMI_K2 = "moonshotai/kimi-k2-instruct"
     QWEN_32B = "qwen/qwen3-32b"
+
+
+class EmbeddingType(str, Enum):
+    """Supported embedding types and their models."""
+    OPENAI_EMBEDDING = "openai"  # For OpenAI ada-002
+    HUGGINGFACE = "huggingface"  # For sentence-transformers, BGE, etc.
+    INSTRUCTOR = "instructor"     # For instructor models
+    COHERE = "cohere"           # For Cohere embeddings
+    TENSORFLOW = "tensorflow"    # For TensorFlow Hub models
+    VERTEX = "vertex"           # For Google Cloud Vertex AI embeddings
 
 
 class ModelProvider(str, Enum):

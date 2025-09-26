@@ -15,7 +15,7 @@ class BaseIngestionService(ABC):
         """Initialize the ingestion service.
         
         Args:
-            config: Configuration for the data source
+            config: Configuration for the data sources
         """
         self.config = config
         self.validate_config()
@@ -43,10 +43,10 @@ class BaseIngestionService(ABC):
     
     @abstractmethod
     async def ingest_single(self, source: str) -> bool:
-        """Ingest a single source.
+        """Ingest a single sources.
         
         Args:
-            source: The source identifier to ingest
+            source: The sources identifier to ingest
             
         Returns:
             bool: True if ingestion was successful, False otherwise
@@ -56,26 +56,10 @@ class BaseIngestionService(ABC):
         """
         pass
     
-    @abstractmethod
-    async def source_meta(self, source: str) -> Dict[str, Any]:
-        """Get metadata about a specific source.
-        
-        Args:
-            source: The source identifier to get metadata for
-            
-        Returns:
-            Dict containing metadata about the source. Examples:
-            - For files: size, creation date, mime type, etc.
-            - For URLs: last modified, content type, size, etc.
-            - For S3: bucket, key, tags, last modified, etc.
-            
-        Raises:
-            ValueError: If the source is invalid or not accessible
-        """
-        pass
+    
     
     @property
     @abstractmethod
     def source_type(self) -> DataSourceType:
-        """Get the type of data source this service handles."""
+        """Get the type of data sources this service handles."""
         pass
