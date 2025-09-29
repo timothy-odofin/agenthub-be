@@ -23,7 +23,7 @@ class AppConfig:
             return
             
         # Get the project root directory (two levels up from this file)
-        self.project_root = Path(__file__).parent.parent.parent
+        self.project_root = Path(__file__).parent.parent.parent.parent
         
         # Define resource paths
         self.resources_path = self.project_root / 'resources'
@@ -44,6 +44,13 @@ class AppConfig:
         self.app_env = os.getenv('APP_ENV', 'development')
         self.debug = os.getenv('DEBUG', 'true').lower() == 'true'
         self.groq_api_key = os.getenv('GROQ_API_KEY')
+        self.openai_api_key = os.getenv('OPENAI_API_KEY')
+        
+        # Qdrant configuration
+        self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
+        self.qdrant_endpoint = os.getenv('QDRANT_ENDPOINT')
+        self.qdrant_cluster_id = os.getenv('QDRANT_CLUSTER_ID')
+
 
     @property
     def postgres_config(self) -> dict:
@@ -102,11 +109,10 @@ class AppConfig:
     def qdrant_config(self) -> dict:
         """Qdrant vector database configuration"""
         return {
-            'host': os.getenv('QDRANT_HOST', 'localhost'),
-            'port': int(os.getenv('QDRANT_PORT', '6333')),
+            'url': os.getenv('QDRANT_ENDPOINT'),
             'api_key': os.getenv('QDRANT_API_KEY'),
-            'collection_name': os.getenv('QDRANT_COLLECTION_NAME', 'documents'),
-            'vector_size': int(os.getenv('QDRANT_VECTOR_SIZE', '1536')),
+            'collection_name': os.getenv('QDRANT_COLLECTION_NAME', 'agent_hub_collection'),
+            'embedding_dimension': int(os.getenv('QDRANT_EMBEDDING_DIMENSION', '1536')),
             'distance': os.getenv('QDRANT_DISTANCE', 'Cosine')
         }
 

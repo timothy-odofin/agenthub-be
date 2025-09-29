@@ -35,7 +35,7 @@ class PgVectorRepository:
             ids = [str(uuid.uuid4()) for _ in range(len(documents))]
         PGVector.from_documents(
             collection_name=collection_name,
-            connection_string=self._connection._dsn,  # Use connection string
+            connection_string=self._connection.dsn,  # Use connection string
             embedding_function=embeddings,       # Placeholder, actual embedding done outside
             documents=documents,
             ids=ids
@@ -73,7 +73,7 @@ class PgVectorRepository:
                              filter_criteria: Optional[Dict[str, Any]] = None) -> List[Document]:
         vector_store = PGVector(
             collection_name=collection_name,
-            connection_string=self._connection._dsn,
+            connection_string=self._connection.dsn,
             embedding_function=lambda x: query_embedding  # embeddings already computed
         )
         docs_with_scores = vector_store.similarity_search_with_score(query_embedding, k=k, filter=filter_criteria)

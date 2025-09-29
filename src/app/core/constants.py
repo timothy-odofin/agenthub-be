@@ -16,8 +16,9 @@ class DataSourceType(str, Enum):
 
 class VectorDBType(str, Enum):
     """Supported vector database types."""
-    PINECONE = "pinecone"
-    WEAVIATE = "weaviate"
+    PGVECTOR = "pgvector"
+    CHROMA = "chroma"
+    QDRANT = "qdrant"
     QDRANT = "qdrant"
     CHROMA = "chroma"
     MILVUS = "milvus"

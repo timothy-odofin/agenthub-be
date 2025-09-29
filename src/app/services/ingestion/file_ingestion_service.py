@@ -2,7 +2,7 @@
 import os
 from datetime import datetime
 from enum import Enum
-from typing import List, Dict, Any
+from typing import List, Dict
 
 import magic
 from langchain.schema import Document
@@ -23,10 +23,10 @@ from langchain_community.document_loaders import (
     UnstructuredRTFLoader,
 )
 
-from src.app.services.ingestion.base import BaseIngestionService
-from src.app.core.constants import DataSourceType, EmbeddingType
-from src.app.core.schemas.ingestion_config import DataSourceConfig
-from src.app.db.vector.factory import VectorStoreFactory
+from app.services.ingestion.base import BaseIngestionService
+from app.core.constants import DataSourceType, EmbeddingType
+from app.core.schemas.ingestion_config import DataSourceConfig
+from app.db.vector.factory import VectorStoreFactory
 
 
 class FileType(str, Enum):
@@ -112,6 +112,7 @@ class FileIngestionService(BaseIngestionService):
                     })
                 all_documents.extend(documents)
                 self._processed_files[source_path] = True
+                print(f"Processed {source_path}: {len(documents)} chunks")
             except Exception as e:
                 self._processed_files[source_path] = False
                 success = False
