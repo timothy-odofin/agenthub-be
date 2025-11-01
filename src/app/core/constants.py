@@ -19,10 +19,7 @@ class VectorDBType(str, Enum):
     PGVECTOR = "pgvector"
     CHROMA = "chroma"
     QDRANT = "qdrant"
-    QDRANT = "qdrant"
-    CHROMA = "chroma"
     MILVUS = "milvus"
-    PGVECTOR = "pgvector"
     REDIS = "redis"
     OPENSEARCH = "opensearch"
 

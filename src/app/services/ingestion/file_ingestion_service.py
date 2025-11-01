@@ -20,7 +20,8 @@ from langchain_community.document_loaders import (
     UnstructuredXMLLoader,
     UnstructuredHTMLLoader,
     UnstructuredEmailLoader,
-    UnstructuredRTFLoader,
+    UnstructuredRTFLoader
+    
 )
 
 from app.services.ingestion.base import BaseIngestionService

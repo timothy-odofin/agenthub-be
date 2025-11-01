@@ -2,9 +2,12 @@ import logging
 import sys
 from datetime import datetime
 from pathlib import Path
+import sys
+from datetime import datetime
+from pathlib import Path
 from typing import Optional
 
-from app.core.config import settings
+from app.core.config import config
 
 # Create logs directory if it doesn't exist
 log_dir = Path("logs")
@@ -51,8 +54,8 @@ def get_logger(name: str, log_file: Optional[str] = None) -> logging.Logger:
     if logger.hasHandlers():
         return logger
     
-    # Set global log level from settings (default to INFO)
-    logger.setLevel(getattr(logging, settings.LOG_LEVEL.upper(), logging.INFO))
+    # Set global log level (default to INFO)
+    logger.setLevel(logging.INFO)
     
     # Create formatters
     console_formatter = CustomFormatter(

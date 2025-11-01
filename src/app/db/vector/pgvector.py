@@ -39,6 +39,7 @@ class PgVectorDB(VectorDB):
     async def _close_connection(self):
         if self._connection:
             await self._connection.close()
+            self._connection = None
             self._repo = None
 
     def _get_embeddings(self, embedding_type: EmbeddingType):

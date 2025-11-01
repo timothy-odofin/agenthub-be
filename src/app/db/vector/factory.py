@@ -65,7 +65,7 @@ class VectorStoreFactory:
     @classmethod
     def get_default_vector_store(cls) -> VectorDB:
         """Get the default vector store (PgVector)."""
-        return cls.get_vector_store(VectorDBType.PGVECTOR)
+        return cls.get_vector_store(VectorDBType.QDRANT)
     
     @classmethod
     def clear_cache(cls):

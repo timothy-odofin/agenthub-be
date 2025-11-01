@@ -4,7 +4,6 @@ from fastapi import APIRouter
 from app.services.ingestion.file_ingestion_service import FileIngestionService
 from app.core.constants import DataSourceType
 from app.core.schemas.ingestion_config import DataSourceConfig
-from app.workers.tasks import task_file_ingestion
 
 router = APIRouter()
 async def create_ingestion_service(file_paths: List[str], source_name: str = "documents"):
@@ -23,8 +22,8 @@ async def create_ingestion_service(file_paths: List[str], source_name: str = "do
     return await FileIngestionService(config).ingest()
 @router.post("/load")
 async def load_data():
-    success = await create_ingestion_service(file_paths=['/Users/oyejide/Downloads/questions/1706.03762v1.pdf', 
-                                                     '/Users/oyejide/Downloads/questions/commerce.pdf'], source_name='documents')
+    success = await create_ingestion_service(file_paths=[
+                                                     '/Users/oyejide/Downloads/questions/1706.03762v1.pdf'], source_name='documents')
     if success:
         return {"message": "Data loaded successfully"}
     else:
