@@ -10,13 +10,14 @@ from langchain.schema import Document
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import DistanceStrategy
 
-from ...core.constants import EmbeddingType
+from .providers.db_provider import VectorDBRegistry
+from ...core.constants import EmbeddingType, VectorDBType
 from ...core.config import config
 from ..repositories.pgvector_repo import PgVectorRepository
 from .base import VectorDB
-from .embedding import EmbeddingFactory
+from app.db.vector.embeddings.embedding import EmbeddingFactory
 
-
+@VectorDBRegistry.register(VectorDBType.PGVECTOR)
 class PgVectorDB(VectorDB):
     """PostgreSQL with pgvector implementation."""
 
@@ -43,7 +44,7 @@ class PgVectorDB(VectorDB):
             self._repo = None
 
     def _get_embeddings(self, embedding_type: EmbeddingType):
-        embedding_model = EmbeddingFactory.get_embedding_model(embedding_type)
+        embedding_model = EmbeddingFactory.get_embedding_model(embedding_type, config)
         distance_strategy_mapping = {
             "cosine": DistanceStrategy.COSINE,
             "euclidean": DistanceStrategy.EUCLIDEAN,
@@ -89,7 +90,7 @@ class PgVectorDB(VectorDB):
 
     async def search_similar(self, query: str, k: int = 5, filter_criteria: Optional[Dict[str, Any]] = None) -> List[
         Document]:
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI_EMBEDDING)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI, config)
         query_embedding = embedding_model.embed_query(query)
         return await self._repo.search_similar(self.config["collection_name"], query_embedding, k=k,
                                                filter_criteria=filter_criteria)

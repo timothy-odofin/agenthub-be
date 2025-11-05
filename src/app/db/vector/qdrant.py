@@ -5,18 +5,20 @@ from abc import ABC
 from datetime import datetime
 from typing import List, Dict, Any, Optional
 from langchain.schema import Document
-from langchain_community.vectorstores import Qdrant as LangchainQdrant
+from langchain_qdrant import Qdrant as LangchainQdrant
 from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 
+from .providers.db_provider import VectorDBRegistry
 from ...core.config import config
-from ...core.constants import EmbeddingType
+from ...core.constants import EmbeddingType, VectorDBType
 from ...core.utils.logger import get_logger
 from .base import VectorDB, DocumentMetadata
-from .embedding import EmbeddingFactory
+from app.db.vector.embeddings.embedding import EmbeddingFactory
 
 logger = get_logger(__name__)
 
+@VectorDBRegistry.register(VectorDBType.QDRANT)
 class QdrantDB(VectorDB, ABC):
     """Qdrant vector database implementation."""
     
@@ -69,7 +71,7 @@ class QdrantDB(VectorDB, ABC):
             self._vectorstore = LangchainQdrant(
                 client=self._connection,
                 collection_name=self.config["collection_name"],
-                embedding_function=embedding_function
+                embeddings=embedding_function
             )
         logger.info("Using existing Qdrant vectorstore instance.")
         return self._vectorstore
@@ -79,7 +81,7 @@ class QdrantDB(VectorDB, ABC):
         try:
             # Get embedding model
             logger.info(f"Saving {len(docs)} documents...")
-            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type)
+            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type,config)
             logger.info(f"Using embedding model: {embedding_model.__class__.__name__}")
             
             # Get vectorstore with embedding model
@@ -105,7 +107,7 @@ class QdrantDB(VectorDB, ABC):
         """Search for similar documents."""
         try:
             # Get embedding model (using default for now)
-            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI_EMBEDDING)
+            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
             
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
@@ -127,7 +129,7 @@ class QdrantDB(VectorDB, ABC):
     def as_retriever(self, **kwargs):
         """Return vectorstore as retriever."""
         # Use default embedding type if not specified
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI_EMBEDDING)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
         vector_store = self._get_vectorstore(embedding_model)
         return vector_store.as_retriever(**kwargs)
 

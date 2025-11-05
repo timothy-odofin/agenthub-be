@@ -3,8 +3,10 @@ from pathlib import Path
 from typing import Optional
 import yaml
 from dotenv import load_dotenv
-from .schemas.ingestion_config import IngestionConfig
 
+from app.core.constants import AtlassianProperties
+
+from .schemas.ingestion_config import IngestionConfig
 
 class AppConfig:
     """Application configuration manager implemented as a singleton"""
@@ -50,7 +52,6 @@ class AppConfig:
         self.qdrant_api_key = os.getenv('QDRANT_API_KEY')
         self.qdrant_endpoint = os.getenv('QDRANT_ENDPOINT')
         self.qdrant_cluster_id = os.getenv('QDRANT_CLUSTER_ID')
-
 
     @property
     def postgres_config(self) -> dict:
@@ -157,6 +158,15 @@ class AppConfig:
             'class_name': os.getenv('WEAVIATE_CLASS_NAME', 'Document'),
             'text_key': os.getenv('WEAVIATE_TEXT_KEY', 'content')
         }
+    @property
+    def atlassian_config(self) -> dict:
+        """Atlassian configuration for Confluence and Jira"""
+        return {
+            AtlassianProperties.API_KEY: os.getenv('ATLASSIAN_API_KEY'),
+            AtlassianProperties.EMAIL: os.getenv('ATLASSIAN_EMAIL'),
+            AtlassianProperties.BASE_URL_CONFLUENCE: os.getenv('ATLASSIAN_BASE_URL_CONFLUENCE'),
+            AtlassianProperties.BASE_URL_JIRA: os.getenv('ATLASSIAN_BASE_URL_JIRA')
+        }
 
     @property
     def milvus_config(self) -> dict:
@@ -204,7 +214,8 @@ class AppConfig:
 
             with open(self.ingestion_config_path, 'r') as f:
                 config_dict = yaml.safe_load(f)
-                self.ingestion_config = IngestionConfig(**config_dict)
+                self.ingestion_config = IngestionConfig.model_validate(config_dict)
+                print(f"Ingestion config loaded successfully, total config: {len(self.ingestion_config.data_sources)} data sources")
         except Exception as e:
             print(f"Error loading ingestion config: {e}")
             self.ingestion_config = None
@@ -214,26 +225,6 @@ class AppConfig:
         self._load_ingestion_config()
         return self.ingestion_config
 
-    @property
-    def is_development(self) -> bool:
-        """Check if the application is running in development mode"""
-        return self.app_env.lower() == 'development'
-
-    @property
-    def is_production(self) -> bool:
-        """Check if the application is running in production mode"""
-        return self.app_env.lower() == 'production'
-
-    # Legacy properties for backward compatibility
-    @property
-    def database_url(self) -> str:
-        """Legacy database URL property"""
-        return self.postgres_config['connection_string']
-
-    @property
-    def redis_url(self) -> str:
-        """Legacy Redis URL property"""
-        return self.redis_config['url']
 
 
 # Create a singleton instance

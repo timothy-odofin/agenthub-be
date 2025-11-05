@@ -2,7 +2,8 @@
 Base class for data ingestion services.
 """
 from abc import ABC, abstractmethod
-from typing import List, Dict, Any
+
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from ...core.constants import DataSourceType
 from ...core.schemas.ingestion_config import DataSourceConfig
@@ -11,14 +12,46 @@ from ...core.schemas.ingestion_config import DataSourceConfig
 class BaseIngestionService(ABC):
     """Base class for all data ingestion services."""
     
-    def __init__(self, config: DataSourceConfig):
+    # Each subclass must define its SOURCE_TYPE
+    SOURCE_TYPE: DataSourceType = None
+
+    def __init__(self):
         """Initialize the ingestion service.
         
-        Args:
-            config: Configuration for the data sources
+        Automatically locates its configuration from AppConfig singleton.
+
+        Raises:
+            ValueError: If SOURCE_TYPE is not defined or config not found
         """
-        self.config = config
+        if self.SOURCE_TYPE is None:
+            raise ValueError(f"{self.__class__.__name__} must define SOURCE_TYPE class attribute")
+
+        # Import here to avoid circular imports
+        from ...core.config import AppConfig
+
+        # Get the singleton instance
+        app_config = AppConfig()
+
+        if not app_config.ingestion_config:
+            raise ValueError("No ingestion configuration loaded in AppConfig")
+
+        # Locate the config for this service's type
+        source_type_key = self.SOURCE_TYPE.value.lower()
+        if source_type_key not in app_config.ingestion_config.data_sources:
+            raise ValueError(
+                f"No configuration found for data source type: {self.SOURCE_TYPE.value}. "
+                f"Available types: {list(app_config.ingestion_config.data_sources.keys())}"
+            )
+
+        self.config: DataSourceConfig = app_config.ingestion_config.data_sources[source_type_key]
+        self.app_config = app_config
         self.validate_config()
+        self.text_splitter = RecursiveCharacterTextSplitter(
+            chunk_size=1000,
+            chunk_overlap=200,
+            length_function=len,
+            is_separator_regex=False,
+        )
     
     @abstractmethod
     def validate_config(self) -> None:
@@ -59,7 +92,6 @@ class BaseIngestionService(ABC):
     
     
     @property
-    @abstractmethod
     def source_type(self) -> DataSourceType:
         """Get the type of data sources this service handles."""
-        pass
+        return self.SOURCE_TYPE

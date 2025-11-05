@@ -47,12 +47,13 @@ class GroqModelVersion(str, Enum):
 
 class EmbeddingType(str, Enum):
     """Supported embedding types and their models."""
-    OPENAI_EMBEDDING = "openai"  # For OpenAI ada-002
+    OPENAI = "openai"  # For OpenAI ada-002
     HUGGINGFACE = "huggingface"  # For sentence-transformers, BGE, etc.
     INSTRUCTOR = "instructor"     # For instructor models
     COHERE = "cohere"           # For Cohere embeddings
     TENSORFLOW = "tensorflow"    # For TensorFlow Hub models
     VERTEX = "vertex"           # For Google Cloud Vertex AI embeddings
+    DEFAULT = "openai"  # Application default embedding
 
 
 class ModelProvider(str, Enum):
@@ -63,3 +64,15 @@ class ModelProvider(str, Enum):
     GOOGLE = "google"
     META = "meta"
     MISTRAL = "mistral"
+
+class AtlassianProperties(str, Enum):
+    """Atlassian properties used for metadata."""
+    PAGE_ID = "page_id"
+    TITLE = "title"
+    SPACE_KEY = "space_key"
+    BASE_URL_JIRA = "base_url_jira"
+    BASE_URL_CONFLUENCE = "base_url_confluence"
+    LAST_MODIFIED = "last_modified"
+    AUTHOR = "author"
+    API_KEY = "api_key"
+    EMAIL = "email"

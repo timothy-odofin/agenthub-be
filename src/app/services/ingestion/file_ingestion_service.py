@@ -1,12 +1,10 @@
-
 import os
-from datetime import datetime
 from enum import Enum
+from pathlib import Path
 from typing import List, Dict
 
 import magic
 from langchain.schema import Document
-from langchain.text_splitter import RecursiveCharacterTextSplitter
 from langchain_community.document_loaders import (
     UnstructuredPDFLoader,
     UnstructuredFileLoader,
@@ -24,11 +22,12 @@ from langchain_community.document_loaders import (
     
 )
 
+from app.core.utils.logger import get_logger
 from app.services.ingestion.base import BaseIngestionService
 from app.core.constants import DataSourceType, EmbeddingType
-from app.core.schemas.ingestion_config import DataSourceConfig
-from app.db.vector.factory import VectorStoreFactory
+from app.db.vector.providers.db_provider import VectorStoreFactory
 
+logger = get_logger(__name__)
 
 class FileType(str, Enum):
     """Supported file types and their MIME types."""
@@ -65,21 +64,21 @@ class FileType(str, Enum):
 
 
 class FileIngestionService(BaseIngestionService):
-    def __init__(self, config: DataSourceConfig):
-        super().__init__(config)
+    # Define the source type this service handles
+    SOURCE_TYPE = DataSourceType.FILE
+
+    def __init__(self):
+        # Call parent to auto-locate config by SOURCE_TYPE from AppConfig singleton
+        super().__init__()
+
         self._processed_files: Dict[str, bool] = {}
-        self._text_splitter = RecursiveCharacterTextSplitter(
-            chunk_size=1000,
-            chunk_overlap=200,
-            length_function=len,
-            is_separator_regex=False,
-        )
+
         # Initialize loader mapping
         self._loader_mapping = self._construct_mapping()
         
         # Initialize vector store
         self._vector_store = VectorStoreFactory.get_default_vector_store()
-        self._embedding_type = EmbeddingType.OPENAI_EMBEDDING  # Default embedding type
+        self._embedding_type = EmbeddingType.DEFAULT  # Default embedding type
 
     def validate_config(self) -> None:
         """Validate the file ingestion configuration."""
@@ -88,11 +87,6 @@ class FileIngestionService(BaseIngestionService):
         for path in self.config.sources:
             if not os.path.exists(path):
                 raise ValueError(f"Source path does not exist: {path}")
- 
-    @property
-    def source_type(self) -> DataSourceType:
-        """Get the type of data sources this service handles."""
-        return DataSourceType.FILE
 
     async def ingest(self) -> bool:
         """Ingest all files from the configured sources."""
@@ -104,20 +98,11 @@ class FileIngestionService(BaseIngestionService):
         
         for source_path in self.config.sources:
             try:
-                documents = await self._process_file(source_path)
-                # Add source path to metadata for tracking
-                for doc in documents:
-                    doc.metadata.update({
-                        "source_path": source_path,
-                        "ingestion_timestamp": datetime.now().isoformat()
-                    })
-                all_documents.extend(documents)
-                self._processed_files[source_path] = True
-                print(f"Processed {source_path}: {len(documents)} chunks")
+              await self._process_files_in_folder(all_documents, source_path)
             except Exception as e:
                 self._processed_files[source_path] = False
                 success = False
-                print(f"Error processing {source_path}: {str(e)}")
+                logger.error(f"Error processing {source_path}: {str(e)}")
         
         # Save all documents to vector store if any were processed
         if all_documents:
@@ -126,12 +111,23 @@ class FileIngestionService(BaseIngestionService):
                     self._embedding_type, 
                     all_documents
                 )
-                print(f"Successfully saved {len(document_ids)} document chunks to vector store")
+                logger.info(f"Successfully saved {len(document_ids)} document chunks to vector store")
             except Exception as e:
-                print(f"Error saving documents to vector store: {str(e)}")
+                logger.error(f"Error saving documents to vector store: {str(e)}")
                 success = False
         
         return success
+    async  def _process_files_in_folder(self,all_documents, folder_path: str) -> bool:
+
+            for file_path in Path(folder_path).iterdir():
+                    if file_path.is_file() and os.path.exists(file_path):
+                        file_abs_path = str(file_path)
+                        documents = await self._process_file(file_abs_path)
+
+                        all_documents.extend(documents)
+                        self._processed_files[file_abs_path] = True
+                        logger.info(f"Processed {file_abs_path}: {len(documents)} chunks")
+            return True
 
     async def ingest_single(self, source: str) -> bool:
         """
@@ -150,39 +146,32 @@ class FileIngestionService(BaseIngestionService):
             # Process the file
             documents = await self._process_file(source)
             
-            # Add metadata to documents
-            for doc in documents:
-                doc.metadata.update({
-                    "source_path": source,
-                    "ingestion_timestamp": datetime.now().isoformat()
-                })
-            
+
             # Save documents to vector store
             if documents:
                 document_ids = await self._vector_store.save_and_embed(
                     self._embedding_type, 
                     documents
                 )
-                print(f"Successfully processed {source}: {len(document_ids)} chunks saved")
+                logger.info(f"Successfully processed {source}: {len(document_ids)} chunks saved")
                 self._processed_files[source] = True
                 return True
             else:
-                print(f"No documents extracted from {source}")
+                logger.info(f"No documents extracted from {source}")
                 self._processed_files[source] = False
                 return False
                 
         except Exception as e:
             self._processed_files[source] = False
-            print(f"Error processing {source}: {str(e)}")
+            logger.error(f"Error processing {source}: {str(e)}")
             return False
 
 
     def _construct_mapping(self):
         return {
             FileType.PDF: (UnstructuredPDFLoader, {
-                "strategy": "fast",
-                "mode": "elements",
-                "ocr_enabled": True
+                "strategy": "hi-res",
+                "mode": "elements"
             }),
             FileType.DOC: (UnstructuredFileLoader, {
                 "mode": "elements",
@@ -305,15 +294,16 @@ class FileIngestionService(BaseIngestionService):
        
         # Load documents
         documents = self._load_document(file_path)
-        
+        logger.info(f"Loaded {len(documents)} documents from {file_path}")
         # Split into chunks
-        return self._text_splitter.split_documents(documents)
+        return self.text_splitter.split_documents(documents)
 
     def _detect_file_type(self, file_path: str) -> FileType:
         """
         Detect the MIME type of a file and return corresponding FileType.
         """
         mime_type = magic.from_file(file_path, mime=True)
+        logger.info(f"Detected MIME type {mime_type} for file {file_path}")
         try:
             return FileType(mime_type)
         except ValueError:
@@ -333,6 +323,7 @@ class FileIngestionService(BaseIngestionService):
             ValueError: If file type is not supported
         """
         file_type = self._detect_file_type(file_path)
+        logger.info(f"Detected file type {file_type} for {file_path}")
         
         if file_type not in self._loader_mapping:
             raise ValueError(f"Unsupported file type: {file_type}")
@@ -343,8 +334,10 @@ class FileIngestionService(BaseIngestionService):
         
         # Standard handling for other file types
         loader_class, loader_config = self._loader_mapping[file_type]
-        loader = loader_class(file_path, **loader_config)
-        return loader.load()
+        logger.info(f"Using loader {loader_class.__name__} for {file_path}")
+        loader = loader_class(file_path)
+        loaded_docs = loader.load()
+        return loaded_docs
 
     def _handle_archive(self, file_path: str, file_type: FileType) -> List[Document]:
         """

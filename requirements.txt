@@ -21,6 +21,11 @@ tiktoken==0.7.0
 # Vector databases
 qdrant-client==1.15.1
 
+# Atlassian integration
+atlassian-python-api==3.41.14
+beautifulsoup4==4.12.3
+lxml==5.3.0
+
 # =============================================================================
 # Document Processing (Complex dependencies with native libraries)
 # =============================================================================
@@ -41,7 +46,8 @@ pi_heif==1.1.1
 
 # OCR and computer vision
 pytesseract==0.3.13
-opencv-python==4.9.0.80
+unstructured-pytesseract==0.3.12
+opencv-python==4.12.0.88
 
 # File type detection
 python-magic==0.4.27
@@ -51,7 +57,7 @@ python-magic==0.4.27
 # =============================================================================
 
 # Core scientific libraries - Compatible versions
-numpy>=1.26.4,<2.0.0
+numpy==2.1.2
 pandas>=2.2.0,<3.0.0
 
 

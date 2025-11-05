@@ -8,11 +8,13 @@ import uuid
 from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 
-from ...core.constants import EmbeddingType
+from .providers.db_provider import VectorDBRegistry
+from ...core.constants import EmbeddingType, VectorDBType
 from ...core.config import config
 from .base import VectorDB, DocumentMetadata
-from .embedding import EmbeddingFactory
+from app.db.vector.embeddings.embedding import EmbeddingFactory
 
+@VectorDBRegistry.register(VectorDBType.CHROMA)
 class ChromaDB(VectorDB):
     """ChromaDB implementation."""
 
@@ -25,7 +27,7 @@ class ChromaDB(VectorDB):
 
     async def _create_connection(self):
         # Initialize ChromaDB with persistence
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI_EMBEDDING)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI, config)
         
         self._collection = Chroma(
             collection_name=self.config["collection_name"],

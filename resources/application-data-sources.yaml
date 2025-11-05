@@ -1,27 +1,24 @@
 dataSources:
-  - name: local_docs
-    type: file
+  - type: file
     sources:
-      - /path/to/document1.pdf
-      - /path/to/document2.txt
+#      - /Users/oyejide/Documents/agenthub-docs
+#      - /Users/oyejide/Downloads/questions
+      - /Users/oyejide/Desktop/eb1_application/llm_docs
     location: null
 
-  - name: company_wiki
-    type: confluence
+  - type: confluence
     sources:
       - "123456"  # Confluence page ID
       - "789012"  # Another page ID
     location: "https://company.atlassian.net"
 
-  - name: external_resources
-    type: url
+  - type: url
     sources:
       - "https://example.com/resource1"
       - "https://example.com/resource2"
     location: null
 
-  - name: cloud_storage
-    type: s3
+  - type: s3
     sources:
       - "bucket1/path/to/file1.pdf"
       - "bucket1/path/to/file2.txt"
