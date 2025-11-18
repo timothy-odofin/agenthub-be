@@ -164,8 +164,8 @@ class AppConfig:
         return {
             AtlassianProperties.API_KEY: os.getenv('ATLASSIAN_API_KEY'),
             AtlassianProperties.EMAIL: os.getenv('ATLASSIAN_EMAIL'),
-            AtlassianProperties.BASE_URL_CONFLUENCE: os.getenv('ATLASSIAN_BASE_URL_CONFLUENCE'),
-            AtlassianProperties.BASE_URL_JIRA: os.getenv('ATLASSIAN_BASE_URL_JIRA')
+            AtlassianProperties.CONFLUENCE_BASE_URL: os.getenv('ATLASSIAN_BASE_URL_CONFLUENCE'),
+            AtlassianProperties.JIRA_BASE_URL: os.getenv('ATLASSIAN_BASE_URL_JIRA')
         }
 
     @property

@@ -8,9 +8,11 @@ dataSources:
 
   - type: confluence
     sources:
-      - "123456"  # Confluence page ID
-      - "789012"  # Another page ID
-    location: "https://company.atlassian.net"
+      - "agenthubdo"
+      - "FI"
+      - "SD"
+#       - "*"   # confluence space, default to *(All), the internal api will retrieve all spaces and embed
+    location: "https://aioyejide.atlassian.net"
 
   - type: url
     sources:

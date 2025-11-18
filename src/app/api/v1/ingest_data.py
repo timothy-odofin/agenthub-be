@@ -1,15 +1,14 @@
-from typing import List
 from fastapi import APIRouter
 
-from app.services.ingestion.file_ingestion_service import FileIngestionService
 from app.core.constants import DataSourceType
-from app.core.schemas.ingestion_config import DataSourceConfig
+from app.services.ingestion.rag_data_provider import RagDataProvider
 
 router = APIRouter()
 
-@router.post("/load")
-async def load_data():
-    success = await FileIngestionService().ingest()
+@router.post("/load/{data_source}")
+async def load_data(data_source: DataSourceType):
+    rag_data_loader = RagDataProvider.get_class(data_source)()
+    success = await rag_data_loader.ingest()
     if success:
         return {"message": "Data loaded successfully"}
     else:
