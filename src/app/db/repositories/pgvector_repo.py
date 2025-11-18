@@ -1,7 +1,7 @@
 import uuid
 from typing import List, Optional, Dict, Any
 from langchain.schema import Document
-from langchain.vectorstores.pgvector import PGVector
+from langchain_community.vectorstores import PGVector
 
 class PgVectorRepository:
     """Repository for PgVector operations."""
