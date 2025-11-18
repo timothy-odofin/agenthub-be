@@ -1,0 +1,22 @@
+# =============================================================================
+# Development Dependencies (Install AFTER requirements.txt)
+# =============================================================================
+
+# Data science tools for development
+matplotlib==3.8.4
+seaborn==0.13.2
+plotly==5.22.0
+
+# Jupyter and notebook tools
+jupyter==1.1.1
+notebook==7.2.2
+ipykernel==6.29.5
+
+# Development and debugging
+ipdb==0.13.13
+memory-profiler==0.61.0
+
+# =============================================================================
+# Note: Install base dependencies first with: pip install -r requirements.txt
+# Then install dev dependencies with: pip install -r requirements-dev.txt
+# =============================================================================
