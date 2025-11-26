@@ -3,15 +3,15 @@ Constants used throughout the application.
 """
 from enum import Enum
 
-
-class DataSourceType(str, Enum):
-    """Supported data sources types for ingestion."""
-    S3 = "s3"
-    CONFLUENCE = "confluence"
-    FILE = "file"
-    SHAREPOINT = "sharepoint"
-    DATABASE = "database"
-    URL = "url"
+# Re-export enums for backward compatibility
+from app.core.enums import (
+    DataSourceType,
+    ModelProvider,
+    VectorDBType,
+    DatabaseType,
+    ExternalServiceType,
+    ConnectionType
+)
 
 
 class VectorDBType(str, Enum):
@@ -76,3 +76,30 @@ class AtlassianProperties(str, Enum):
     AUTHOR = "author"
     API_KEY = "api_key"
     EMAIL = "email"
+
+class SessionStorageType(str, Enum):
+    """Supported session storage types."""
+    POSTGRES = "postgres"
+    MONGODB = "mongodb"
+    ELASTICSEARCH = "elasticsearch"
+    REDIS = "redis"
+
+
+class LLMProvider(str, Enum):
+    """Supported LLM providers for the platform."""
+    GROQ = "groq"
+    OPENAI = "openai"
+    ANTHROPIC = "anthropic"
+    HUGGINGFACE = "huggingface"
+    OLLAMA = "ollama"
+    GOOGLE = "google"
+    LOCAL = "local"
+
+
+class LLMCapability(str, Enum):
+    """LLM capabilities for dynamic selection."""
+    CHAT = "chat"
+    CODE_GENERATION = "code_generation"
+    FUNCTION_CALLING = "function_calling"
+    STREAMING = "streaming"
+    MULTIMODAL = "multimodal"
