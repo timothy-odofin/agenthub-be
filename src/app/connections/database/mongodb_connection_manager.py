@@ -10,7 +10,6 @@ Requirements:
 
 from typing import Any, Optional, Dict, List
 from urllib.parse import quote_plus
-import pymongo
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 

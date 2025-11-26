@@ -32,11 +32,6 @@ class JiraConnectionManager(BaseConnectionManager):
         """Return the configuration name for Jira."""
         return ConnectionType.JIRA.value
     
-    def get_config_source(self) -> Any:
-        """Return the external services configuration source."""
-        from app.core.config.external_services_config import external_services_config
-        return external_services_config
-    
     def validate_config(self) -> None:
         """Validate Jira configuration."""
         required_fields = ['base_url', 'username', 'api_token']

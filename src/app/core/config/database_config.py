@@ -4,9 +4,11 @@ Database configuration management.
 
 import os
 from app.core.utils.single_ton import SingletonMeta
+from app.core.config.config_source_registry import BaseConfigSource, register_connections
 
 
-class DatabaseConfig(metaclass=SingletonMeta):
+@register_connections(['postgres', 'redis', 'mongodb', 'elasticsearch'])
+class DatabaseConfig(BaseConfigSource):
     """Database configuration for all database types."""
     
     @property

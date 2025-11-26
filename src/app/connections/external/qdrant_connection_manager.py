@@ -28,11 +28,6 @@ class QdrantConnectionManager(BaseConnectionManager):
         """Return the configuration name for Qdrant."""
         return ConnectionType.QDRANT.value
     
-    def get_config_source(self) -> Any:
-        """Return the vector database configuration source."""
-        from app.core.config.vector_config import vector_config
-        return vector_config
-    
     def validate_config(self) -> None:
         """Validate Qdrant configuration."""
         required_fields = ['url', 'collection_name']

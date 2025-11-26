@@ -29,11 +29,6 @@ class RedisConnectionManager(BaseConnectionManager):
         """Return the configuration name for Redis."""
         return ConnectionType.REDIS.value
     
-    def get_config_source(self) -> Any:
-        """Return the database configuration source."""
-        from app.core.config.database_config import database_config
-        return database_config
-    
     def validate_config(self) -> None:
         """Validate Redis configuration."""
         required_fields = ['host', 'port']

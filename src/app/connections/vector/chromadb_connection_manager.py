@@ -31,11 +31,6 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         """Return the configuration name for ChromaDB."""
         return ConnectionType.CHROMADB.value
     
-    def get_config_source(self) -> Any:
-        """Return the vector database configuration source."""
-        from app.core.config.vector_config import vector_config
-        return vector_config
-    
     def validate_config(self) -> None:
         """Validate ChromaDB configuration."""
         required_fields = ['collection_name']
