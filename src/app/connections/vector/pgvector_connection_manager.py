@@ -29,11 +29,6 @@ class PgVectorConnectionManager(BaseConnectionManager):
         """Return the configuration name for PgVector."""
         return ConnectionType.PGVECTOR.value
     
-    def get_config_source(self) -> Any:
-        """Return the vector database configuration source."""
-        from app.core.config.vector_config import vector_config
-        return vector_config
-    
     def validate_config(self) -> None:
         """Validate PgVector configuration."""
         required_fields = ['connection_string', 'collection_name']

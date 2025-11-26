@@ -24,7 +24,7 @@ class BaseConnectionManager(ABC):
         """
         # Get connection-specific configuration
         connection_name = self.get_connection_name()
-        config_source = self.get_config_source()
+        config_source = self._get_config_source(connection_name)
         self.config = config_source.get_connection_config(connection_name)
         
         # Initialize connection state
@@ -36,6 +36,24 @@ class BaseConnectionManager(ABC):
         
         logger.info(f"Initialized {self.__class__.__name__} connection manager")
     
+    def _get_config_source(self, connection_name: str) -> Any:
+        """
+        Get the appropriate configuration source for a connection.
+        
+        Uses the config source registry to automatically determine
+        the correct config source based on decorator registrations.
+        
+        Args:
+            connection_name: The name of the connection
+            
+        Returns:
+            The appropriate configuration source
+        """
+        from app.core.config.config_source_registry import ConfigSourceRegistry
+        
+       
+        return ConfigSourceRegistry.get_config_source(connection_name)
+       
     @abstractmethod
     def get_connection_name(self) -> str:
         """
@@ -43,16 +61,6 @@ class BaseConnectionManager(ABC):
         
         Returns:
             str: The configuration key to retrieve from the config source
-        """
-        pass
-    
-    @abstractmethod
-    def get_config_source(self) -> Any:
-        """
-        Return the configuration source for this connection type.
-        
-        Returns:
-            Config object with get_connection_config method
         """
         pass
     

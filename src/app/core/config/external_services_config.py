@@ -5,9 +5,11 @@ External services configuration management.
 import os
 from app.core.constants import AtlassianProperties
 from app.core.utils.single_ton import SingletonMeta
+from app.core.config.config_source_registry import BaseConfigSource, register_connections
 
 
-class ExternalServicesConfig(metaclass=SingletonMeta):
+@register_connections(['confluence', 'jira', 's3', 'sharepoint', 'github', 'bitbucket'])
+class ExternalServicesConfig(BaseConfigSource):
     """External services configuration (APIs, integrations, etc.)."""
     
     @property

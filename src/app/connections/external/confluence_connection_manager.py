@@ -27,11 +27,6 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         """Return the configuration name for Confluence."""
         return ConnectionType.CONFLUENCE.value
     
-    def get_config_source(self) -> Any:
-        """Return the external services configuration source."""
-        from app.core.config.external_services_config import external_services_config
-        return external_services_config
-    
     def validate_config(self) -> None:
         """Validate Confluence configuration."""
         required_fields = ['base_url', 'username', 'api_token']

@@ -5,9 +5,11 @@ Vector database configuration management.
 import os
 from pathlib import Path
 from app.core.utils.single_ton import SingletonMeta
+from app.core.config.config_source_registry import BaseConfigSource, register_connections
 
 
-class VectorConfig(metaclass=SingletonMeta):
+@register_connections(['qdrant', 'pgvector', 'chromadb', 'pinecone', 'weaviate', 'milvus', 'opensearch'])
+class VectorConfig(BaseConfigSource):
     """Vector database configuration for all vector database types."""
     
     def __init__(self):
