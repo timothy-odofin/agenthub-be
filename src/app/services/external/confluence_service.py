@@ -13,11 +13,11 @@ logger = get_logger(__name__)
 RESULT_KEY = "results"
 SIZE_KEY = "size"
 
-class AtlassianService(metaclass=SingletonMeta):
+class ConfluenceService(metaclass=SingletonMeta):
     """Abstract base class for Atlassian services."""
     def __init__(self):
         self._confluence = None
-        self.__init_confluence_client()
+        self.__init_client()
 
     def __extract_keys_from_data(self, data: list[Any], key: str) -> list[str]:
         return [item[key] for item in data]
@@ -114,7 +114,7 @@ class AtlassianService(metaclass=SingletonMeta):
         return full_content, self.__get_page_meta(page)
 
 
-    def __init_confluence_client(self):
+    def __init_client(self):
         if self._confluence is None:
             from app.core.config import config
             atlassian_config = config.atlassian_config

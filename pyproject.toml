@@ -14,15 +14,18 @@ python = ">=3.11,<3.13"
 fastapi = "^0.109.0"
 uvicorn = "^0.27.0"
 pydantic = "^2.6"
-httpx = "^0.26.0"
-python-multipart = "^0.0.9"
+httpx = ">=0.26.0,<0.29.0"
+python-multipart = ">=0.0.9,<0.1.0"
 
 # Database dependencies  
 sqlalchemy = "^2.0.27"
 alembic = "^1.13.1"
 psycopg2-binary = "^2.9.9"
-asyncpg = "^0.29.0"
-pgvector = "^0.2.5"
+asyncpg = ">=0.29.0,<0.32.0"
+pgvector = ">=0.2.5,<0.4.0"
+
+# NoSQL databases
+pymongo = ">=4.5.0,<5.0.0"
 
 # Task queue and caching
 redis = "^5.0.1"
@@ -31,7 +34,7 @@ celery = "^5.3.6"
 # Configuration and utilities
 python-dotenv = "^1.0.1"
 pyyaml = "^6.0.1"
-tenacity = "^8.2.3"
+tenacity = ">=8.2.3,<10.0.0"
 
 # Authentication and security
 python-jose = {extras = ["cryptography"], version = "^3.3.0"}
@@ -44,7 +47,7 @@ openpyxl = "^3.1.2"
 python-pptx = "^0.6.23"
 
 [tool.poetry.group.dev.dependencies]
-pytest = "^8.0.0"
+pytest = ">=8.0.0,<10.0.0"
 pytest-cov = "^4.1.0"
 pytest-asyncio = "^0.23.0"
 black = "^24.1.0"

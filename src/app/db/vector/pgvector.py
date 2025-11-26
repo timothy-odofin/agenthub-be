@@ -5,17 +5,16 @@ import uuid
 from datetime import datetime
 from typing import Any, Dict, List, Optional
 
-import asyncpg
 from langchain.schema import Document
 from langchain_postgres import PGVector
 from langchain_postgres.vectorstores import DistanceStrategy
 
 from .providers.db_provider import VectorDBRegistry
-from ...core.constants import EmbeddingType, VectorDBType
-from ...core.config import config
+from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ..repositories.pgvector_repo import PgVectorRepository
 from .base import VectorDB
 from app.db.vector.embeddings.embedding import EmbeddingFactory
+from app.connections.factory.connection_factory import ConnectionFactory
 
 @VectorDBRegistry.register(VectorDBType.PGVECTOR)
 class PgVectorDB(VectorDB):
@@ -24,12 +23,24 @@ class PgVectorDB(VectorDB):
     def __init__(self):
         super().__init__()
         self._repo: Optional[PgVectorRepository] = None
+        self._connection_manager = None
 
     def get_vector_db_config(self) -> Dict[str, Any]:
-        return config.pgvector_config
+        """Get vector database configuration via connection manager."""
+        if not self._connection_manager:
+            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.PGVECTOR)
+        return self._connection_manager.config
 
     async def _create_connection(self):
-        self._connection = await asyncpg.connect(self.config["connection_string"])
+        """Create connection to PgVector using the connection manager factory."""
+        # Get connection manager from factory if not already initialized
+        if not self._connection_manager:
+            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.PGVECTOR)
+        
+        # Use the connection manager to get the PostgreSQL connection
+        self._connection = await self._connection_manager.connect()
+        
+        # Initialize the repository with the connection
         self._repo = PgVectorRepository(self._connection)
         await self._repo.create_collection(
             self.config["collection_name"],
@@ -38,13 +49,15 @@ class PgVectorDB(VectorDB):
         return self._connection
 
     async def _close_connection(self):
-        if self._connection:
-            await self._connection.close()
+        """Close connection through the connection manager."""
+        if self._connection_manager:
+            await self._connection_manager.disconnect()
             self._connection = None
             self._repo = None
+            self._connection_manager = None  # Reset manager for clean state
 
     def _get_embeddings(self, embedding_type: EmbeddingType):
-        embedding_model = EmbeddingFactory.get_embedding_model(embedding_type, config)
+        embedding_model = EmbeddingFactory.get_embedding_model(embedding_type)
         distance_strategy_mapping = {
             "cosine": DistanceStrategy.COSINE,
             "euclidean": DistanceStrategy.EUCLIDEAN,
@@ -90,7 +103,7 @@ class PgVectorDB(VectorDB):
 
     async def search_similar(self, query: str, k: int = 5, filter_criteria: Optional[Dict[str, Any]] = None) -> List[
         Document]:
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI, config)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI)
         query_embedding = embedding_model.embed_query(query)
         return await self._repo.search_similar(self.config["collection_name"], query_embedding, k=k,
                                                filter_criteria=filter_criteria)

@@ -6,15 +6,13 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from langchain.schema import Document
 from langchain_qdrant import Qdrant as LangchainQdrant
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 
 from .providers.db_provider import VectorDBRegistry
-from ...core.config import config
-from ...core.constants import EmbeddingType, VectorDBType
+from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ...core.utils.logger import get_logger
 from .base import VectorDB, DocumentMetadata
 from app.db.vector.embeddings.embedding import EmbeddingFactory
+from app.connections.factory.connection_factory import ConnectionFactory
 
 logger = get_logger(__name__)
 
@@ -25,32 +23,26 @@ class QdrantDB(VectorDB, ABC):
     def __init__(self):
         super().__init__()
         self._vectorstore = None
+        self._connection_manager = None
 
     def get_vector_db_config(self) -> Dict[str, Any]:
-        return config.qdrant_config
+        """Get vector database configuration via connection manager."""
+        if not self._connection_manager:
+            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
+        return self._connection_manager.config
 
     async def _create_connection(self):
-        """Create connection to Qdrant."""
+        """Create connection to Qdrant using the connection manager factory."""
         try:
             logger.info("Obtaining Qdrant connection...")
-            self._connection = QdrantClient(
-                url=self.config["url"],
-                api_key=self.config["api_key"]
-            )
             
-            # Ensure collection exists
-            collections = self._connection.get_collections().collections
-            collection_names = [c.name for c in collections]
+            # Get connection manager from factory if not already initialized
+            if not self._connection_manager:
+                self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
             
-            if self.config["collection_name"] not in collection_names:
-                logger.info(f"Creating new collection: {self.config['collection_name']}")
-                self._connection.create_collection(
-                    collection_name=self.config["collection_name"],
-                    vectors_config=VectorParams(
-                        size=self.config["embedding_dimension"],
-                        distance=Distance.COSINE
-                    )
-                )
+            # Use the connection manager to establish connection
+            self._connection = await self._connection_manager.connect()
+            
             logger.info(f"Successfully obtained Qdrant connection to {self.config['url']}")
             return self._connection
             
@@ -60,9 +52,10 @@ class QdrantDB(VectorDB, ABC):
 
     async def _close_connection(self):
         """Close connection to Qdrant."""
-        if self._connection:
-            self._connection.close()
+        if self._connection_manager:
+            await self._connection_manager.disconnect()
             self._connection = None
+            self._connection_manager = None  # Reset manager for clean state
             logger.info("Successfully closed Qdrant connection.")
 
     def _get_vectorstore(self, embedding_function):
@@ -81,7 +74,7 @@ class QdrantDB(VectorDB, ABC):
         try:
             # Get embedding model
             logger.info(f"Saving {len(docs)} documents...")
-            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type,config)
+            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type)
             logger.info(f"Using embedding model: {embedding_model.__class__.__name__}")
             
             # Get vectorstore with embedding model
@@ -107,7 +100,7 @@ class QdrantDB(VectorDB, ABC):
         """Search for similar documents."""
         try:
             # Get embedding model (using default for now)
-            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
+            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT)
             
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
@@ -129,7 +122,7 @@ class QdrantDB(VectorDB, ABC):
     def as_retriever(self, **kwargs):
         """Return vectorstore as retriever."""
         # Use default embedding type if not specified
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT)
         vector_store = self._get_vectorstore(embedding_model)
         return vector_store.as_retriever(**kwargs)
 

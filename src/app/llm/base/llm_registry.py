@@ -1,0 +1,41 @@
+"""
+Registry for managing LLM providers.
+"""
+
+from typing import Dict, Type, Optional
+from app.core.constants import LLMProvider
+from app.core.utils.logger import get_logger
+
+logger = get_logger(__name__)
+
+
+class LLMRegistry:
+    """Central registry that keeps track of all available LLM providers."""
+    _registry: Dict[str, Type] = {}
+
+    @classmethod
+    def register(cls, provider: LLMProvider):
+        """Decorator to register a LLM provider class under a given name."""
+        def decorator(provider_cls):
+            cls._registry[provider] = provider_cls
+            logger.debug(f"Registered LLM provider: {provider}")
+            return provider_cls
+        return decorator
+
+    @classmethod
+    def get_provider_class(cls, provider: LLMProvider) -> Optional[Type]:
+        """Get a registered LLM provider class by name."""
+        if provider not in cls._registry:
+            available = list(cls._registry.keys())
+            raise ValueError(f"LLM provider '{provider}' not found in registry. Available: {available}")
+        return cls._registry[provider]
+
+    @classmethod
+    def list_providers(cls) -> list[str]:
+        """List all registered LLM providers."""
+        return list(cls._registry.keys())
+    
+    @classmethod
+    def is_provider_registered(cls, provider: LLMProvider) -> bool:
+        """Check if a provider is registered."""
+        return provider in cls._registry

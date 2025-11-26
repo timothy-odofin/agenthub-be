@@ -9,10 +9,10 @@ from langchain.schema import Document
 from langchain_community.vectorstores import Chroma
 
 from .providers.db_provider import VectorDBRegistry
-from ...core.constants import EmbeddingType, VectorDBType
-from ...core.config import config
+from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from .base import VectorDB, DocumentMetadata
 from app.db.vector.embeddings.embedding import EmbeddingFactory
+from app.connections.factory.connection_factory import ConnectionFactory
 
 @VectorDBRegistry.register(VectorDBType.CHROMA)
 class ChromaDB(VectorDB):
@@ -21,24 +21,40 @@ class ChromaDB(VectorDB):
     def __init__(self):
         super().__init__()
         self._collection = None
+        self._connection_manager = None
 
     def get_vector_db_config(self) -> Dict[str, Any]:
-        return config.chromadb_config
+        """Get vector database configuration via connection manager."""
+        if not self._connection_manager:
+            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.CHROMADB)
+        return self._connection_manager.config
 
     async def _create_connection(self):
-        # Initialize ChromaDB with persistence
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI, config)
+        """Initialize ChromaDB with the connection manager factory."""
+        # Get connection manager from factory if not already initialized
+        if not self._connection_manager:
+            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.CHROMADB)
+        
+        # Initialize ChromaDB with embedding model
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI)
+        
+        # Get the ChromaDB client from the connection manager
+        chroma_client = await self._connection_manager.connect()
         
         self._collection = Chroma(
             collection_name=self.config["collection_name"],
             embedding_function=embedding_model,
-            persist_directory=self.config.get("persist_directory", None)
+            persist_directory=self.config.get("persist_directory", None),
+            client=chroma_client
         )
         return self._collection
 
     async def _close_connection(self):
-        # Chroma does not require explicit close, but clear reference
-        self._collection = None
+        """Close the connection through the connection manager."""
+        if self._connection_manager:
+            await self._connection_manager.disconnect()
+            self._collection = None
+            self._connection_manager = None  # Reset manager for clean state
 
     async def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
         if not self._collection:
