@@ -43,14 +43,25 @@ class DatabaseConfig(BaseConfigSource):
     @property
     def mongodb_config(self) -> dict:
         """MongoDB configuration"""
+        username = os.getenv('MONGODB_USERNAME', 'admin')
+        password = os.getenv('MONGODB_PASSWORD', 'admin123')
+        host = os.getenv('MONGODB_HOST', 'localhost')
+        port = os.getenv('MONGODB_PORT', '27017')
+        database = os.getenv('MONGODB_DATABASE', 'polyagent_sessions')
+        
+        # Build connection string with auth if credentials are provided
+        if username and password:
+            connection_string = f"mongodb://{username}:{password}@{host}:{port}/{database}?authSource=admin"
+        else:
+            connection_string = f"mongodb://{host}:{port}/{database}"
+            
         return {
-            'host': os.getenv('MONGODB_HOST', 'localhost'),
-            'port': int(os.getenv('MONGODB_PORT', '27017')),
-            'database': os.getenv('MONGODB_DATABASE', 'agenthub'),
-            'username': os.getenv('MONGODB_USERNAME'),
-            'password': os.getenv('MONGODB_PASSWORD'),
-            'connection_string': os.getenv('MONGODB_CONNECTION_STRING', 
-                f"mongodb://{os.getenv('MONGODB_HOST', 'localhost')}:{os.getenv('MONGODB_PORT', '27017')}")
+            'host': host,
+            'port': int(port),
+            'database': database,
+            'username': username,
+            'password': password,
+            'connection_string': os.getenv('MONGODB_CONNECTION_STRING', connection_string)
         }
     
     @property
