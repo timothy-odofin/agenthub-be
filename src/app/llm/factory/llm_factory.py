@@ -30,7 +30,7 @@ class LLMFactory:
             provider: LLM provider to use (required)
             
         Returns:
-            LLM provider instance (not initialized)
+            LLM provider instance (lazy initialization)
             
         Raises:
             ValueError: If provider is not available or not registered
@@ -42,7 +42,7 @@ class LLMFactory:
         
         # Get provider class and create instance
         provider_class = LLMRegistry.get_provider_class(provider)
-        llm_instance = provider_class()  # Provider self-configures from LLMConfig
+        llm_instance = provider_class()  # Provider self-configures and handles lazy initialization
         
         logger.info(f"Created LLM instance: {provider}")
         return llm_instance

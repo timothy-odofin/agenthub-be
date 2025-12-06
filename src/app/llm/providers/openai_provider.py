@@ -25,7 +25,7 @@ class OpenAILLM(BaseLLMProvider):
             LLMCapability.FUNCTION_CALLING,
             LLMCapability.STREAMING,
         }
-    
+
     def get_config_name(self) -> str:
         """Return the configuration name for OpenAI provider."""
         return LLMProvider.OPENAI.value
@@ -49,7 +49,6 @@ class OpenAILLM(BaseLLMProvider):
         max_tokens = self.config.get('max_tokens')
         if max_tokens is not None and max_tokens <= 0:
             raise ValueError("OpenAI max_tokens must be greater than 0")
-        
         logger.info(f"OpenAI provider configuration validated successfully")
     
     @property

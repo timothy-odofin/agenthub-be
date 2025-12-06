@@ -24,7 +24,7 @@ class AnthropicLLM(BaseLLMProvider):
             LLMCapability.CODE_GENERATION,
             LLMCapability.STREAMING,
         }
-    
+
     def get_config_name(self) -> str:
         """Return the configuration name for Anthropic provider."""
         return LLMProvider.ANTHROPIC.value
@@ -50,11 +50,7 @@ class AnthropicLLM(BaseLLMProvider):
             raise ValueError("Anthropic max_tokens must be between 1 and 4096")
         
         logger.info(f"Anthropic provider configuration validated successfully")
-    
-    @property
-    def provider_name(self) -> str:
-        """Get provider name."""
-        return "anthropic"
+
     
     async def initialize(self) -> None:
         """Initialize the Anthropic LangChain client."""

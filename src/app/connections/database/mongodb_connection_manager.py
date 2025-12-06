@@ -202,7 +202,7 @@ class MongoDBConnectionManager(BaseConnectionManager):
     
     def get_database(self) -> Any:
         """Get the MongoDB database instance."""
-        if not self._database:
+        if self._database is None:
             raise RuntimeError("MongoDB connection not established. Call connect() first.")
         return self._database
     

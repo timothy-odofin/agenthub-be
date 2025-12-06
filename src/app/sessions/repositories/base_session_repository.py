@@ -22,7 +22,7 @@ class BaseSessionRepository(ABC):
     
     async def _ensure_connection(self):
         """Ensure database connection and create tables if needed."""
-        if not self._connection:
+        if self._connection is None:
             self._connection = await self._connection_manager.connect()
             await self._create_tables_if_not_exist()
         return self._connection

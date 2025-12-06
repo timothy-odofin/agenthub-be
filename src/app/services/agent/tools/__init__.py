@@ -1,5 +1,5 @@
 """
-Categorized tool system with automatic registration using manual imports.
+Categorized tool system with automatic registration.
 
 Package Structure:
 - database/: Vector stores, SQL, NoSQL tools
@@ -11,6 +11,7 @@ Package Structure:
 from .base.registry import ToolRegistry
 
 # Import all tool packages to trigger registration
+# This ensures that the @ToolRegistry.register decorators are executed
 from . import database
 from . import atlassian  
 # from . import web  # Commented out until web tools are implemented

@@ -25,11 +25,11 @@ class GoogleLLM(BaseLLMProvider):
             LLMCapability.MULTIMODAL,
             LLMCapability.STREAMING,
         }
-    
+
     def get_config_name(self) -> str:
         """Return the configuration name for Google provider."""
         return LLMProvider.GOOGLE.value
-    
+
     def validate_config(self) -> None:
         """Validate Google provider configuration."""
         if not self.config.get('api_key'):
@@ -51,11 +51,7 @@ class GoogleLLM(BaseLLMProvider):
             raise ValueError("Google max_tokens must be greater than 0")
         
         logger.info(f"Google provider configuration validated successfully")
-    
-    @property
-    def provider_name(self) -> str:
-        """Get provider name."""
-        return "google"
+
     
     async def initialize(self) -> None:
         """Initialize the Google LangChain client."""

@@ -1,7 +1,11 @@
 """Atlassian tools package with Jira and Confluence integrations."""
 
-# Import all tool categories to trigger registration
-from . import jira
+from app.core.utils.dynamic_import import import_providers
 
-# Export all categories
-__all__ = ['jira']
+# Atlassian tools modules configuration: (module_name, class_name)
+ATLASSIAN_TOOLS_MODULES = [
+    ('jira', 'JiraTools'),
+]
+
+# Import atlassian tools using the generic utility
+__all__ = import_providers(__name__, ATLASSIAN_TOOLS_MODULES, globals(), suppress_warnings=True)

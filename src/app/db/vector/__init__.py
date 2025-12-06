@@ -16,6 +16,11 @@ from .base import VectorDB, DocumentMetadata
 from .providers import VectorStoreFactory, EmbeddingFactory
 from .embeddings import EmbeddingFactory as EmbeddingFactoryAlias
 
+# Import vector database implementations to trigger registration decorators
+from . import qdrant
+from . import chromadb  
+from . import pgvector
+
 # Public API - only these classes are exported
 __all__ = [
     'VectorDB',           # Abstract base class for vector databases

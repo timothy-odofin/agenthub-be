@@ -21,24 +21,21 @@ class QdrantDB(VectorDB, ABC):
     """Qdrant vector database implementation."""
     
     def __init__(self):
-        super().__init__()
+        # Initialize connection manager before calling super()
+        self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
         self._vectorstore = None
-        self._connection_manager = None
+        
+        # Now call super() which will call get_vector_db_config()
+        super().__init__()
 
     def get_vector_db_config(self) -> Dict[str, Any]:
         """Get vector database configuration via connection manager."""
-        if not self._connection_manager:
-            self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
         return self._connection_manager.config
 
     async def _create_connection(self):
         """Create connection to Qdrant using the connection manager factory."""
         try:
             logger.info("Obtaining Qdrant connection...")
-            
-            # Get connection manager from factory if not already initialized
-            if not self._connection_manager:
-                self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
             
             # Use the connection manager to establish connection
             self._connection = await self._connection_manager.connect()
@@ -121,10 +118,41 @@ class QdrantDB(VectorDB, ABC):
 
     def as_retriever(self, **kwargs):
         """Return vectorstore as retriever."""
+        # Ensure connection is established (sync version)
+        self._ensure_connection_sync()
+        
         # Use default embedding type if not specified
         embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT)
         vector_store = self._get_vectorstore(embedding_model)
         return vector_store.as_retriever(**kwargs)
+    
+    def _ensure_connection_sync(self):
+        """Ensure connection is established (synchronous version)."""
+        if self._connection is None:
+            import asyncio
+            
+            # Create a new event loop for this thread
+            try:
+                # Try to get existing loop
+                loop = asyncio.get_event_loop()
+            except RuntimeError:
+                # No loop in this thread, create a new one
+                loop = None
+            
+            if loop is None or not loop.is_running():
+                # Create and run a new event loop
+                new_loop = asyncio.new_event_loop()
+                asyncio.set_event_loop(new_loop)
+                try:
+                    new_loop.run_until_complete(self._create_connection())
+                finally:
+                    new_loop.close()
+                    # Reset to no event loop for this thread
+                    asyncio.set_event_loop(None)
+            else:
+                # There's a running loop, we can't run another one
+                # This shouldn't happen in a tool context, but just in case
+                raise RuntimeError("Cannot establish connection from within an async context. Connection should be established beforehand.")
 
     async def delete_by_document_id(self, document_id: str) -> bool:
         """Delete all chunks of a document by its ID."""

@@ -30,7 +30,7 @@ class BaseLLMProvider(ABC):
         self._initialized = False
         # Validate configuration early to fail fast
         self.validate_config()
-    
+
     @abstractmethod
     def get_config_name(self) -> str:
         """Return the configuration name/key for this provider.
@@ -39,7 +39,17 @@ class BaseLLMProvider(ABC):
             str: The configuration key to retrieve from LLMConfig
         """
         pass
-    
+
+    async def _ensure_initialized(self):
+        """Ensure the provider is initialized. Call this before using the client."""
+        if not self._initialized:
+            await self.initialize()
+
+    @property
+    def initialized_client(self):
+        """Get the client if initialized, None otherwise. Use this for sync access."""
+        return self.client if self._initialized else None
+
     @abstractmethod
     def validate_config(self) -> None:
         """Validate the provider configuration.
@@ -94,12 +104,7 @@ class BaseLLMProvider(ABC):
     def supports_capability(self, capability: LLMCapability) -> bool:
         """Check if provider supports specific capability."""
         pass
-    
-    @property
-    @abstractmethod
-    def provider_name(self) -> str:
-        """Get provider name."""
-        pass
+
     
     @property
     def default_model(self) -> str:
