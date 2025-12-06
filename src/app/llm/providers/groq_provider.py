@@ -24,7 +24,7 @@ class GroqLLM(BaseLLMProvider):
             LLMCapability.FUNCTION_CALLING,
             LLMCapability.STREAMING,
         }
-    
+
     def get_config_name(self) -> str:
         """Return the configuration name for Groq provider."""
         return LLMProvider.GROQ.value
@@ -51,11 +51,7 @@ class GroqLLM(BaseLLMProvider):
             raise ValueError("Groq max_tokens must be between 1 and 32768")
         
         logger.info(f"Groq provider configuration validated successfully")
-    
-    @property
-    def provider_name(self) -> str:
-        """Get provider name."""
-        return "groq"
+
     
     async def initialize(self) -> None:
         """Initialize the Groq LangChain client."""

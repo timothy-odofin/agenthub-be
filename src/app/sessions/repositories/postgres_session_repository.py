@@ -8,8 +8,10 @@ from app.sessions.repositories.base_session_repository import BaseSessionReposit
 from app.sessions.models.session import ChatSession
 from app.sessions.models.message import ChatMessage
 from app.connections.base import ConnectionType
+from app.sessions.repositories.session_repository_factory import register_repository, SessionRepositoryType
 
 
+@register_repository(SessionRepositoryType.POSTGRES)
 class PostgresSessionRepository(BaseSessionRepository):
     """PostgreSQL implementation of session repository."""
     
