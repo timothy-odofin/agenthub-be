@@ -1,10 +1,10 @@
 # Vector Database Configuration
 # Settings for vector databases and similarity search
-
-provider: "qdrant"                   # Default vector database
-embedding: "openai"                  # Default embedding provider
-similarity_threshold: 0.7            # Minimum similarity score
-max_results: 10                      # Maximum search results
+default:
+  provider: "qdrant"                   # Default vector database
+  embedding: "openai"                  # Default embedding provider
+  similarity_threshold: 0.7            # Minimum similarity score
+  max_results: 10                      # Maximum search results
 
 # Provider-specific configurations
 qdrant:
