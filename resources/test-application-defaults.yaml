@@ -1,0 +1,9 @@
+database:
+  provider: test_database
+llm:
+  model: test_model
+  provider: test_provider
+  temperature: 0.5
+vector_db:
+  collection_name: test_collection
+  provider: test_vector_db

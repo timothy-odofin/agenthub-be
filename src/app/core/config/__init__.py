@@ -2,15 +2,26 @@
 Configuration management package.
 
 This package provides domain-separated configuration classes for better
-organization and maintainability.
+organization and maintainability, plus centralized default configuration management.
+
+The package is now organized into:
+- framework/: Core configuration framework (Settings, DynamicConfig, etc.)
+- providers/: Infrastructure provider configurations (database, vector, external)
+- application/: Application-specific configurations (app, llm)
+- utils/: Configuration utilities and helpers
 """
 
-from .app_config import app_config
-from .database_config import database_config
-from .vector_config import vector_config
-from .external_services_config import external_services_config
-from .llm_config import llm_config
-# from .session_config import session_config  # Future addition example
+# Import from reorganized structure
+from .framework import Settings, settings, DynamicConfig, YamlLoader
+from .providers import database_config, vector_config, external_services_config
+from .application import app_config, llm_config
+
+# Backward compatibility imports - maintain existing import paths
+from .providers.database import database_config
+from .providers.vector import vector_config
+from .providers.external import external_services_config
+from .application.app import app_config
+from .application.llm import llm_config
 
 # Backward compatibility - create a unified config object
 class UnifiedConfig:
@@ -109,7 +120,7 @@ class UnifiedConfig:
 # Create the unified config instance for backward compatibility
 config = UnifiedConfig()
 
-# Export both new modular configs and unified config
+# Export both new modular configs, unified config, and settings system
 __all__ = [
     'app_config',
     'database_config', 
@@ -117,4 +128,8 @@ __all__ = [
     'external_services_config',
     'llm_config',
     'config',  # Backward compatibility
+    'Settings',  # New profile-based settings system
+    'settings',  # Module-level instance for convenience
+    'DynamicConfig',
+    'YamlLoader',
 ]

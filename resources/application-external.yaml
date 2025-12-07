@@ -1,0 +1,45 @@
+# External Services Configuration
+# Settings for external API integrations and third-party services
+
+# Atlassian Services (Confluence & Jira)
+atlassian:
+  api_key: "${ATLASSIAN_API_KEY}"    # None if not set
+  email: "${ATLASSIAN_EMAIL}"
+  confluence_base_url: "${ATLASSIAN_BASE_URL_CONFLUENCE}"
+  jira_base_url: "${ATLASSIAN_BASE_URL_JIRA}"
+
+# GitHub Integration
+github:
+  api_key: "${GITHUB_API_KEY}"       # None if not set (for public repos)
+  base_url: "${GITHUB_BASE_URL:https://api.github.com}"
+  timeout: "${GITHUB_TIMEOUT:30}"
+
+# Bitbucket Integration
+bitbucket:
+  username: "${BITBUCKET_USERNAME}"
+  app_password: "${BITBUCKET_APP_PASSWORD}"
+  base_url: "${BITBUCKET_BASE_URL:https://api.bitbucket.org/2.0}"
+  timeout: "${BITBUCKET_TIMEOUT:30}"
+
+# AWS S3 Storage
+s3:
+  access_key_id: "${AWS_ACCESS_KEY_ID}"
+  secret_access_key: "${AWS_SECRET_ACCESS_KEY}"
+  region: "${AWS_REGION:us-east-1}"
+  bucket_name: "${S3_BUCKET_NAME}"
+  endpoint_url: "${S3_ENDPOINT_URL}"  # For S3-compatible services
+
+# SharePoint Integration
+sharepoint:
+  tenant_id: "${SHAREPOINT_TENANT_ID}"
+  client_id: "${SHAREPOINT_CLIENT_ID}"
+  client_secret: "${SHAREPOINT_CLIENT_SECRET}"
+  site_url: "${SHAREPOINT_SITE_URL}"
+  timeout: "${SHAREPOINT_TIMEOUT:60}"
+
+# LangChain Observability
+langchain:
+  api_key: "${LANGCHAIN_API_KEY}"
+  project: "${LANGCHAIN_PROJECT:agenthub}"
+  tracing_v2: "${LANGCHAIN_TRACING_V2:true}"
+  endpoint: "${LANGCHAIN_ENDPOINT:https://api.smith.langchain.com}"
