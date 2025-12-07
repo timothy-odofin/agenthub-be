@@ -2,12 +2,13 @@
 # Provider settings and model configurations for language models
 
 # Default provider settings
-provider: "${DEFAULT_LLM_PROVIDER:openai}"
-model: "${DEFAULT_LLM_MODEL:gpt-4}"
-temperature: 0.1                     # Conservative temperature for consistency
-max_tokens: 4096                     # Default token limit
-timeout: 30                          # Request timeout in seconds
-max_retries: 3                       # Number of retry attempts
+default:
+  provider: "${DEFAULT_LLM_PROVIDER:openai}"
+  model: "${DEFAULT_LLM_MODEL:gpt-4}"
+  temperature: 0.1                     # Conservative temperature for consistency
+  max_tokens: 4096                     # Default token limit
+  timeout: 30                          # Request timeout in seconds
+  max_retries: 3                       # Number of retry attempts
 
 # Provider-specific configurations
 openai:

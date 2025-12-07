@@ -1,12 +1,12 @@
 # Database Configuration
 # Settings for primary data storage databases
-
-provider: "mongodb"                  # Default database provider
-host: "${POSTGRES_HOST:localhost}"   # Database host with environment variable
-port: "${POSTGRES_PORT:27017}"       # Database port with environment variable
-connection_timeout: 30               # Connection timeout in seconds
-query_timeout: 60                    # Query timeout in seconds
-max_connections: 10                 # Maximum connection pool size
+default:
+  provider: "mongodb"                  # Default database provider
+  host: "${POSTGRES_HOST:localhost}"   # Database host with environment variable
+  port: "${POSTGRES_PORT:27017}"       # Database port with environment variable
+  connection_timeout: 30               # Connection timeout in seconds
+  query_timeout: 60                    # Query timeout in seconds
+  max_connections: 10                 # Maximum connection pool size
 
 # Provider-specific configurations
 mongodb:

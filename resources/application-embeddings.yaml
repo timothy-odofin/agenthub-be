@@ -1,12 +1,12 @@
 # Embedding Configuration
 # Settings for text embedding providers and models
-
-provider: "openai"                   # Default embedding provider
-model: "${OPENAI_EMBEDDING_MODEL:text-embedding-ada-002}"
-chunk_size: 1000                    # Default text chunk size
-chunk_overlap: 200                  # Default chunk overlap
-batch_size: "${EMBEDDING_BATCH_SIZE:100}"
-device: "${EMBEDDING_DEVICE:cpu}"   # Device for local models
+default:
+  provider: "openai"                   # Default embedding provider
+  model: "${OPENAI_EMBEDDING_MODEL:text-embedding-ada-002}"
+  chunk_size: 1000                    # Default text chunk size
+  chunk_overlap: 200                  # Default chunk overlap
+  batch_size: "${EMBEDDING_BATCH_SIZE:100}"
+  device: "${EMBEDDING_DEVICE:cpu}"   # Device for local models
 
 # Provider-specific configurations
 openai:

@@ -70,3 +70,4 @@ dmypy.json
 # Celery
 celerybeat-schedule
 celerybeat.pid
+/examples
