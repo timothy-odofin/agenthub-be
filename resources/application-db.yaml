@@ -1,0 +1,50 @@
+# Database Configuration
+# Settings for primary data storage databases
+
+provider: "mongodb"                  # Default database provider
+host: "${POSTGRES_HOST:localhost}"   # Database host with environment variable
+port: "${POSTGRES_PORT:27017}"       # Database port with environment variable
+connection_timeout: 30               # Connection timeout in seconds
+query_timeout: 60                    # Query timeout in seconds
+max_connections: 10                 # Maximum connection pool size
+
+# Provider-specific configurations
+mongodb:
+  # Option 1: Atlas/Custom connection string
+  connection_string: "${MONGODB_CONNECTION_STRING}"
+  database: "${MONGODB_DATABASE:agenthub}"
+  
+  # Option 2: Individual components (local/Docker)
+  host: "${MONGODB_HOST:localhost}"
+  port: "${MONGODB_PORT:27017}"
+  username: "${MONGODB_USERNAME}"
+  password: "${MONGODB_PASSWORD}"
+  max_pool_size: 10
+  server_selection_timeout_ms: 30000
+
+postgresql:
+  host: "${POSTGRES_HOST:localhost}"
+  port: "${POSTGRES_PORT:5432}"
+  database: "${POSTGRES_DB:agenthub}"
+  username: "${POSTGRES_USER:admin}"
+  password: "${POSTGRES_PASSWORD}"
+  max_pool_size: 10
+  connection_timeout: 30
+
+redis:
+  host: "${REDIS_HOST:localhost}"
+  port: "${REDIS_PORT:6379}"
+  password: "${REDIS_PASSWORD}"  # None if not set
+  database: "${REDIS_DB:0}"
+  max_connections: 10
+  socket_timeout: 30
+
+# Elasticsearch configuration (optional)
+elasticsearch:
+  host: "${ELASTICSEARCH_HOST:localhost}"
+  port: "${ELASTICSEARCH_PORT:9200}"
+  username: "${ELASTICSEARCH_USERNAME}"  # None if not set
+  password: "${ELASTICSEARCH_PASSWORD}"  # None if not set
+  use_ssl: "${ELASTICSEARCH_USE_SSL:false}"
+  verify_certs: "${ELASTICSEARCH_VERIFY_CERTS:false}"
+  index_prefix: "${ELASTICSEARCH_INDEX_PREFIX:agenthub}"

@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict
 
-from app.core.config.vector_config import vector_config
+from app.core.config.providers.vector import vector_config
 from app.core.constants import EmbeddingType
 from app.core.utils.logger import get_logger
 

@@ -2,7 +2,7 @@
 LLM configuration utilities.
 """
 
-from app.core.config.llm_config import llm_config as core_llm_config
+from app.core.config.application.llm import llm_config as core_llm_config
 
 
 class LLMConfig:

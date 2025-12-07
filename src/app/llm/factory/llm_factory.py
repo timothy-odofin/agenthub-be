@@ -51,7 +51,7 @@ class LLMFactory:
     def get_default_llm() -> BaseLLMProvider:
         """Get the default LLM instance based on configuration."""
         # Import here to avoid circular imports
-        from app.core.config.llm_config import llm_config
+        from app.core.config.application.llm import llm_config
         
         default_provider_str = llm_config.get_default_provider()
         if not default_provider_str:
@@ -75,7 +75,7 @@ class LLMFactory:
         """Check if a provider is available and properly configured."""
         try:
             # Import here to avoid circular imports
-            from app.core.config.llm_config import llm_config
+            from app.core.config.application.llm import llm_config
             provider_config = llm_config.get_provider_config(provider.value)
             
             return (LLMRegistry.is_provider_registered(provider) and 

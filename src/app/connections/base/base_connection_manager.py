@@ -49,7 +49,7 @@ class BaseConnectionManager(ABC):
         Returns:
             The appropriate configuration source
         """
-        from app.core.config.config_source_registry import ConfigSourceRegistry
+        from app.core.config.framework.registry import ConfigSourceRegistry
         
        
         return ConfigSourceRegistry.get_config_source(connection_name)

@@ -24,7 +24,7 @@ class BaseLLMProvider(ABC):
     def __init__(self):
         # Use template method pattern - child defines config name, base retrieves it
         config_name = self.get_config_name()
-        from app.core.config.llm_config import llm_config
+        from app.core.config.application.llm import llm_config
         self.config = llm_config.get_provider_config(config_name)
         self.client = None
         self._initialized = False
