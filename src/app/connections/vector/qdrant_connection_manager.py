@@ -54,15 +54,15 @@ class QdrantConnectionManager(BaseConnectionManager):
         
         logger.info("Qdrant connection configuration validated successfully")
     
-    async def connect(self) -> QdrantClient:
+    def connect(self) -> QdrantClient:
         """Establish Qdrant connection."""
         if self._qdrant_client:
             # Test existing connection
-            if await self._test_connection():
+            if self._test_connection():
                 return self._qdrant_client
             else:
                 # Connection might be stale, recreate
-                await self.disconnect()
+                self.disconnect()
         
         try:
             # Create Qdrant client
@@ -112,7 +112,7 @@ class QdrantConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to connect to Qdrant: {e}")
             raise ConnectionError(f"Qdrant connection failed: {e}")
     
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Close Qdrant connection."""
         if self._qdrant_client:
             try:
@@ -138,8 +138,8 @@ class QdrantConnectionManager(BaseConnectionManager):
         except Exception:
             return False
     
-    async def _test_connection(self) -> bool:
-        """Test Qdrant connection asynchronously."""
+    def _test_connection(self) -> bool:
+        """Test Qdrant connection synchronously."""
         if not self._qdrant_client:
             return False
         
@@ -152,7 +152,7 @@ class QdrantConnectionManager(BaseConnectionManager):
     
     # Qdrant-specific convenience methods
     
-    async def get_collection_info(self, collection_name: Optional[str] = None) -> Dict:
+    def get_collection_info(self, collection_name: Optional[str] = None) -> Dict:
         """
         Get information about a collection.
         
@@ -162,7 +162,7 @@ class QdrantConnectionManager(BaseConnectionManager):
         Returns:
             Collection information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if collection_name is None:
             collection_name = self.config['collection_name']
@@ -173,14 +173,14 @@ class QdrantConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get collection info for {collection_name}: {e}")
             raise
     
-    async def list_collections(self) -> List[Dict]:
+    def list_collections(self) -> List[Dict]:
         """
         List all collections in Qdrant.
         
         Returns:
             List of collection information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             collections = self._qdrant_client.get_collections()
@@ -196,7 +196,7 @@ class QdrantConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to list collections: {e}")
             raise
     
-    async def count_points(self, collection_name: Optional[str] = None) -> int:
+    def count_points(self, collection_name: Optional[str] = None) -> int:
         """
         Count points in a collection.
         
@@ -206,7 +206,7 @@ class QdrantConnectionManager(BaseConnectionManager):
         Returns:
             Number of points in collection
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if collection_name is None:
             collection_name = self.config['collection_name']
@@ -218,7 +218,7 @@ class QdrantConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to count points in {collection_name}: {e}")
             return 0
     
-    async def delete_collection(self, collection_name: str) -> bool:
+    def delete_collection(self, collection_name: str) -> bool:
         """
         Delete a collection.
         
@@ -228,7 +228,7 @@ class QdrantConnectionManager(BaseConnectionManager):
         Returns:
             True if successfully deleted
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             self._qdrant_client.delete_collection(collection_name=collection_name)
@@ -238,7 +238,7 @@ class QdrantConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to delete collection {collection_name}: {e}")
             return False
     
-    async def search_points(
+    def search_points(
         self, 
         vector: List[float], 
         limit: int = 10,
@@ -257,7 +257,7 @@ class QdrantConnectionManager(BaseConnectionManager):
         Returns:
             List of search results
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if collection_name is None:
             collection_name = self.config['collection_name']

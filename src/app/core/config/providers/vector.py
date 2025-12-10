@@ -3,11 +3,11 @@ Vector database configuration management using Settings system.
 """
 
 from pathlib import Path
-from ..framework.registry import BaseConfigSource, register_connections
+from ..framework.registry import BaseConfigSource, register_config
 from ..framework.settings import settings
 
 
-@register_connections(['qdrant', 'pgvector', 'chromadb', 'pinecone', 'weaviate', 'milvus', 'opensearch'])
+@register_config(['qdrant', 'pgvector', 'chromadb', 'pinecone', 'weaviate', 'milvus', 'opensearch'])
 class VectorConfig(BaseConfigSource):
     """Vector database configuration for all vector database types using Settings system."""
     

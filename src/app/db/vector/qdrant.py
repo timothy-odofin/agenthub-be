@@ -32,13 +32,13 @@ class QdrantDB(VectorDB, ABC):
         """Get vector database configuration via connection manager."""
         return self._connection_manager.config
 
-    async def _create_connection(self):
+    def _create_connection(self):
         """Create connection to Qdrant using the connection manager factory."""
         try:
             logger.info("Obtaining Qdrant connection...")
             
-            # Use the connection manager to establish connection
-            self._connection = await self._connection_manager.connect()
+            # Use the connection manager to establish connection (now sync)
+            self._connection = self._connection_manager.connect()
             
             logger.info(f"Successfully obtained Qdrant connection to {self.config['url']}")
             return self._connection
@@ -47,10 +47,10 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to connect to Qdrant: {str(e)}")
             raise
 
-    async def _close_connection(self):
+    def _close_connection(self):
         """Close connection to Qdrant."""
         if self._connection_manager:
-            await self._connection_manager.disconnect()
+            self._connection_manager.disconnect()
             self._connection = None
             self._connection_manager = None  # Reset manager for clean state
             logger.info("Successfully closed Qdrant connection.")
@@ -66,7 +66,7 @@ class QdrantDB(VectorDB, ABC):
         logger.info("Using existing Qdrant vectorstore instance.")
         return self._vectorstore
 
-    async def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
+    def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
         """Save documents and generate embeddings."""
         try:
             # Get embedding model
@@ -77,7 +77,7 @@ class QdrantDB(VectorDB, ABC):
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
             
-            # Add documents
+            # Add documents (sync operation)
             logger.info("Adding documents to Qdrant...")
             ids = vectorstore.add_documents(docs)
             logger.info(f"Successfully added {len(docs)} documents to Qdrant collection {self.config['collection_name']}")
@@ -88,7 +88,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to save documents to Qdrant: {str(e)}")
             raise
 
-    async def search_similar(
+    def search_similar(
         self,
         query: str,
         k: int = 5,
@@ -102,7 +102,7 @@ class QdrantDB(VectorDB, ABC):
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
             
-            # Perform search
+            # Perform search (sync operation)
             docs = vectorstore.similarity_search(
                 query,
                 k=k,
@@ -154,7 +154,7 @@ class QdrantDB(VectorDB, ABC):
                 # This shouldn't happen in a tool context, but just in case
                 raise RuntimeError("Cannot establish connection from within an async context. Connection should be established beforehand.")
 
-    async def delete_by_document_id(self, document_id: str) -> bool:
+    def delete_by_document_id(self, document_id: str) -> bool:
         """Delete all chunks of a document by its ID."""
         try:
             logger.info(f"Deleting document with ID: {document_id}")
@@ -184,7 +184,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to delete document {document_id}: {str(e)}")
             return False
 
-    async def get_document_metadata(self, document_id: str) -> Optional[DocumentMetadata]:
+    def get_document_metadata(self, document_id: str) -> Optional[DocumentMetadata]:
         """Get metadata for a document."""
         try:
             from qdrant_client.http.models import Filter, FieldCondition, MatchValue
@@ -223,21 +223,21 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to get metadata for document {document_id}: {str(e)}")
             return None
 
-    async def update_document(self, document_id: str, updated_doc: Document, embedding_type: EmbeddingType) -> bool:
+    def update_document(self, document_id: str, updated_doc: Document, embedding_type: EmbeddingType) -> bool:
         """Update an existing document."""
         try:
             logger.info(f"Updating document with ID: {document_id}")
             
-            # First delete the old document
-            delete_success = await self.delete_by_document_id(document_id)
+            # First delete the old document (sync operation)
+            delete_success = self.delete_by_document_id(document_id)
             if not delete_success:
                 logger.error(f"Failed to delete old document {document_id}")
                 return False
             
-            # Then add the updated document
+            # Then add the updated document (sync operation)
             # Make sure the document has the same ID in metadata
             updated_doc.metadata["document_id"] = document_id
-            ids = await self.save_and_embed(embedding_type, [updated_doc])
+            ids = self.save_and_embed(embedding_type, [updated_doc])
             
             success = len(ids) > 0
             if success:

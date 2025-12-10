@@ -107,15 +107,15 @@ class MongoDBConnectionManager(BaseConnectionManager):
         
         return connection_string
     
-    async def connect(self) -> MongoClient:
+    def connect(self) -> MongoClient:
         """Establish MongoDB connection."""
         if self._mongo_client:
             # Test existing connection
-            if await self._test_connection():
+            if self._test_connection():
                 return self._mongo_client
             else:
                 # Connection might be stale, recreate
-                await self.disconnect()
+                self.disconnect()
         
         try:
             # Build connection string
@@ -160,7 +160,7 @@ class MongoDBConnectionManager(BaseConnectionManager):
             logger.error(f"Unexpected error connecting to MongoDB: {e}")
             raise ConnectionError(f"MongoDB connection failed: {e}")
     
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Close MongoDB connection."""
         if self._mongo_client:
             try:
@@ -186,8 +186,8 @@ class MongoDBConnectionManager(BaseConnectionManager):
         except Exception:
             return False
     
-    async def _test_connection(self) -> bool:
-        """Test MongoDB connection asynchronously."""
+    def _test_connection(self) -> bool:
+        """Test MongoDB connection synchronously."""
         if not self._mongo_client:
             return False
         

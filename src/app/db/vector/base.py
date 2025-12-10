@@ -250,13 +250,31 @@ class VectorDB(ABC):
     async def get_connection(self):
         """Get or create database connection."""
         if self._connection is None:
-            self._connection = await self._create_connection()
+            # Check if _create_connection is async or sync
+            import asyncio
+            import inspect
+            
+            if inspect.iscoroutinefunction(self._create_connection):
+                # Async connection
+                self._connection = await self._create_connection()
+            else:
+                # Sync connection 
+                self._connection = self._create_connection()
         return self._connection
     
     async def close_connection(self):
         """Close database connection."""
         if self._connection:
-            await self._close_connection()
+            # Check if _close_connection is async or sync
+            import asyncio
+            import inspect
+            
+            if inspect.iscoroutinefunction(self._close_connection):
+                # Async close
+                await self._close_connection()
+            else:
+                # Sync close 
+                self._close_connection()
             self._connection = None
     
     @abstractmethod

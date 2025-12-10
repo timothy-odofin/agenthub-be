@@ -10,14 +10,14 @@ from typing import Any, Optional
 import asyncpg
 from asyncpg import Connection, Pool
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 @ConnectionRegistry.register(ConnectionType.POSTGRES)
-class PostgresConnectionManager(BaseConnectionManager):
+class PostgresConnectionManager(AsyncBaseConnectionManager):
     """PostgreSQL connection manager implementation."""
     
     def __init__(self):

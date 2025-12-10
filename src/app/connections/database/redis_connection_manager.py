@@ -10,14 +10,14 @@ import redis.asyncio as redis
 from redis.asyncio import Redis, ConnectionPool
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
 
 @ConnectionRegistry.register(ConnectionType.REDIS)
-class RedisConnectionManager(BaseConnectionManager):
+class RedisConnectionManager(AsyncBaseConnectionManager):
     """Redis connection manager implementation."""
     
     def __init__(self):

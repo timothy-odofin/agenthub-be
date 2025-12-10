@@ -78,7 +78,7 @@ class BaseConnectionManager(ABC):
         pass
     
     @abstractmethod
-    async def connect(self) -> Any:
+    def connect(self) -> Any:
         """
         Establish the connection.
         
@@ -91,7 +91,7 @@ class BaseConnectionManager(ABC):
         pass
     
     @abstractmethod
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """
         Close the connection and cleanup resources.
         """
@@ -119,7 +119,7 @@ class BaseConnectionManager(ABC):
         """Get the connection object."""
         return self._connection
     
-    async def ensure_connected(self) -> Any:
+    def ensure_connected(self) -> Any:
         """
         Ensure connection is established, connect if needed.
         
@@ -127,10 +127,10 @@ class BaseConnectionManager(ABC):
             The connection object
         """
         if not self.is_connected or not self.is_healthy():
-            await self.connect()
+            self.connect()
         return self._connection
     
-    async def reconnect(self) -> Any:
+    def reconnect(self) -> Any:
         """
         Force reconnection by disconnecting and connecting again.
         
@@ -138,8 +138,8 @@ class BaseConnectionManager(ABC):
             The new connection object
         """
         if self.is_connected:
-            await self.disconnect()
-        return await self.connect()
+            self.disconnect()
+        return self.connect()
     
     def get_connection_info(self) -> Dict[str, Any]:
         """
@@ -156,11 +156,11 @@ class BaseConnectionManager(ABC):
             'config_keys': list(self.config.keys()) if self.config else []
         }
     
-    async def __aenter__(self):
-        """Async context manager entry."""
-        await self.ensure_connected()
+    def __enter__(self):
+        """Sync context manager entry."""
+        self.ensure_connected()
         return self
     
-    async def __aexit__(self, exc_type, exc_val, exc_tb):
-        """Async context manager exit."""
-        await self.disconnect()
+    def __exit__(self, exc_type, exc_val, exc_tb):
+        """Sync context manager exit."""
+        self.disconnect()

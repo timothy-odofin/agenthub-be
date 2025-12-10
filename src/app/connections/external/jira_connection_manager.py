@@ -47,15 +47,15 @@ class JiraConnectionManager(BaseConnectionManager):
         
         logger.info("Jira connection configuration validated successfully")
     
-    async def connect(self) -> Jira:
+    def connect(self) -> Jira:
         """Establish Jira connection."""
         if self._jira_client:
             # Test existing connection
-            if await self._test_connection():
+            if self._test_connection():
                 return self._jira_client
             else:
                 # Connection might be stale, recreate
-                await self.disconnect()
+                self.disconnect()
         
         try:
             # Create requests session for connection pooling
@@ -72,7 +72,7 @@ class JiraConnectionManager(BaseConnectionManager):
             )
             
             # Test connection by getting server info
-            server_info = self._jira_client.server_info()
+            server_info = self._jira_client.get_server_info()
             logger.info(f"Connected to Jira server: {server_info.get('serverTitle', 'Unknown')} "
                        f"version {server_info.get('version', 'Unknown')}")
             
@@ -88,7 +88,7 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to connect to Jira: {e}")
             raise ConnectionError(f"Jira connection failed: {e}")
     
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Close Jira connection."""
         try:
             if self._session:
@@ -114,31 +114,31 @@ class JiraConnectionManager(BaseConnectionManager):
         except Exception:
             return False
     
-    async def _test_connection(self) -> bool:
+    def _test_connection(self) -> bool:
         """Test Jira connection asynchronously."""
         if not self._jira_client:
             return False
         
         try:
             # Test with a simple API call
-            self._jira_client.server_info()
+            self._jira_client.get_server_info()
             return True
         except Exception:
             return False
     
     # Jira-specific convenience methods
     
-    async def get_server_info(self) -> Dict:
+    def get_server_info(self) -> Dict:
         """Get Jira server information."""
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
-            return self._jira_client.server_info()
+            return self._jira_client.get_server_info()
         except Exception as e:
             logger.error(f"Failed to get server info: {e}")
             raise
     
-    async def search_issues(self, jql: str, limit: int = 50, fields: Optional[List[str]] = None) -> Dict:
+    def search_issues(self, jql: str, limit: int = 50, fields: Optional[List[str]] = None) -> Dict:
         """
         Search for issues using JQL.
         
@@ -150,15 +150,26 @@ class JiraConnectionManager(BaseConnectionManager):
         Returns:
             Search results
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
-            return self._jira_client.jql(jql, limit=limit, fields=fields)
+            # Use API v3 endpoint instead of deprecated v2
+            params = {
+                'jql': jql,
+                'maxResults': limit,
+                'startAt': 0
+            }
+            
+            if fields:
+                params['fields'] = ','.join(fields) if isinstance(fields, list) else fields
+                
+            # Use the get method with API v3 endpoint
+            return self._jira_client.get('/rest/api/3/search/jql', params=params)
         except Exception as e:
             logger.error(f"Failed to search issues with JQL '{jql}': {e}")
             raise
     
-    async def get_issue(self, issue_key: str, fields: Optional[str] = None, expand: Optional[str] = None) -> Dict:
+    def get_issue(self, issue_key: str, fields: Optional[str] = None, expand: Optional[str] = None) -> Dict:
         """
         Get a specific issue by key.
         
@@ -170,7 +181,7 @@ class JiraConnectionManager(BaseConnectionManager):
         Returns:
             Issue data
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             return self._jira_client.issue(issue_key, fields=fields, expand=expand)
@@ -178,7 +189,7 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get issue {issue_key}: {e}")
             raise
     
-    async def create_issue(self, project_key: str, summary: str, description: str, 
+    def create_issue(self, project_key: str, summary: str, description: str, 
                           issue_type: str = "Task", **additional_fields) -> Dict:
         """
         Create a new issue.
@@ -193,7 +204,7 @@ class JiraConnectionManager(BaseConnectionManager):
         Returns:
             Created issue data
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             issue_data = {
@@ -213,9 +224,9 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to create issue: {e}")
             raise
     
-    async def get_projects(self) -> List[Dict]:
+    def get_projects(self) -> List[Dict]:
         """Get all accessible projects."""
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             return self._jira_client.projects()
@@ -223,9 +234,9 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get projects: {e}")
             raise
     
-    async def get_issue_types(self) -> List[Dict]:
+    def get_issue_types(self) -> List[Dict]:
         """Get all issue types."""
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             return self._jira_client.issue_types()

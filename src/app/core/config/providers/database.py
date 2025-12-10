@@ -4,7 +4,7 @@ Database configuration management using Settings system.
 
 from typing import Dict, Any
 
-from ..framework.registry import BaseConfigSource, register_connections
+from ..framework.registry import BaseConfigSource, register_config
 from ..framework.settings import settings
 
 
@@ -13,7 +13,7 @@ class DatabaseConfigError(Exception):
     pass
 
 
-@register_connections(['postgres', 'redis', 'mongodb'])
+@register_config(['postgres', 'redis', 'mongodb'])
 class DatabaseConfig(BaseConfigSource):
     """Database configuration for all database types using Settings system."""
     

@@ -26,7 +26,7 @@ class MongoSessionRepository(BaseSessionRepository):
         self._sessions_collection = None
         self._messages_collection = None
     
-    async def _create_tables_if_not_exist(self):
+    def _create_tables_if_not_exist(self):
         """Create MongoDB collections and indexes if they don't exist."""
         # Get database from connection manager (not directly from PyMongo client)
         self._db = self._connection_manager.get_database()
