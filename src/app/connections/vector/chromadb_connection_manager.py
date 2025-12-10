@@ -54,15 +54,15 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         
         logger.info("ChromaDB connection configuration validated successfully")
     
-    async def connect(self) -> chromadb.Client:
+    def connect(self) -> chromadb.Client:
         """Establish ChromaDB connection."""
         if self._chroma_client:
             # Test existing connection
-            if await self._test_connection():
+            if self._test_connection():
                 return self._chroma_client
             else:
                 # Connection might be stale, recreate
-                await self.disconnect()
+                self.disconnect()
         
         try:
             # Configure ChromaDB settings
@@ -107,7 +107,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to connect to ChromaDB: {e}")
             raise ConnectionError(f"ChromaDB connection failed: {e}")
     
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Close ChromaDB connection."""
         if self._chroma_client:
             try:
@@ -134,8 +134,8 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         except Exception:
             return False
     
-    async def _test_connection(self) -> bool:
-        """Test ChromaDB connection asynchronously."""
+    def _test_connection(self) -> bool:
+        """Test ChromaDB connection synchronously."""
         if not self._chroma_client:
             return False
         
@@ -148,7 +148,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
     
     # ChromaDB-specific convenience methods
     
-    async def get_collection_info(self, collection_name: Optional[str] = None) -> Dict:
+    def get_collection_info(self, collection_name: Optional[str] = None) -> Dict:
         """
         Get information about a collection.
         
@@ -158,7 +158,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         Returns:
             Collection information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if collection_name is None:
             collection_name = self.config['collection_name']
@@ -175,14 +175,14 @@ class ChromaDBConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get collection info for {collection_name}: {e}")
             raise
     
-    async def list_collections(self) -> List[Dict]:
+    def list_collections(self) -> List[Dict]:
         """
         List all collections in ChromaDB.
         
         Returns:
             List of collection information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             collections = self._chroma_client.list_collections()
@@ -199,7 +199,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to list collections: {e}")
             raise
     
-    async def count_documents(self, collection_name: Optional[str] = None) -> int:
+    def count_documents(self, collection_name: Optional[str] = None) -> int:
         """
         Count documents in a collection.
         
@@ -209,7 +209,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         Returns:
             Number of documents in collection
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if collection_name is None:
             collection_name = self.config['collection_name']
@@ -221,7 +221,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to count documents in {collection_name}: {e}")
             return 0
     
-    async def delete_collection(self, collection_name: str) -> bool:
+    def delete_collection(self, collection_name: str) -> bool:
         """
         Delete a collection.
         
@@ -231,7 +231,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         Returns:
             True if successfully deleted
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             self._chroma_client.delete_collection(name=collection_name)

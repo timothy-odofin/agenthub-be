@@ -1,10 +1,11 @@
 from abc import abstractmethod, ABC
 from typing import Optional
+import asyncio
 
 from app.sessions.models.message import ChatMessage
 from app.sessions.models.session import ChatSession
 from app.connections.factory.connection_factory import ConnectionFactory
-from app.connections.base import ConnectionType
+from app.connections.base import ConnectionType, AsyncBaseConnectionManager
 
 
 class BaseSessionRepository(ABC):
@@ -23,17 +24,29 @@ class BaseSessionRepository(ABC):
     async def _ensure_connection(self):
         """Ensure database connection and create tables if needed."""
         if self._connection is None:
-            self._connection = await self._connection_manager.connect()
-            await self._create_tables_if_not_exist()
+            # Smart hybrid: Check if connection manager is async or sync
+            if isinstance(self._connection_manager, AsyncBaseConnectionManager):
+                self._connection = await self._connection_manager.connect()
+            else:
+                # Sync connection manager
+                self._connection = self._connection_manager.connect()
+            
+            # Smart hybrid: Check if table creation method is async or sync
+            import inspect
+            if inspect.iscoroutinefunction(self._create_tables_if_not_exist):
+                await self._create_tables_if_not_exist()
+            else:
+                # Sync table creation
+                self._create_tables_if_not_exist()
         return self._connection
     
     @abstractmethod
-    async def _create_tables_if_not_exist(self):
-        """Create tables/collections specific to the database type."""
-        pass
-    @abstractmethod
-    async def _create_tables_if_not_exist(self):
-        """Create tables/collections specific to the database type."""
+    def _create_tables_if_not_exist(self):
+        """Create tables/collections specific to the database type.
+        
+        Note: Implementations can be either sync or async.
+        The base class will automatically detect and handle both patterns.
+        """
         pass
     
     @abstractmethod

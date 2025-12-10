@@ -13,15 +13,20 @@ from app.core.utils.single_ton import SingletonMeta
 from app.services.agent.tools import ToolRegistry
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
 from app.sessions.repositories.session_repository_factory import SessionRepositoryFactory
+from app.core.config.providers.prompt import prompt_config, PromptType
+from app.core.config.framework.settings import settings
 
 
 class ReactAgent(metaclass=SingletonMeta):
     """
     Production-ready ReAct agent wrapper with session management.
     Handles agent construction, prompt creation, inference, and chat history.
+    Uses centralized prompt configuration for consistent behavior across environments.
     """
 
-    def __init__(self, llm, session_repository: Optional[BaseSessionRepository] = None, verbose: bool = False):
+    def __init__(self, llm, session_repository: Optional[BaseSessionRepository] = None, 
+                 verbose: bool = False, agent_type: str = PromptType.REACT_AGENT.value, 
+                 environment: Optional[str] = None, user_id: Optional[str] = None):
         if hasattr(self, "_initialized"):
             return 
 
@@ -32,18 +37,54 @@ class ReactAgent(metaclass=SingletonMeta):
         self.tools = ToolRegistry.get_instantiated_tools()
         self.verbose = verbose
         
+        # Agent configuration
+        self.agent_type = agent_type  # react_agent, react_agent_technical, react_agent_business, etc.
+        self.environment = environment or getattr(settings, 'app', {}).get('environment', 'production')
+        self.user_id = user_id
+        
         # Session management
         self.session_repository = session_repository or SessionRepositoryFactory.get_default_repository()
 
-        # Use the modern tools-based prompt template
-        self.prompt = ChatPromptTemplate.from_messages([
-            ("system", """You are a helpful assistant. Use the available tools when needed to answer questions.
-            
-When you need to use a tool, you'll be provided with function calling capabilities.
-Think step by step and provide helpful responses. If you need to use multiple tools, 
-use them one at a time and wait for the results before proceeding.
+        # Prompt will be generated dynamically from configuration
+        self.prompt = None
 
-Always be clear and helpful in your responses."""),
+        # Agent and executor will be created after LLM initialization
+        self.agent = None
+        self.executor = None
+        self._initialized = True
+    
+    def _get_agent_prompt(self) -> str:
+        """
+        Get the appropriate agent prompt based on configuration.
+        
+        Returns:
+            Formatted prompt string with available tools
+        """
+        # Get available tools list for prompt template
+        available_tools = [
+            f"- {tool.name}: {tool.description}" 
+            for tool in self.tools
+        ]
+        tools_description = "\n".join(available_tools) if available_tools else "No tools currently available"
+        
+        # Get prompt by name and pass tools to it
+        prompt = prompt_config.get_system_prompt(
+            self.agent_type,
+            available_tools=tools_description
+        )
+        return prompt
+    
+    def _create_prompt_template(self) -> ChatPromptTemplate:
+        """
+        Create the ChatPromptTemplate using the configured prompt.
+        
+        Returns:
+            ChatPromptTemplate with system message from configuration
+        """
+        system_prompt = self._get_agent_prompt()
+        
+        return ChatPromptTemplate.from_messages([
+            ("system", system_prompt),
             ("placeholder", "{chat_history}"),
             ("human", "{input}"),
             ("placeholder", "{agent_scratchpad}")
@@ -65,6 +106,9 @@ Always be clear and helpful in your responses."""),
                 self.llm = self.llm_provider.client
             else:
                 self.llm = self.llm_provider
+
+            # Create the prompt template from configuration
+            self.prompt = self._create_prompt_template()
 
             # Bind tools to the LLM for the modern agent approach
             llm_with_tools = self.llm.bind_tools(self.tools)

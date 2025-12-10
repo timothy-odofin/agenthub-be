@@ -13,13 +13,14 @@ class LLMConfig(metaclass=SingletonMeta):
     @property
     def llm_config(self) -> Dict[str, Any]:
         """LLM configuration for all providers"""
+        default_config = settings.llm.default
         return {
-            'default_provider': settings.llm.provider,
-            'default_model': settings.llm.model,
-            'temperature': settings.llm.temperature,
-            'max_tokens': settings.llm.max_tokens,
-            'timeout': settings.llm.timeout,
-            'max_retries': settings.llm.max_retries,
+            'default_provider': default_config.provider,
+            'default_model': default_config.model,
+            'temperature': default_config.temperature,
+            'max_tokens': default_config.max_tokens,
+            'timeout': default_config.timeout,
+            'max_retries': default_config.max_retries,
             
             # Provider-specific configs
             'groq': self.groq_config,

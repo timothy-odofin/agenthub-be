@@ -59,15 +59,15 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         
         logger.info("Confluence connection configuration validated successfully")
     
-    async def connect(self) -> Confluence:
+    def connect(self) -> Confluence:
         """Establish Confluence connection."""
         if self._confluence_client:
             # Test existing connection
-            if await self._test_connection():
+            if self._test_connection():
                 return self._confluence_client
             else:
                 # Connection might be stale, recreate
-                await self.disconnect()
+                self.disconnect()
         
         try:
             # Create Confluence client
@@ -96,7 +96,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to connect to Confluence: {e}")
             raise ConnectionError(f"Confluence connection failed: {e}")
     
-    async def disconnect(self) -> None:
+    def disconnect(self) -> None:
         """Close Confluence connection."""
         # Confluence client doesn't have explicit close method
         # Just clear the reference
@@ -118,8 +118,8 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         except Exception:
             return False
     
-    async def _test_connection(self) -> bool:
-        """Test Confluence connection asynchronously."""
+    def _test_connection(self) -> bool:
+        """Test Confluence connection synchronously."""
         if not self._confluence_client:
             return False
         
@@ -132,7 +132,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
     
     # Confluence-specific convenience methods
     
-    async def get_spaces(self, space_keys: Optional[List[str]] = None) -> List[Dict]:
+    def get_spaces(self, space_keys: Optional[List[str]] = None) -> List[Dict]:
         """
         Get Confluence spaces.
         
@@ -142,7 +142,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         Returns:
             List of space information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if space_keys is None:
             space_keys = self.config.get('space_keys', ['*'])
@@ -169,7 +169,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
                     logger.warning(f"Failed to get space {space_key}: {e}")
             return spaces
     
-    async def get_pages_in_space(self, space_key: str, limit: Optional[int] = None) -> List[Dict]:
+    def get_pages_in_space(self, space_key: str, limit: Optional[int] = None) -> List[Dict]:
         """
         Get pages in a Confluence space.
         
@@ -180,7 +180,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         Returns:
             List of page information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if limit is None:
             limit = self.config.get('page_limit', 100)
@@ -192,7 +192,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             expand='body.storage,metadata.labels'
         )
     
-    async def get_page_content(self, page_id: str) -> Optional[Dict]:
+    def get_page_content(self, page_id: str) -> Optional[Dict]:
         """
         Get detailed page content.
         
@@ -202,7 +202,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         Returns:
             Page content information
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         try:
             return self._confluence_client.get_page_by_id(
@@ -213,7 +213,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get page content for {page_id}: {e}")
             return None
     
-    async def search_content(self, query: str, limit: Optional[int] = None) -> List[Dict]:
+    def search_content(self, query: str, limit: Optional[int] = None) -> List[Dict]:
         """
         Search Confluence content.
         
@@ -224,7 +224,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
         Returns:
             List of search results
         """
-        await self.ensure_connected()
+        self.ensure_connected()
         
         if limit is None:
             limit = self.config.get('page_limit', 100)

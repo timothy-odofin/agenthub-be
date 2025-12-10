@@ -30,12 +30,12 @@ class ConfigSourceRegistry:
     _connection_to_config: Dict[str, BaseConfigSource] = {}
     
     @classmethod
-    def register_connections(cls, connection_names: List[str]):
+    def register_config(cls, connection_names: List[str]):
         """
         Decorator to register which connections a config source handles.
         
         Usage:
-            @ConfigSourceRegistry.register_connections(['postgres', 'redis'])
+            @ConfigSourceRegistry.register_config(['postgres', 'redis'])
             class DatabaseConfig(BaseConfigSource):
                 def get_connection_config(self, connection_name: str) -> dict:
                     # Implementation
@@ -101,4 +101,4 @@ class ConfigSourceRegistry:
 
 
 # Create a convenience decorator function for cleaner imports
-register_connections = ConfigSourceRegistry.register_connections
+register_config = ConfigSourceRegistry.register_config

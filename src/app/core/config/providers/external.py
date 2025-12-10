@@ -4,11 +4,11 @@ External services configuration management using Settings system.
 
 from typing import Dict, Any
 from app.core.constants import AtlassianProperties
-from ..framework.registry import BaseConfigSource, register_connections
+from ..framework.registry import BaseConfigSource, register_config
 from ..framework.settings import settings
 
 
-@register_connections(['confluence', 'jira', 's3', 'sharepoint', 'github', 'bitbucket'])
+@register_config(['confluence', 'jira', 's3', 'sharepoint', 'github', 'bitbucket'])
 class ExternalServicesConfig(BaseConfigSource):
     """External services configuration using Settings system."""
     
