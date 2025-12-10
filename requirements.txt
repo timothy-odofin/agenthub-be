@@ -11,6 +11,9 @@ langchain-postgres>=0.0.10
 langchain-qdrant>=0.1.0
 langchain-chroma>=0.1.0
 
+# LangGraph for workflow and state-based agents
+langgraph>=0.2.0,<0.3.0
+
 # Additional LangChain provider integrations
 langchain-anthropic>=0.3.0
 langchain-groq>=0.3.0

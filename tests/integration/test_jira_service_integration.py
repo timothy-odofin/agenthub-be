@@ -10,11 +10,10 @@ Requirements:
 
 import pytest
 import json
-from typing import Dict, List, Any
 from datetime import datetime
 
-from app.services.external.jira_service import jira, JiraClient
-from app.services.agent.tools.atlassian.jira import JiraTools
+from app.services.external.jira_service import jira
+from app.agent.tools.atlassian import JiraTools
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

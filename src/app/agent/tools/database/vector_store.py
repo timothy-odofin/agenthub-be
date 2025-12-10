@@ -8,7 +8,7 @@ from langchain.tools import Tool
 
 from app.core.constants import VectorDBType
 from app.db.vector import VectorStoreFactory
-from app.services.agent.tools.base.registry import ToolRegistry
+from app.agent.tools.base.registry import ToolRegistry
 
 # Defer vector store initialization until needed
 _vector_store = None

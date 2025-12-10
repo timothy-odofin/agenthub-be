@@ -7,7 +7,7 @@ from typing import List, Dict, Any, Optional
 from langchain.tools import StructuredTool
 from pydantic import BaseModel, Field
 
-from app.services.agent.tools.base.registry import ToolRegistry
+from app.agent.tools.base.registry import ToolRegistry
 
 
 # Pydantic models for structured input
