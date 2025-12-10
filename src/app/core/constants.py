@@ -10,7 +10,11 @@ from app.core.enums import (
     VectorDBType,
     DatabaseType,
     ExternalServiceType,
-    ConnectionType
+    ConnectionType,
+    AgentCapability,
+    AgentType,
+    AgentFramework,
+    AgentStatus
 )
 
 
