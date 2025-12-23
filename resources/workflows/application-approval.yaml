@@ -1,0 +1,74 @@
+# Approval Workflow Configuration  
+approval:
+  # Workflow definition
+  name: "Document Approval Workflow"
+  version: "1.2.0"
+  description: "Multi-stage document approval process with escalation"
+  
+  # Agent configuration
+  agent:
+    type: "langchain"  # Use LangChain for simpler approval logic
+    implementation: "LangChainReactAgent"
+    capabilities:
+      - "document_review"
+      - "approval_routing"
+      - "notification_sending"
+      - "escalation_handling"
+    
+    settings:
+      max_iterations: 5
+      checkpoint_enabled: false
+      human_in_the_loop: true
+      memory_enabled: false
+
+  # Approval stages
+  stages:
+    initial_review:
+      required_reviewers: 1
+      auto_approve_threshold: 0.8
+      timeout_hours: 48
+      
+    manager_approval:
+      required_reviewers: 1
+      escalation_hours: 72
+      bypass_conditions:
+        - "document_type == 'policy_update'"
+        - "author_role == 'senior_manager'"
+        
+    executive_approval:
+      required_reviewers: 2
+      required_for_amount_over: 10000
+      timeout_hours: 168  # 1 week
+      
+  # Routing rules
+  routing:
+    department_based: true
+    amount_thresholds:
+      - amount: 1000
+        approver_level: "manager" 
+      - amount: 5000
+        approver_level: "director"
+      - amount: 25000
+        approver_level: "executive"
+        
+  # Notifications
+  notifications:
+    email_enabled: true
+    slack_enabled: true
+    sms_for_urgent: true
+    escalation_notifications: true
+    
+    templates:
+      pending_approval: "approval_pending"
+      approved: "approval_approved"  
+      rejected: "approval_rejected"
+      escalated: "approval_escalated"
+
+  # Audit and compliance
+  audit:
+    log_all_actions: true
+    retain_logs_days: 2555  # 7 years
+    compliance_requirements:
+      - "SOX"
+      - "GDPR"
+      - "CCPA"

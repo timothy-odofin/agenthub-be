@@ -27,7 +27,7 @@ class BaseIngestionService(ABC):
             raise ValueError(f"{self.__class__.__name__} must define SOURCE_TYPE class attribute")
 
         # Import here to avoid circular imports
-        from ...core.config.app_config import AppConfig
+        from ...core.config.application import AppConfig
 
         # Get the singleton instance
         app_config = AppConfig()

@@ -1,0 +1,91 @@
+# Signup Workflow Configuration
+signup:
+  # Workflow definition
+  name: "User Signup Workflow"
+  version: "1.0.0"
+  description: "Complete user registration and onboarding workflow"
+  
+  # Agent configuration for this workflow
+  agent:
+    type: "langgraph"  # Use LangGraph for complex state management
+    implementation: "LangGraphReactAgent"
+    capabilities:
+      - "user_registration"
+      - "email_verification" 
+      - "profile_setup"
+      - "onboarding_guidance"
+    
+    # Workflow-specific agent settings
+    settings:
+      max_iterations: 10
+      checkpoint_enabled: true
+      human_in_the_loop: true
+      memory_enabled: true
+      
+  # Workflow steps configuration
+  steps:
+    email_validation:
+      enabled: true
+      required: true
+      timeout_seconds: 300
+      retry_attempts: 3
+      
+    password_strength:
+      enabled: true
+      min_length: 8
+      require_special_chars: true
+      require_numbers: true
+      require_uppercase: true
+      
+    profile_creation:
+      enabled: true
+      required_fields:
+        - "first_name"
+        - "last_name"
+        - "email"
+        - "phone"
+      optional_fields:
+        - "company"
+        - "job_title"
+        - "bio"
+        
+    email_verification:
+      enabled: true
+      verification_timeout_hours: 24
+      max_resend_attempts: 3
+      template: "signup_verification"
+      
+    welcome_sequence:
+      enabled: true
+      send_welcome_email: true
+      schedule_onboarding_call: false
+      assign_account_manager: false
+
+  # Integration settings
+  integrations:
+    email_service:
+      provider: "sendgrid"
+      template_id: "d-123456789"
+      from_address: "noreply@agenthub.com"
+      
+    notification_service:
+      slack_webhook: "${SLACK_SIGNUP_WEBHOOK}"
+      teams_enabled: false
+      
+  # Analytics and monitoring
+  analytics:
+    track_conversion: true
+    track_drop_off_points: true
+    send_to_analytics: true
+    custom_events:
+      - "signup_started"
+      - "email_verified"
+      - "profile_completed"
+      - "onboarding_finished"
+
+  # Error handling
+  error_handling:
+    max_retries: 3
+    fallback_to_manual: true
+    notify_admins: true
+    log_level: "INFO"

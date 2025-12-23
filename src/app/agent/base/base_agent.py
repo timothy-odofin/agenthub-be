@@ -2,6 +2,7 @@ from abc import ABC, abstractmethod
 from typing import Set, Dict, Any
 from app.core.enums import AgentCapability, AgentType, AgentFramework
 from app.agent.models import AgentContext, AgentResponse
+from app.core.utils.logger import get_logger
 
 
 class BaseAgent(ABC):
@@ -10,6 +11,7 @@ class BaseAgent(ABC):
         self.agent_type = agent_type
         self.framework = framework
         self._initialized = False
+        self.logger = get_logger(self.__class__.__name__)
     
     @property
     @abstractmethod

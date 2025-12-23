@@ -1,0 +1,117 @@
+# Context Window Management Configuration
+context_window:
+  # Default strategy for managing conversation context
+  # Options: recent, sliding, summarization
+  default_strategy: "recent"
+  
+  # Default model for token counting when not specified
+  default_model: "gpt-4"
+  
+  # Maximum tokens allowed for a single message before truncation
+  max_single_message_tokens: 2000
+  
+  # Whether to log context utilization details
+  log_utilization: true
+  
+  # Number of recent messages to keep as emergency fallback
+  emergency_message_limit: 3
+  
+  # Maximum processing time in seconds before warning
+  max_processing_time: 5.0
+  
+  # Token utilization threshold for warnings (0.8 = 80%)
+  warn_threshold: 0.8
+  
+  # Model window definitions - all models and their token limits
+  definitions:
+    # OpenAI models
+    gpt-4:
+      max_tokens: 8192
+      reserved_tokens: 500
+      system_prompt_tokens: 100
+      
+    gpt-4-turbo:
+      max_tokens: 128000
+      reserved_tokens: 1000
+      system_prompt_tokens: 200
+      
+    gpt-3.5-turbo:
+      max_tokens: 4096
+      reserved_tokens: 400
+      system_prompt_tokens: 100
+    
+    # Anthropic models
+    claude-3-sonnet:
+      max_tokens: 200000
+      reserved_tokens: 2000
+      system_prompt_tokens: 500
+      
+    claude-3-haiku:
+      max_tokens: 200000
+      reserved_tokens: 1500
+      system_prompt_tokens: 400
+    
+    # Groq/Meta models
+    llama-3.3-70b-versatile:
+      max_tokens: 8192
+      reserved_tokens: 400
+      system_prompt_tokens: 100
+      
+    llama-3.1-70b-versatile:
+      max_tokens: 8192
+      reserved_tokens: 400
+      system_prompt_tokens: 100
+    
+    # Google models
+    gemini-pro:
+      max_tokens: 32768
+      reserved_tokens: 1000
+      system_prompt_tokens: 200
+    
+    # Default fallback for unknown models
+    default:
+      max_tokens: 4096
+      reserved_tokens: 500
+      system_prompt_tokens: 100
+  
+  # Strategy-specific configurations
+  strategies:
+    recent:
+      # Simple strategy: keep most recent messages that fit
+      description: "Keep most recent messages within token limit"
+      
+    sliding:
+      # Keep recent messages + important earlier ones
+      min_recent_messages: 5
+      description: "Recent messages plus important earlier context"
+      
+    summarization:
+      # Summarize old messages when conversation gets long
+      summarization_threshold: 20  # Start summarizing after 20 messages
+      keep_recent_messages: 10     # Always keep last 10 messages
+      description: "Summarize old messages, keep recent ones"
+  
+  # Performance settings
+  performance:
+    # Cache token counts for repeated messages
+    enable_token_caching: true
+    
+    # Log context window utilization for monitoring
+    log_utilization: true
+    
+    # Warn when context utilization is high
+    warn_threshold: 0.9
+    
+    # Maximum processing time for context preparation (seconds)
+    max_processing_time: 2.0
+  
+  # Safety settings
+  safety:
+    # Minimum number of messages to always preserve
+    min_preserved_messages: 2
+    
+    # Maximum single message token count (truncate if exceeded)
+    max_single_message_tokens: 2000
+    
+    # Emergency fallback when all strategies fail
+    emergency_message_limit: 5

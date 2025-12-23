@@ -7,7 +7,7 @@ from typing import Optional
 from app.core.utils.single_ton import SingletonMeta
 from app.core.schemas.ingestion_config import IngestionConfig
 from app.core.utils import dynamic_config_to_dict
-from ..framework.settings import settings
+# Removed direct import of settings to avoid circular import
 
 
 class AppConfig(metaclass=SingletonMeta):
@@ -20,7 +20,11 @@ class AppConfig(metaclass=SingletonMeta):
     
     def _load_app_config(self):
         """Load core application configuration from Settings system."""
-        # App settings
+        # Import settings locally to avoid circular import
+        from ..framework.settings import Settings
+        settings = Settings()
+        
+        # App settings - accessing app profile directly
         self.app_env = settings.app.environment
         self.debug = settings.app.debug
         self.app_name = settings.app.name
@@ -41,6 +45,10 @@ class AppConfig(metaclass=SingletonMeta):
     def _load_ingestion_config(self) -> None:
         """Load the ingestion configuration from Settings system."""
         try:
+            # Import settings locally to avoid circular import
+            from ..framework.settings import Settings
+            settings = Settings()
+            
             # Get data sources from Settings system
             if hasattr(settings, 'data_sources') and settings.data_sources:
                 # Convert DynamicConfig to dictionary using the reusable utility
@@ -56,5 +64,5 @@ class AppConfig(metaclass=SingletonMeta):
             self.ingestion_config = None
 
 
-# Create singleton instance
-app_config = AppConfig()
+# Note: AppConfig instance should be created lazily to avoid circular imports
+# Use AppConfig() when needed instead of a module-level instance

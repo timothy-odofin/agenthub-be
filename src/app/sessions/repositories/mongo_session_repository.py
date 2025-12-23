@@ -82,6 +82,31 @@ class MongoSessionRepository(BaseSessionRepository):
         await self._create_session_async(session_id, user_id, session_data)
         return session_id
     
+    async def ensure_session_exists(self, session_id: str, user_id: str, session_data: dict = None) -> bool:
+        """Ensure a session with the given ID exists for the user. Creates it if it doesn't exist."""
+        await self._ensure_connection()
+        
+        # Check if session already exists
+        def check_session():
+            return self._sessions_collection.find_one({
+                "session_id": session_id,
+                "user_id": user_id
+            })
+        
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            existing_session = await asyncio.get_event_loop().run_in_executor(executor, check_session)
+        
+        if existing_session:
+            return False  # Session already existed
+        
+        # Create the session with the specific session_id
+        if session_data is None:
+            session_data = {}
+            
+        await self._create_session_async(session_id, user_id, session_data)
+        return True  # Session was created
+    
     async def _create_session_async(self, session_id: str, user_id: str, session_data: dict):
         """Async implementation of session creation."""
         await self._ensure_connection()
