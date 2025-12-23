@@ -110,6 +110,7 @@ class OpenAILLM(BaseLLMProvider):
         """Get available OpenAI models."""
         # TODO: Return actual OpenAI models
         return [
+            "gpt-5-mini",
             "gpt-4-turbo",
             "gpt-4",
             "gpt-3.5-turbo",

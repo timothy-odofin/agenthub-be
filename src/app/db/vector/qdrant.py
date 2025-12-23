@@ -129,30 +129,8 @@ class QdrantDB(VectorDB, ABC):
     def _ensure_connection_sync(self):
         """Ensure connection is established (synchronous version)."""
         if self._connection is None:
-            import asyncio
-            
-            # Create a new event loop for this thread
-            try:
-                # Try to get existing loop
-                loop = asyncio.get_event_loop()
-            except RuntimeError:
-                # No loop in this thread, create a new one
-                loop = None
-            
-            if loop is None or not loop.is_running():
-                # Create and run a new event loop
-                new_loop = asyncio.new_event_loop()
-                asyncio.set_event_loop(new_loop)
-                try:
-                    new_loop.run_until_complete(self._create_connection())
-                finally:
-                    new_loop.close()
-                    # Reset to no event loop for this thread
-                    asyncio.set_event_loop(None)
-            else:
-                # There's a running loop, we can't run another one
-                # This shouldn't happen in a tool context, but just in case
-                raise RuntimeError("Cannot establish connection from within an async context. Connection should be established beforehand.")
+            # Simply call the sync method directly
+            self._create_connection()
 
     def delete_by_document_id(self, document_id: str) -> bool:
         """Delete all chunks of a document by its ID."""

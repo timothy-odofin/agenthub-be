@@ -14,13 +14,12 @@ The package is now organized into:
 # Import from reorganized structure
 from .framework import Settings, settings, DynamicConfig, YamlLoader
 from .providers import database_config, vector_config, external_services_config
-from .application import app_config, llm_config
+from .application import AppConfig, get_app_config, llm_config
 
 # Backward compatibility imports - maintain existing import paths
 from .providers.database import database_config
 from .providers.vector import vector_config
 from .providers.external import external_services_config
-from .application.app import app_config
 from .application.llm import llm_config
 
 # Backward compatibility - create a unified config object
@@ -28,7 +27,7 @@ class UnifiedConfig:
     """Unified configuration object for backward compatibility."""
     
     def __init__(self):
-        self.app = app_config
+        self.app = get_app_config()  # Use lazy loading
         self.database = database_config
         self.vector = vector_config
         self.external = external_services_config
@@ -117,12 +116,20 @@ class UnifiedConfig:
         return self.app.reload_ingestion_config()
 
 
-# Create the unified config instance for backward compatibility
-config = UnifiedConfig()
+# For backward compatibility - create lazy config property
+class _ConfigProxy:
+    """Lazy proxy for unified config."""
+    def __getattr__(self, name):
+        if not hasattr(self, '_unified_config'):
+            self._unified_config = UnifiedConfig()
+        return getattr(self._unified_config, name)
+
+config = _ConfigProxy()
 
 # Export both new modular configs, unified config, and settings system
 __all__ = [
-    'app_config',
+    'AppConfig',
+    'get_app_config',  # Use lazy loading function instead
     'database_config', 
     'vector_config',
     'external_services_config',

@@ -26,7 +26,11 @@ class DynamicConfig:
         Args:
             data: Dictionary containing configuration data
         """
-        self._data = data.copy() if data else {}
+        if isinstance(data, dict):
+            self._data = data.copy() if data else {}
+        else:
+            # Handle non-dict data by wrapping it
+            self._data = {'value': data} if data is not None else {}
         self._setup_attributes()
     
     def _setup_attributes(self):

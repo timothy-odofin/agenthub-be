@@ -21,6 +21,11 @@ class LLMFactory:
             cls._instance = super().__new__(cls)
         return cls._instance
 
+    @classmethod
+    def reset_for_testing(cls):
+        """Reset factory singleton for testing."""
+        cls._instance = None
+
     @staticmethod
     def get_llm(provider: LLMProvider) -> BaseLLMProvider:
         """

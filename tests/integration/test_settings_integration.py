@@ -393,3 +393,172 @@ class TestSettings:
             
         finally:
             Settings._get_resources_directory = original_get_resources
+
+    def test_nested_workflow_configurations(self):
+        """Test nested workflow configuration loading and access patterns."""
+        # Create workflows subdirectory
+        workflows_dir = os.path.join(self.temp_resources_dir, "workflows")
+        os.makedirs(workflows_dir, exist_ok=True)
+        
+        # Create workflow configuration files
+        signup_config = {
+            "signup": {
+                "name": "User Signup Workflow",
+                "agent": {
+                    "type": "langgraph",
+                    "implementation": "LangGraphReactAgent",
+                    "capabilities": ["user_registration", "email_verification"]
+                },
+                "steps": {
+                    "email_validation": {"enabled": True, "timeout_seconds": 300},
+                    "profile_creation": {"enabled": True, "required_fields": ["email", "name"]}
+                }
+            }
+        }
+        
+        approval_config = {
+            "approval": {
+                "name": "Document Approval Workflow", 
+                "agent": {
+                    "type": "langchain",
+                    "implementation": "LangChainReactAgent"
+                },
+                "stages": {
+                    "initial_review": {"required_reviewers": 1, "timeout_hours": 48},
+                    "manager_approval": {"required_reviewers": 1, "escalation_hours": 72}
+                }
+            }
+        }
+        
+        # Write workflow files
+        signup_file = os.path.join(workflows_dir, "application-signup.yaml")
+        approval_file = os.path.join(workflows_dir, "application-approval.yaml")
+        
+        with open(signup_file, 'w') as f:
+            yaml.dump(signup_config, f)
+        with open(approval_file, 'w') as f:
+            yaml.dump(approval_config, f)
+        
+        # Mock the resources directory to point to our temp directory
+        original_get_resources = Settings._get_resources_directory
+        Settings._get_resources_directory = lambda self: self.temp_resources_dir
+        
+        try:
+            # Initialize settings - should discover nested workflows
+            settings = Settings()
+            
+            # Verify nested workflow namespace was created
+            assert hasattr(settings, 'workflows'), "Nested 'workflows' attribute should be created"
+            
+            # Test access patterns: settings.workflows.signup.*
+            workflows = settings.workflows
+            assert hasattr(workflows, 'signup'), "Should have 'signup' workflow config"
+            assert hasattr(workflows, 'approval'), "Should have 'approval' workflow config"
+            
+            # Test nested access: settings.workflows.signup.agent.type
+            signup_workflow = workflows.signup
+            assert signup_workflow.signup.name == "User Signup Workflow"
+            assert signup_workflow.signup.agent.type == "langgraph"
+            assert signup_workflow.signup.agent.implementation == "LangGraphReactAgent"
+            
+            # Test nested access: settings.workflows.approval.stages
+            approval_workflow = workflows.approval  
+            assert approval_workflow.approval.name == "Document Approval Workflow"
+            assert approval_workflow.approval.agent.type == "langchain"
+            assert approval_workflow.approval.stages.initial_review.timeout_hours == 48
+            
+            # Test list access to capabilities
+            capabilities = signup_workflow.signup.agent.capabilities
+            assert "user_registration" in capabilities
+            assert "email_verification" in capabilities
+            
+        finally:
+            Settings._get_resources_directory = original_get_resources
+
+    def test_mixed_flat_and_nested_configurations(self):
+        """Test that flat and nested configurations coexist properly."""
+        # Create flat configuration (existing pattern)
+        db_config = {
+            "database": {
+                "host": "localhost",
+                "port": 5432,
+                "name": "test_db"
+            }
+        }
+        self._create_test_profile_file("db", db_config)
+        
+        # Create nested configurations
+        workflows_dir = os.path.join(self.temp_resources_dir, "workflows")
+        os.makedirs(workflows_dir, exist_ok=True)
+        
+        signup_config = {
+            "signup": {
+                "enabled": True,
+                "timeout": 300
+            }
+        }
+        
+        signup_file = os.path.join(workflows_dir, "application-signup.yaml")
+        with open(signup_file, 'w') as f:
+            yaml.dump(signup_config, f)
+        
+        # Mock the resources directory
+        original_get_resources = Settings._get_resources_directory
+        Settings._get_resources_directory = lambda self: self.temp_resources_dir
+        
+        try:
+            settings = Settings()
+            
+            # Verify flat configuration still works
+            assert hasattr(settings, 'db'), "Flat configuration should still work"
+            assert settings.db.database.host == "localhost"
+            assert settings.db.database.port == 5432
+            
+            # Verify nested configuration works
+            assert hasattr(settings, 'workflows'), "Nested configuration should work"
+            assert settings.workflows.signup.signup.enabled is True
+            assert settings.workflows.signup.signup.timeout == 300
+            
+            # Verify both configurations are in profile list
+            profiles = settings.get_profile_names()
+            assert 'db' in profiles
+            assert 'workflows' in profiles
+            
+        finally:
+            Settings._get_resources_directory = original_get_resources
+            
+    def test_nested_configuration_error_handling(self):
+        """Test error handling for malformed nested configurations."""
+        # Create workflows subdirectory
+        workflows_dir = os.path.join(self.temp_resources_dir, "workflows")
+        os.makedirs(workflows_dir, exist_ok=True)
+        
+        # Create malformed YAML file
+        malformed_file = os.path.join(workflows_dir, "application-malformed.yaml")
+        with open(malformed_file, 'w') as f:
+            f.write("invalid: yaml: content: [\n")  # Malformed YAML
+        
+        # Create valid workflow config as well
+        valid_config = {"test": {"name": "Valid Workflow"}}
+        valid_file = os.path.join(workflows_dir, "application-valid.yaml")
+        with open(valid_file, 'w') as f:
+            yaml.dump(valid_config, f)
+        
+        # Mock the resources directory
+        original_get_resources = Settings._get_resources_directory
+        Settings._get_resources_directory = lambda self: self.temp_resources_dir
+        
+        try:
+            # Should handle errors gracefully and still load valid configs
+            settings = Settings()
+            
+            # Should have workflows namespace but only valid config
+            if hasattr(settings, 'workflows'):
+                assert hasattr(settings.workflows, 'valid'), "Should load valid config"
+                assert settings.workflows.valid.test.name == "Valid Workflow"
+                
+                # Malformed config should not be present
+                assert not hasattr(settings.workflows, 'malformed'), "Malformed config should not load"
+            
+        finally:
+            Settings._get_resources_directory = original_get_resources

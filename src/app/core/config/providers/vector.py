@@ -23,7 +23,7 @@ class VectorConfig(BaseConfigSource):
             
         qdrant = settings.vector.qdrant
         return {
-            'url': qdrant.endpoint,
+            'url': qdrant.url,  # Changed from qdrant.endpoint to qdrant.url
             'api_key': getattr(qdrant, 'api_key', None),
             'collection_name': getattr(qdrant, 'collection_name', 'agent_hub_collection'),
             'embedding_dimension': getattr(qdrant, 'embedding_dimension', 1536),

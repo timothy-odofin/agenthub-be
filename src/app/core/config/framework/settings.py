@@ -97,29 +97,25 @@ class Settings:
             # Get resources directory path
             resources_dir = self._get_resources_directory()
             
-            # Discover all application-*.yaml files
-            profile_files = self._discover_profile_files(resources_dir)
+            # Discover all application-*.yaml files (flat and nested)
+            profile_data = self._discover_profile_files(resources_dir)
             
-            if not profile_files:
+            if not profile_data:
                 logger.warning("No profile configuration files found. Using empty configuration.")
                 self._create_dynamic_attributes({})
                 return
             
             # Load all profile configurations
             all_profiles_data = {}
-            for profile_name, file_path in profile_files.items():
-                try:
-                    profile_data = YamlLoader.load_file(file_path, raise_on_missing=False)
-                    if profile_data:
-                        # Resolve environment variable placeholders
-                        resolved_data = self._property_resolver.resolve_dict(profile_data)
-                        all_profiles_data[profile_name] = resolved_data
-                        self._profile_files[profile_name] = file_path
-                        logger.debug(f"Loaded and resolved profile '{profile_name}' from {file_path}")
-                    else:
-                        logger.warning(f"Profile file {file_path} is empty")
-                except Exception as e:
-                    logger.error(f"Error loading profile '{profile_name}' from {file_path}: {e}")
+            self._profile_files = {}
+            
+            for profile_name, profile_info in profile_data.items():
+                if isinstance(profile_info, str):
+                    # Flat profile: profile_info is a file path
+                    self._load_flat_profile(profile_name, profile_info, all_profiles_data)
+                elif isinstance(profile_info, dict):
+                    # Nested profile: profile_info is a dict of {config_name: file_path}
+                    self._load_nested_profile(profile_name, profile_info, all_profiles_data)
             
             # Create dynamic configuration attributes
             self._create_dynamic_attributes(all_profiles_data)
@@ -128,8 +124,51 @@ class Settings:
             
         except Exception as e:
             logger.error(f"Error loading profile configurations: {e}")
+            # Add more detailed error information for debugging
+            import traceback
+            logger.debug(f"Full traceback: {traceback.format_exc()}")
             # Initialize with empty config to prevent crashes
             self._create_dynamic_attributes({})
+    
+    def _load_flat_profile(self, profile_name: str, file_path: str, all_profiles_data: Dict[str, Any]):
+        """Load a flat profile configuration."""
+        try:
+            profile_data = YamlLoader.load_file(file_path, raise_on_missing=False)
+            if profile_data and isinstance(profile_data, dict):
+                # Resolve environment variable placeholders
+                resolved_data = self._property_resolver.resolve_dict(profile_data)
+                all_profiles_data[profile_name] = resolved_data
+                self._profile_files[profile_name] = file_path
+                logger.debug(f"Loaded flat profile '{profile_name}' from {file_path}")
+            else:
+                logger.warning(f"Profile file {file_path} is empty or not a dictionary")
+        except Exception as e:
+            logger.error(f"Error loading flat profile '{profile_name}' from {file_path}: {e}")
+    
+    def _load_nested_profile(self, namespace: str, configs: Dict[str, str], all_profiles_data: Dict[str, Any]):
+        """Load nested profile configurations."""
+        namespace_data = {}
+        namespace_files = {}
+        
+        for config_name, file_path in configs.items():
+            try:
+                config_data = YamlLoader.load_file(file_path, raise_on_missing=False)
+                if config_data and isinstance(config_data, dict):
+                    # Resolve environment variable placeholders
+                    resolved_data = self._property_resolver.resolve_dict(config_data)
+                    namespace_data[config_name] = resolved_data
+                    namespace_files[config_name] = file_path
+                    logger.debug(f"Loaded nested profile '{namespace}.{config_name}' from {file_path}")
+                else:
+                    logger.warning(f"Profile file {file_path} is empty or not a dictionary")
+            except Exception as e:
+                logger.error(f"Error loading nested profile '{namespace}.{config_name}' from {file_path}: {e}")
+        
+        if namespace_data:
+            all_profiles_data[namespace] = namespace_data
+            # Store nested profile files with namespace prefix
+            for config_name, file_path in namespace_files.items():
+                self._profile_files[f"{namespace}.{config_name}"] = file_path
     
     def _get_resources_directory(self) -> Path:
         """Get the resources directory path."""
@@ -150,22 +189,24 @@ class Settings:
         
         return resources_dir
     
-    def _discover_profile_files(self, resources_dir: Path) -> Dict[str, str]:
+    def _discover_profile_files(self, resources_dir: Path) -> Dict[str, Any]:
         """
-        Discover application-*.yaml files in the resources directory.
-        Respects the PROFILES setting to control which profiles to load.
+        Discover application-*.yaml files in the resources directory and subdirectories.
+        Supports both flat and nested folder structure:
+        - application-*.yaml in resources/ → flat profile (backward compatible)
+        - subfolder/application-*.yaml → nested profile (new feature)
         
         Args:
             resources_dir: Path to the resources directory
             
         Returns:
-            Dictionary mapping profile names to file paths
+            Dictionary mapping profile names to file paths (flat) or nested dictionaries
         """
-        profile_files = {}
+        profile_data = {}
         
         if not resources_dir.exists():
             logger.warning(f"Resources directory not found: {resources_dir}")
-            return profile_files
+            return profile_data
         
         # Check if we should load all profiles or specific ones
         load_all = '*' in PROFILES
@@ -176,38 +217,83 @@ class Settings:
         else:
             logger.debug(f"Loading specific profiles: {PROFILES}")
         
-        # Look for application-*.yaml pattern
-        pattern = "application-*.yaml"
+        # 1. Discover flat application-*.yaml files in root directory (backward compatibility)
+        self._discover_flat_profiles(resources_dir, profile_data, load_all, target_profiles)
+        
+        # 2. Discover nested application-*.yaml files in subdirectories (new feature)
+        self._discover_nested_profiles(resources_dir, profile_data, load_all, target_profiles)
+        
+        # Warn about missing requested profiles
+        if not load_all:
+            all_profile_names = set(profile_data.keys())
+            # For nested profiles, also check nested keys
+            for key, value in profile_data.items():
+                if isinstance(value, dict):
+                    all_profile_names.update(f"{key}.{sub_key}" for sub_key in value.keys())
+            
+            missing_profiles = target_profiles - all_profile_names
+            if missing_profiles:
+                logger.warning(f"Requested profiles not found: {missing_profiles}")
+        
+        return profile_data
+    
+    def _discover_flat_profiles(self, resources_dir: Path, profile_data: Dict[str, Any], 
+                               load_all: bool, target_profiles: set):
+        """Discover flat application-*.yaml files in root directory."""
         try:
-            for yaml_file in resources_dir.glob(pattern):
+            for yaml_file in resources_dir.glob("application-*.yaml"):
                 if yaml_file.is_file():
                     # Extract profile name from filename
-                    # application-llm.yaml -> llm
                     filename = yaml_file.stem  # Remove .yaml extension
                     if filename.startswith("application-"):
                         profile_name = filename[12:]  # Remove "application-" prefix
                         if profile_name:  # Make sure there's a profile name
                             # Check if this profile should be loaded
                             if load_all or profile_name in target_profiles:
-                                profile_files[profile_name] = str(yaml_file)
-                                logger.debug(f"Discovered profile '{profile_name}' at {yaml_file}")
+                                profile_data[profile_name] = str(yaml_file)
+                                logger.debug(f"Discovered flat profile '{profile_name}' at {yaml_file}")
                             else:
-                                logger.debug(f"Skipping profile '{profile_name}' (not in PROFILES list)")
-                            
+                                logger.debug(f"Skipping flat profile '{profile_name}' (not in PROFILES list)")
+                                
         except Exception as e:
-            logger.error(f"Error discovering profile files in {resources_dir}: {e}")
-        
-        # Warn about missing requested profiles
-        if not load_all:
-            missing_profiles = target_profiles - set(profile_files.keys())
-            if missing_profiles:
-                logger.warning(f"Requested profiles not found: {missing_profiles}")
-        
-        return profile_files
+            logger.error(f"Error discovering flat profile files in {resources_dir}: {e}")
+    
+    def _discover_nested_profiles(self, resources_dir: Path, profile_data: Dict[str, Any],
+                                 load_all: bool, target_profiles: set):
+        """Discover nested application-*.yaml files in subdirectories."""
+        try:
+            for item in resources_dir.iterdir():
+                if item.is_dir():
+                    folder_name = item.name
+                    folder_configs = {}
+                    
+                    # Look for application-*.yaml files in this subdirectory
+                    for yaml_file in item.glob("application-*.yaml"):
+                        if yaml_file.is_file():
+                            filename = yaml_file.stem
+                            if filename.startswith("application-"):
+                                config_name = filename[12:]  # Remove "application-" prefix
+                                if config_name:
+                                    # Check if this nested profile should be loaded
+                                    full_profile_name = f"{folder_name}.{config_name}"
+                                    if load_all or folder_name in target_profiles or full_profile_name in target_profiles:
+                                        folder_configs[config_name] = str(yaml_file)
+                                        logger.debug(f"Discovered nested profile '{folder_name}.{config_name}' at {yaml_file}")
+                                    else:
+                                        logger.debug(f"Skipping nested profile '{full_profile_name}' (not in PROFILES list)")
+                    
+                    # Add folder configs if any were found
+                    if folder_configs:
+                        profile_data[folder_name] = folder_configs
+                        logger.info(f"Discovered nested profile namespace '{folder_name}' with {len(folder_configs)} configs")
+                        
+        except Exception as e:
+            logger.error(f"Error discovering nested profile files in {resources_dir}: {e}")
     
     def _create_dynamic_attributes(self, data: Dict[str, Any]):
         """
         Dynamically create attributes from configuration data.
+        Handles both flat and nested configurations.
         
         Args:
             data: Configuration data dictionary
@@ -221,11 +307,24 @@ class Settings:
         for key, value in data.items():
             attr_name = self._sanitize_attribute_name(key)
             
-            if isinstance(value, dict):
+            if isinstance(value, dict) and any(isinstance(v, dict) for v in value.values()):
+                # This is a nested configuration (namespace with configs)
+                namespace_config = {}
+                for config_name, config_data in value.items():
+                    namespace_config[config_name] = DynamicConfig(config_data)
+                setattr(self, attr_name, DynamicConfig(namespace_config))
+                logger.debug(f"Created nested dynamic attribute '{attr_name}' with configs: {list(value.keys())}")
+            elif isinstance(value, dict):
+                # This is a flat configuration
                 setattr(self, attr_name, DynamicConfig(value))
+                logger.debug(f"Created flat dynamic attribute '{attr_name}'")
             else:
                 # For non-dict values, wrap in DynamicConfig for consistency
                 setattr(self, attr_name, value)
+        
+        # Store list of configured profiles for reference
+        self._configured_profiles = list(data.keys())
+        logger.info(f"Created dynamic attributes for profiles: {self._configured_profiles}")
     
     def _sanitize_attribute_name(self, name: str) -> str:
         """

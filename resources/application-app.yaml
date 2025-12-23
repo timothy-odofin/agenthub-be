@@ -14,7 +14,7 @@ api:
 
 # Security Configuration
 security:
-  jwt_secret_key: "${JWT_SECRET_KEY}"
+  jwt_secret_key: "${JWT_SECRET_KEY:your-secret-key-change-in-production}"
   jwt_algorithm: "${JWT_ALGORITHM:HS256}"
   access_token_expire_minutes: "${ACCESS_TOKEN_EXPIRE_MINUTES:30}"
   api_key_rotation_days: 90           # Rotate API keys every 90 days
@@ -22,10 +22,9 @@ security:
   max_login_attempts: 5               # Maximum failed login attempts
   lockout_duration: 900               # Account lockout duration (15 minutes)
 
-
-# Logging Configuration
-logging:
-  level: "${LOG_LEVEL:INFO}"
+  # Logging Configuration
+  logging:
+    level: "${LOG_LEVEL:INFO}"
 
 # Agent configuration
 agent:

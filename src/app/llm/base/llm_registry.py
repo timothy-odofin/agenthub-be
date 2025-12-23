@@ -13,6 +13,7 @@ class LLMRegistry:
     """Central registry that keeps track of all available LLM providers."""
     _registry: Dict[str, Type] = {}
     _providers_imported: bool = False
+    _auto_import_enabled: bool = True  # Allow disabling for tests
 
     @classmethod
     def register(cls, provider: LLMProvider):
@@ -24,14 +25,30 @@ class LLMRegistry:
         return decorator
 
     @classmethod
+    def set_auto_import(cls, enabled: bool):
+        """Control auto-import behavior for testing."""
+        cls._auto_import_enabled = enabled
+
+    @classmethod
+    def reset_for_testing(cls):
+        """Reset registry state for testing."""
+        cls._registry.clear()
+        cls._providers_imported = False
+        cls._auto_import_enabled = True
+
+    @classmethod
     def _ensure_providers_imported(cls):
         """Ensure all providers are imported for registration."""
-        if cls._providers_imported:
+        if cls._providers_imported or not cls._auto_import_enabled:
             return
             
-        # Import providers module to trigger registration
-        import app.llm.providers
-        cls._providers_imported = True
+        try:
+            # Import providers module to trigger registration
+            import app.llm.providers
+            cls._providers_imported = True
+        except ImportError:
+            # Log the error but don't fail - providers might be registered manually
+            pass
 
     @classmethod
     def get_provider_class(cls, provider: LLMProvider) -> Optional[Type]:

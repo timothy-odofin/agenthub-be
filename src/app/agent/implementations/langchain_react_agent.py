@@ -100,21 +100,59 @@ class LangChainReactAgent(LangChainAgent):
         )
         
         try:
+            # Ensure session exists before processing (but don't add current message yet)
+            if self.session_repository and context.session_id and context.user_id:
+                # Ensure session exists (create if it doesn't)
+                session_created = await self.session_repository.ensure_session_exists(
+                    context.session_id,
+                    context.user_id, 
+                    {"title": "Chat Session", "metadata": context.metadata or {}}
+                )
+                
+                if session_created:
+                    self.logger.info(f"Created session {context.session_id} for user {context.user_id}")
+            
             chat_history = []
             if self.session_repository and context.session_id:
+                # Get existing chat history (WITHOUT the current question)
                 messages = await self.session_repository.get_session_history(
                     context.user_id, 
                     context.session_id
                 )
                 
-                for msg in messages[-10:]:
-                    if msg.role == "user":
-                        chat_history.append(HumanMessage(content=msg.content))
-                    else:
-                        chat_history.append(AIMessage(content=msg.content))
-            
-            if self.session_repository and context.session_id:
-                await self.session_repository.add_message(context.session_id, "user", query)
+                # Debug logging to see what's retrieved
+                self.logger.info(f"Retrieved {len(messages)} messages from session {context.session_id} for user {context.user_id}")
+                for i, msg in enumerate(messages):
+                    self.logger.debug(f"Message {i}: {msg.role} - {msg.content[:50]}...")
+                
+                # Use context window manager for message processing and format conversion
+                # Modified to preserve full conversation history while handling format conversion
+                from app.llm.context import ContextWindowManager
+                context_manager = ContextWindowManager()
+                
+                # Get the model name from LLM provider
+                model_name = getattr(self.llm, 'model_name', 'gpt-4')
+                if hasattr(self.llm, 'model'):
+                    model_name = self.llm.model
+                
+                # Prepare context - using a very high token limit to avoid truncation
+                # This ensures we get proper format conversion without losing conversation history
+                processed_messages, metadata = context_manager.prepare_context(
+                    messages=messages,
+                    model=model_name,
+                    strategy="recent",  # Use recent strategy but with high limits
+                    custom_max_tokens=100000  # Very high limit to preserve full history
+                )
+                
+                # Log context utilization for monitoring
+                self.logger.info(
+                    f"Context processing: {metadata['token_utilization']:.2%} "
+                    f"({metadata['final_tokens']}/{metadata['available_tokens']} tokens), "
+                    f"messages: {metadata['original_message_count']} → {metadata['final_message_count']}"
+                )
+                
+                # Use processed messages as chat history
+                chat_history = processed_messages
             
             def run_agent():
                 return self.executor.invoke({
@@ -136,7 +174,11 @@ class LangChainReactAgent(LangChainAgent):
                     if hasattr(step, 'tool') and step.tool:
                         response.tools_used.append(step.tool)
             
+            # Add both user message and assistant response to session history AFTER processing
             if self.session_repository and context.session_id:
+                # Add user message first
+                await self.session_repository.add_message(context.session_id, "user", query)
+                # Then add assistant response
                 await self.session_repository.add_message(context.session_id, "assistant", response.content)
             
         except Exception as e:

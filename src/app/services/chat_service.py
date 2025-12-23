@@ -77,9 +77,15 @@ class ChatService(metaclass=SingletonMeta):
             session_id: Optional[str] = None,
             protocol: str = "rest"
     ) -> Dict[str, Any]:
+        import uuid
+        
         start_time = datetime.now()
 
         try:
+            # Auto-generate session_id if not provided
+            if session_id is None:
+                session_id = str(uuid.uuid4())
+                
             logger.info(f"Processing chat message for user {user_id}, session {session_id}")
 
             agent = await self.agent
@@ -135,14 +141,6 @@ class ChatService(metaclass=SingletonMeta):
                 }
             }
 
-            if protocol == "websocket":
-                error_response.update({
-                    "type": "agent_response",
-                    "status": "error",
-                    "has_errors": True
-                })
-
-            return error_response
 
     async def chat_simple(self, message: str, user_id: str, session_id: Optional[str] = None) -> str:
         try:
@@ -252,7 +250,7 @@ class ChatService(metaclass=SingletonMeta):
 
     async def get_available_tools(self) -> List[Dict[str, str]]:
         try:
-            from app.agent import ToolRegistry
+            from app.agent.tools.base.registry import ToolRegistry
             tools = ToolRegistry.get_instantiated_tools()
 
             tool_info = []
@@ -271,7 +269,7 @@ class ChatService(metaclass=SingletonMeta):
 
     async def health_check(self) -> Dict[str, Any]:
         try:
-            from app.agent import ToolRegistry
+            from app.agent.tools.base.registry import ToolRegistry
             tools_count = len(ToolRegistry.get_instantiated_tools())
             
             agent_info = None

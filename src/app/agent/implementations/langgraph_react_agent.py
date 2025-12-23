@@ -118,11 +118,31 @@ class LangGraphReactAgent(LangGraphAgent):
                     context.session_id
                 )
                 
-                for msg in history[-10:]:  # Last 10 messages for context
-                    if msg.role == "user":
-                        messages.append(HumanMessage(content=msg.content))
-                    else:
-                        messages.append(AIMessage(content=msg.content))
+                # Use context window manager for intelligent message truncation
+                from app.llm.context import ContextWindowManager
+                context_manager = ContextWindowManager()
+                
+                # Get the model name from LLM provider
+                model_name = getattr(self.llm, 'model_name', 'gpt-4')
+                if hasattr(self.llm, 'model'):
+                    model_name = self.llm.model
+                
+                # Prepare context with token-aware truncation
+                processed_messages, metadata = context_manager.prepare_context(
+                    messages=history,
+                    model=model_name,
+                    strategy="sliding"  # Use sliding window for LangGraph
+                )
+                
+                # Log context utilization for monitoring
+                self.logger.info(
+                    f"LangGraph context utilization: {metadata['token_utilization']:.2%} "
+                    f"({metadata['final_tokens']}/{metadata['available_tokens']} tokens), "
+                    f"messages: {metadata['original_message_count']} → {metadata['final_message_count']}"
+                )
+                
+                # Use processed messages
+                messages = processed_messages
             
             # Add current user message
             messages.append(HumanMessage(content=query))
