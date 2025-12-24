@@ -97,7 +97,15 @@ class EnvironmentManager:
                 raise ValueError(f"Required environment variable '{key}' is not set")
             result = default
         else:
-            result = self._convert_value(raw_value, var_type or type(default) if default is not None else str)
+            # Determine target type with proper precedence
+            if var_type is not None:
+                target_type = var_type
+            elif default is not None:
+                target_type = type(default)
+            else:
+                target_type = str
+            
+            result = self._convert_value(raw_value, target_type)
         
         # Cache the result
         self._cache[cache_key] = result

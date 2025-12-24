@@ -259,7 +259,12 @@ class PropertyResolver:
         elif isinstance(data, str):
             matches = self.PLACEHOLDER_PATTERN.findall(data)
             for match in matches:
-                if match[0].strip() == var_name and len(match) > 1 and match[1] is not None:
+                # Check if variable name matches and has a meaningful default
+                # The regex captures empty string when there's no colon, so we need to check for actual content
+                if (match[0].strip() == var_name and 
+                    len(match) > 1 and 
+                    match[1] is not None and 
+                    ':' in data):  # Ensure there was actually a colon in the original string
                     return True
         
         return False

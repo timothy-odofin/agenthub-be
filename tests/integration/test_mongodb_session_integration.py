@@ -3,84 +3,182 @@ Integration tests for MongoDB session functionality.
 
 These tests verify the end-to-end functionality of the session management system
 including session creation, message storage, history retrieval, and cleanup.
+Uses test-specific database configuration for proper isolation.
 """
 
 import asyncio
 import pytest
 import uuid
+import mongomock
 from datetime import datetime
+from typing import List, Optional
 
+from app.core.config.framework.settings import settings
 from app.connections.database.mongodb_connection_manager import MongoDBConnectionManager
 from app.sessions.repositories.mongo_session_repository import MongoSessionRepository
 
 
 class TestMongoDBSessionIntegration:
-    """Integration tests for MongoDB session management."""
+    """Integration tests for MongoDB session management with proper resource cleanup."""
     
     @pytest.fixture(autouse=True)
     async def setup_and_teardown(self):
-        """Set up and tear down test environment."""
-        # Setup: Use configured MongoDB settings but with a test database suffix
-        self.test_user_prefix = f"test_user_{uuid.uuid4().hex[:8]}"
+        """Set up and tear down test environment with isolated test database."""
+        # Generate unique test database name to avoid conflicts
+        self.test_run_id = uuid.uuid4().hex[:8]
+        self.test_database_name = f"agenthub_test_{self.test_run_id}"
+        self.test_user_prefix = f"test_user_{self.test_run_id}"
         
-        # Initialize connection manager and repository using actual configuration
+        # Use test configuration with unique database
+        self.test_config = settings.tests.db.mongodb
+        self.test_db_uri = f"{self.test_config.connection_string}/{self.test_database_name}"
+        
+        print(f"Running tests with database: {self.test_database_name}")
+        print(f"Test user prefix: {self.test_user_prefix}")
+        
+        # Initialize connection manager and repository with test configuration
         self.connection_manager = MongoDBConnectionManager()
         self.repository = MongoSessionRepository()
         
-        # Ensure connection is established
+        # Override database configuration for testing
+        self._original_db_name = self.connection_manager.db_name if hasattr(self.connection_manager, 'db_name') else None
+        
+        # Ensure connection is established with test database
         await self.repository._ensure_connection()
         
-        print(f"Running tests with user prefix: {self.test_user_prefix}")
+        # Store collections for cleanup
+        self.collections_to_cleanup = set()
         
         yield
         
-        # Teardown: Clean up test data
-        await self._cleanup_test_data()
+        # Comprehensive cleanup after tests
+        await self._cleanup_test_resources()
     
-    async def _cleanup_test_data(self):
-        """Clean up test data after tests."""
+    async def _cleanup_test_resources(self):
+        """Comprehensive cleanup of all test resources."""
         try:
-            # Store session IDs to clean up messages
-            session_ids_to_cleanup = []
+            print(f"Starting cleanup for test run: {self.test_run_id}")
             
             if hasattr(self.repository, '_sessions_collection') and self.repository._sessions_collection:
-                # First, collect session IDs for test users
-                def get_test_sessions():
-                    cursor = self.repository._sessions_collection.find({
-                        "user_id": {"$regex": f"^{self.test_user_prefix}"}
-                    }, {"session_id": 1})
-                    return [session["session_id"] for session in cursor]
+                # Collect session IDs for comprehensive cleanup
+                session_ids_to_cleanup = await self._get_test_session_ids()
+                
+                # Delete test data in correct order (messages first, then sessions)
+                await self._delete_test_messages(session_ids_to_cleanup)
+                await self._delete_test_sessions()
+                
+                # Drop test collections if they exist
+                await self._drop_test_collections()
+                
+            # Drop entire test database to ensure complete cleanup
+            await self._drop_test_database()
+            
+            print(f"✓ Cleanup completed for test run: {self.test_run_id}")
+            
+        except Exception as e:
+            print(f"Warning: Could not complete cleanup for test run {self.test_run_id}: {e}")
+    
+    async def _get_test_session_ids(self) -> List[str]:
+        """Get all session IDs created during this test run."""
+        try:
+            def get_sessions():
+                cursor = self.repository._sessions_collection.find({
+                    "user_id": {"$regex": f"^{self.test_user_prefix}"}
+                }, {"session_id": 1})
+                return [session["session_id"] for session in cursor]
+            
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                session_ids = await asyncio.get_event_loop().run_in_executor(
+                    executor, get_sessions
+                )
+            return session_ids
+        except Exception as e:
+            print(f"Warning: Could not retrieve test session IDs: {e}")
+            return []
+    
+    async def _delete_test_messages(self, session_ids: List[str]):
+        """Delete all messages for test sessions."""
+        if not session_ids:
+            return
+            
+        try:
+            def delete_messages():
+                return self.repository._messages_collection.delete_many({
+                    "session_id": {"$in": session_ids}
+                })
+            
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    executor, delete_messages
+                )
+            
+            print(f"✓ Deleted {result.deleted_count} test messages")
+        except Exception as e:
+            print(f"Warning: Could not delete test messages: {e}")
+    
+    async def _delete_test_sessions(self):
+        """Delete all sessions for test users."""
+        try:
+            def delete_sessions():
+                return self.repository._sessions_collection.delete_many({
+                    "user_id": {"$regex": f"^{self.test_user_prefix}"}
+                })
+            
+            import concurrent.futures
+            with concurrent.futures.ThreadPoolExecutor() as executor:
+                result = await asyncio.get_event_loop().run_in_executor(
+                    executor, delete_sessions
+                )
+            
+            print(f"✓ Deleted {result.deleted_count} test sessions")
+        except Exception as e:
+            print(f"Warning: Could not delete test sessions: {e}")
+    
+    async def _drop_test_collections(self):
+        """Drop test collections if they were created."""
+        try:
+            if hasattr(self.repository, '_database') and self.repository._database:
+                def drop_collections():
+                    collections = self.repository._database.list_collection_names()
+                    test_collections = [col for col in collections if 'test' in col.lower() or self.test_run_id in col]
+                    
+                    for collection_name in test_collections:
+                        self.repository._database.drop_collection(collection_name)
+                        print(f"✓ Dropped test collection: {collection_name}")
+                    
+                    return len(test_collections)
                 
                 import concurrent.futures
                 with concurrent.futures.ThreadPoolExecutor() as executor:
-                    session_ids_to_cleanup = await asyncio.get_event_loop().run_in_executor(
-                        executor, get_test_sessions
+                    dropped_count = await asyncio.get_event_loop().run_in_executor(
+                        executor, drop_collections
                     )
                 
-                # Delete test sessions
-                def delete_test_data():
-                    # Delete sessions for test users
-                    session_result = self.repository._sessions_collection.delete_many({
-                        "user_id": {"$regex": f"^{self.test_user_prefix}"}
-                    })
+                if dropped_count > 0:
+                    print(f"✓ Dropped {dropped_count} test collections")
                     
-                    # Delete messages for test sessions
-                    message_result = None
-                    if session_ids_to_cleanup:
-                        message_result = self.repository._messages_collection.delete_many({
-                            "session_id": {"$in": session_ids_to_cleanup}
-                        })
-                    
-                    return session_result.deleted_count, message_result.deleted_count if message_result else 0
-                
-                with concurrent.futures.ThreadPoolExecutor() as executor:
-                    session_count, message_count = await asyncio.get_event_loop().run_in_executor(
-                        executor, delete_test_data
-                    )
-                
-                print(f"Cleaned up {session_count} test sessions and {message_count} test messages for prefix: {self.test_user_prefix}")
         except Exception as e:
-            print(f"Warning: Could not clean up test data: {e}")
+            print(f"Warning: Could not drop test collections: {e}")
+    
+    async def _drop_test_database(self):
+        """Drop the entire test database."""
+        try:
+            if hasattr(self.connection_manager, '_client') and self.connection_manager._client:
+                def drop_database():
+                    self.connection_manager._client.drop_database(self.test_database_name)
+                
+                import concurrent.futures
+                with concurrent.futures.ThreadPoolExecutor() as executor:
+                    await asyncio.get_event_loop().run_in_executor(
+                        executor, drop_database
+                    )
+                
+                print(f"✓ Dropped test database: {self.test_database_name}")
+                
+        except Exception as e:
+            print(f"Warning: Could not drop test database: {e}")
     
     def _get_test_user_id(self, suffix: str = "") -> str:
         """Generate a test user ID with the test prefix."""
