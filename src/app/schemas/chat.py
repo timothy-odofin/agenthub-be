@@ -4,7 +4,6 @@ from datetime import datetime
 
 class ChatRequest(BaseModel):
     message: str
-    user_id: str
     session_id: Optional[str] = None
 
 class ChatResponse(BaseModel):
@@ -19,7 +18,6 @@ class ChatResponse(BaseModel):
     metadata: Dict[str, Any] = {}
 
 class CreateSessionRequest(BaseModel):
-    user_id: str
     title: Optional[str] = None
 
 class CreateSessionResponse(BaseModel):
