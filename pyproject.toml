@@ -14,6 +14,7 @@ python = ">=3.11,<3.13"
 fastapi = "^0.109.0"
 uvicorn = "^0.27.0"
 pydantic = "^2.6"
+email-validator = "^2.0.0"  # For pydantic EmailStr validation (MIT License)
 httpx = ">=0.26.0,<0.29.0"
 python-multipart = ">=0.0.9,<0.1.0"
 
@@ -83,6 +84,8 @@ check_untyped_defs = true
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
 addopts = "-v --cov=app --cov-report=term-missing"
 asyncio_mode = "auto"
 log_cli = true

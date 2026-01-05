@@ -1,91 +1,37 @@
-# Signup Workflow Configuration
+# Signup Workflow Configuration (YAGNI - only what we need now)
 signup:
   # Workflow definition
   name: "User Signup Workflow"
   version: "1.0.0"
-  description: "Complete user registration and onboarding workflow"
+  description: "User registration workflow with validation"
   
-  # Agent configuration for this workflow
-  agent:
-    type: "langgraph"  # Use LangGraph for complex state management
-    implementation: "LangGraphReactAgent"
-    capabilities:
-      - "user_registration"
-      - "email_verification" 
-      - "profile_setup"
-      - "onboarding_guidance"
-    
-    # Workflow-specific agent settings
-    settings:
-      max_iterations: 10
-      checkpoint_enabled: true
-      human_in_the_loop: true
-      memory_enabled: true
-      
-  # Workflow steps configuration
-  steps:
-    email_validation:
-      enabled: true
+  # Validation rules
+  validation:
+    email:
       required: true
-      timeout_seconds: 300
-      retry_attempts: 3
+      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
       
-    password_strength:
-      enabled: true
+    username:
+      required: true
+      min_length: 3
+      max_length: 30
+      pattern: "^[a-zA-Z0-9_-]+$"
+      
+    password:
+      required: true
       min_length: 8
-      require_special_chars: true
-      require_numbers: true
+      max_length: 72
       require_uppercase: true
+      require_lowercase: true
+      require_digit: true
+      require_special_char: true
       
-    profile_creation:
-      enabled: true
-      required_fields:
-        - "first_name"
-        - "last_name"
-        - "email"
-        - "phone"
-      optional_fields:
-        - "company"
-        - "job_title"
-        - "bio"
-        
-    email_verification:
-      enabled: true
-      verification_timeout_hours: 24
-      max_resend_attempts: 3
-      template: "signup_verification"
+    firstname:
+      required: true
+      min_length: 1
+      max_length: 50
       
-    welcome_sequence:
-      enabled: true
-      send_welcome_email: true
-      schedule_onboarding_call: false
-      assign_account_manager: false
-
-  # Integration settings
-  integrations:
-    email_service:
-      provider: "sendgrid"
-      template_id: "d-123456789"
-      from_address: "noreply@agenthub.com"
-      
-    notification_service:
-      slack_webhook: "${SLACK_SIGNUP_WEBHOOK}"
-      teams_enabled: false
-      
-  # Analytics and monitoring
-  analytics:
-    track_conversion: true
-    track_drop_off_points: true
-    send_to_analytics: true
-    custom_events:
-      - "signup_started"
-      - "email_verified"
-      - "profile_completed"
-      - "onboarding_finished"
-
-  # Error handling
-  error_handling:
-    max_retries: 3
-    fallback_to_manual: true
-    notify_admins: true
-    log_level: "INFO"
+    lastname:
+      required: true
+      min_length: 1
+      max_length: 50
