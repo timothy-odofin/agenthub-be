@@ -28,13 +28,9 @@ class VectorStoreTools:
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize with optional configuration."""
         self.config = config or {}
-        self.enabled = self.config.get('enabled', True)
         
     def get_tools(self) -> List[Tool]:
         """Return list of vector store tools."""
-        if not self.enabled:
-            return []
-            
         return [
             Tool(
                 name="retrieve_information",

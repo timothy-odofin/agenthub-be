@@ -59,7 +59,7 @@ class ChatService(metaclass=SingletonMeta):
                 logger.info("Agent initialized successfully")
 
             except Exception as e:
-                logger.error(f"Failed to initialize agent: {e}")
+                logger.error(f"Failed to initialize agent: {e}", exc_info=True)
                 raise
 
         return self._agent
@@ -124,7 +124,7 @@ class ChatService(metaclass=SingletonMeta):
             return legacy_response
 
         except Exception as e:
-            logger.error(f"Chat service error for user {user_id}: {e}")
+            logger.error(f"Chat service error for user {user_id}: {e}", exc_info=True)
 
             return {
                 "success": False,
@@ -147,7 +147,7 @@ class ChatService(metaclass=SingletonMeta):
             result = await self.chat(message, user_id, session_id, "rest")
             return result.get("message", "I apologize, but I'm experiencing technical difficulties.")
         except Exception as e:
-            logger.error(f"Simple chat error for user {user_id}: {e}")
+            logger.error(f"Simple chat error for user {user_id}: {e}", exc_info=True)
             return "I apologize, but I'm experiencing technical difficulties. Please try again."
 
     def create_session(self, user_id: str, title: Optional[str] = None) -> str:

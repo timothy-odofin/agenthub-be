@@ -59,7 +59,7 @@ class ExternalServicesConfig(BaseConfigSource):
         return {
             'api_key': settings.external.github.api_key,
             'base_url': settings.external.github.base_url,
-            'timeout': settings.external.github.timeout,
+            'timeout': settings.external.github.timeout
         }
     
     @property

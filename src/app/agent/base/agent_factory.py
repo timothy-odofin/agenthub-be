@@ -33,7 +33,7 @@ class AgentFactory:
             return agent
             
         except Exception as e:
-            logger.error(f"Failed to create agent {agent_type.value}/{framework.value}: {e}")
+            logger.error(f"Failed to create agent {agent_type.value}/{framework.value}: {e}", exc_info=True)
             raise
     
     @staticmethod

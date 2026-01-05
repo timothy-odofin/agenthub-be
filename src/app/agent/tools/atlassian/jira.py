@@ -42,7 +42,6 @@ class JiraTools:
     def __init__(self, config: Dict[str, Any] = None):
         """Initialize with optional configuration."""
         self.config = config or {}
-        self.enabled = self.config.get('enabled', True)
         self._jira_service = None
         
     @property
@@ -59,9 +58,6 @@ class JiraTools:
         
     def get_tools(self) -> List[StructuredTool]:
         """Return list of JIRA tools."""
-        if not self.enabled:
-            return []
-            
         return [
             StructuredTool(
                 name="get_jira_projects",

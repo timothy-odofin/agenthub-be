@@ -120,7 +120,7 @@ class UnifiedConfig:
 class _ConfigProxy:
     """Lazy proxy for unified config."""
     def __getattr__(self, name):
-        if not hasattr(self, '_unified_config'):
+        if '_unified_config' not in self.__dict__:
             self._unified_config = UnifiedConfig()
         return getattr(self._unified_config, name)
 
