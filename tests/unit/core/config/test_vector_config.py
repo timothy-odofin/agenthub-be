@@ -6,7 +6,7 @@ import pytest
 from unittest.mock import patch, MagicMock
 from types import SimpleNamespace
 
-from src.app.core.config.providers.vector import VectorConfig
+from app.core.config.providers.vector import VectorConfig
 
 
 class TestVectorConfig:

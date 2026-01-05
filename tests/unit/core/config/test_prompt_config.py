@@ -5,7 +5,7 @@ Unit tests for prompt configuration management.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from src.app.core.config.providers.prompt import PromptConfig, PromptConfigError, PromptType
+from app.core.config.providers.prompt import PromptConfig, PromptConfigError, PromptType
 
 
 class TestPromptConfig:

@@ -12,6 +12,14 @@ from .config_converter import (
     dict_to_pydantic_compatible,
     extract_config_section
 )
+from .file_utils import (
+    read_text_file,
+    read_binary_file, 
+    read_private_key_file,
+    file_exists,
+    get_file_info,
+    FileReadError
+)
 
 __all__ = [
     'EnvironmentManager',
@@ -20,5 +28,11 @@ __all__ = [
     'property_resolver',
     'dynamic_config_to_dict',
     'dict_to_pydantic_compatible',
-    'extract_config_section'
+    'extract_config_section',
+    'read_text_file',
+    'read_binary_file',
+    'read_private_key_file', 
+    'file_exists',
+    'get_file_info',
+    'FileReadError'
 ]

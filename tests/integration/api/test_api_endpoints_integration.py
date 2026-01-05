@@ -12,7 +12,11 @@ from httpx import AsyncClient
 
 from app.main import app
 from app.core.config.framework.settings import settings
-from tests.integration.conftest import MongoDBTestMixin
+
+import sys
+import os
+sys.path.append(os.path.dirname(os.path.dirname(__file__)))
+from conftest import MongoDBTestMixin
 
 
 def create_test_client():

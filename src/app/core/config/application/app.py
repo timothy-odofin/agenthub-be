@@ -21,8 +21,7 @@ class AppConfig(metaclass=SingletonMeta):
     def _load_app_config(self):
         """Load core application configuration from Settings system."""
         # Import settings locally to avoid circular import
-        from ..framework.settings import Settings
-        settings = Settings()
+        from ..framework.settings import settings
         
         # App settings - accessing app profile directly
         self.app_env = settings.app.environment
@@ -46,8 +45,7 @@ class AppConfig(metaclass=SingletonMeta):
         """Load the ingestion configuration from Settings system."""
         try:
             # Import settings locally to avoid circular import
-            from ..framework.settings import Settings
-            settings = Settings()
+            from ..framework.settings import settings
             
             # Get data sources from Settings system
             if hasattr(settings, 'data_sources') and settings.data_sources:

@@ -7,12 +7,53 @@ categories of agent tools using the decorator pattern.
 
 from typing import Dict, List, Set, Optional, Any
 from app.core.utils.logger import get_logger
+from app.core.config.framework.settings import settings
 
 logger = get_logger(__name__)
 
 # Use module-level globals instead of ClassVar
 _tools: Dict[str, List] = {}
 _packages: Set[str] = set()
+
+
+def is_tool_enabled(category: str, tool_name: str) -> bool:
+    """
+    Check if a specific tool is enabled based on configuration.
+    
+    Args:
+        category: The tool category (e.g., 'jira', 'vector')
+        tool_name: The specific tool name (e.g., 'create_jira_issue')
+        
+    Returns:
+        True if tool is enabled, False otherwise
+    """
+    try:
+        # Access tools configuration via settings.tools.tools (nested structure)
+        tools_config = getattr(settings, 'tools', None)
+        if not tools_config:
+            logger.debug("No tools configuration found. Defaulting to enabled.")
+            return True
+            
+        # Handle nested structure - tools.tools
+        if hasattr(tools_config, 'tools'):
+            tools_config = tools_config.tools
+            
+        category_config = getattr(tools_config, category, None)
+        if not category_config:
+            logger.debug(f"No configuration for category '{category}'. Defaulting to enabled.")
+            return True
+        
+        # Check master switch first
+        if hasattr(category_config, 'enabled') and not category_config.enabled:
+            return False
+            
+        # Then check individual tool setting
+        tool_setting = getattr(category_config, tool_name, True)
+        return bool(tool_setting)
+        
+    except Exception as e:
+        logger.warning(f"Could not load tool configuration: {e}. Defaulting to enabled.")
+        return True  # Default to enabled if config unavailable
 
 
 class ToolRegistry:
@@ -103,13 +144,14 @@ class ToolRegistry:
     def get_instantiated_tools(cls, category: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> List:
         """
         Get instantiated Tool objects for a category or all categories.
+        Filters tools based on configuration settings.
         
         Args:
             category: Optional specific category to get tools for
             config: Optional configuration to pass to tool classes
             
         Returns:
-            List of LangChain Tool objects
+            List of enabled LangChain Tool objects
         """
         from langchain.tools import Tool
         
@@ -125,19 +167,38 @@ class ToolRegistry:
         # Instantiate each tool class and get its tools
         for tool_class in tool_classes:
             try:
+                # Get the category this tool was registered with
+                tool_category = None
+                for cat, classes in _tools.items():
+                    if tool_class in classes:
+                        tool_category = cat
+                        break
+                
+                if not tool_category:
+                    logger.warning(f"Could not determine category for tool {tool_class.__name__}")
+                    continue
+                
                 # Create instance with config
                 instance = tool_class(config.get(tool_class.__name__, {}))
                 
                 # Get tools from instance (if it has get_tools method)
                 if hasattr(instance, 'get_tools'):
                     class_tools = instance.get_tools()
-                    tools.extend(class_tools)
+                    
+                    # Filter tools based on configuration
+                    for tool in class_tools:
+                        tool_name = tool.name
+                        if is_tool_enabled(tool_category, tool_name):
+                            tools.append(tool)
+                        else:
+                            logger.debug(f"Tool {tool_name} disabled by configuration")
                 else:
                     logger.warning(f"Tool class {tool_class.__name__} has no get_tools method")
                     
             except Exception as e:
                 logger.error(f"Failed to instantiate tool {tool_class.__name__}: {e}")
                 
+        logger.info(f"Loaded {len(tools)} enabled tools")
         return tools
     
     @classmethod

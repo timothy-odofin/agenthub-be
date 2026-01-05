@@ -24,13 +24,6 @@ class PromptConfigError(Exception):
 class PromptConfig(BaseConfigSource):
     """Simplified prompt configuration using Settings system."""
     
-    def get_connection_config(self, connection_name: str) -> dict:
-        """
-        Required by BaseConfigSource but not used for prompt configuration.
-        Prompts don't have connections.
-        """
-        return {}
-    
     @property
     def default_config(self) -> Dict[str, Any]:
         """

@@ -10,9 +10,32 @@ atlassian:
 
 # GitHub Integration
 github:
+  # Basic API access
   api_key: "${GITHUB_API_KEY}"       # None if not set (for public repos)
   base_url: "${GITHUB_BASE_URL:https://api.github.com}"
   timeout: "${GITHUB_TIMEOUT:30}"
+  
+  # GitHub App configuration (recommended for enhanced access)
+  app:
+    app_id: "${GITHUB_APP_ID}"                           # From GitHub App settings page
+    private_key_path: "${GITHUB_PRIVATE_KEY_PATH}"       # Path to downloaded .pem file
+    installation_id: "${GITHUB_INSTALLATION_ID}" 
+    client_secret: "${GITHUB_CLIENT_SECRET}"        # Get after installing app (optional - auto-detected if not provided)
+  
+  # Repository access configuration
+  allowed_repositories:
+    - name: "timothy-odofin/agenthub-be"
+      description: "AgentHub Backend API - Main application server with AI agent orchestration"
+    - name: "timothy-odofin/car-mgt"
+      description: "Car Management System - Vehicle fleet management application"
+    - name: "timothy-odofin/accountmgt"
+      description: "Account Management System - User account and authentication service"
+    - name: "timothy-odofin/oze-assessment"
+      description: "OZE Assessment Platform - Technical evaluation and testing system"
+    - name: "timothy-odofin/cognizant-code-challenge-api"
+      description: "Cognizant Code Challenge - Technical assessment API backend"
+#    - name: "timothy-odofin/*"  # Wildcard for all user repos
+
 
 # Bitbucket Integration
 bitbucket:
@@ -36,6 +59,15 @@ sharepoint:
   client_secret: "${SHAREPOINT_CLIENT_SECRET}"
   site_url: "${SHAREPOINT_SITE_URL}"
   timeout: "${SHAREPOINT_TIMEOUT:60}"
+
+# Datadog Monitoring and Observability
+datadog:
+  api_key: "${DATADOG_API_KEY}"
+  app_key: "${DATADOG_APP_KEY}"
+  site: "${DATADOG_SITE:datadoghq.com}"  # Use datadoghq.eu for EU region
+  timeout: "${DATADOG_TIMEOUT:30}"
+  default_limit: "${DATADOG_DEFAULT_LIMIT:50}"  # Default number of results
+  max_limit: "${DATADOG_MAX_LIMIT:200}"         # Maximum allowed results (guardrail)
 
 # LangChain Observability
 langchain:

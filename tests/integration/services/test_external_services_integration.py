@@ -1,7 +1,7 @@
 import pytest
 
 from app.core.utils.logger import get_logger
-from src.app.services.external.confluence_service import ConfluenceService
+from app.services.external.confluence_service import ConfluenceService
 logger =  get_logger(__name__)
 @pytest.fixture
 def atlassian_service() -> ConfluenceService:
