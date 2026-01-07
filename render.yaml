@@ -9,13 +9,9 @@ services:
     plan: free
     branch: feature/deployment
     buildCommand: "pip install -r requirements.txt"
-    startCommand: "PYTHONPATH=/opt/render/project/src:$PYTHONPATH uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    startCommand: "cd /opt/render/project/src/src && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
-      # Python Path Configuration
-      - key: PYTHONPATH
-        value: /opt/render/project/src
-      
       # Application Settings
       - key: APP_ENV
         value: production
