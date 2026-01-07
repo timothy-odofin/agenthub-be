@@ -1,0 +1,67 @@
+# Application Configuration
+# Core application settings and metadata
+
+name: "${APP_NAME:AgentHub}"
+version: "${APP_VERSION:1.0.0}"
+description: "Advanced LLM Library with Multi-Provider Support"
+debug: "${DEBUG:false}"             # Debug mode from environment variable
+environment: "${APP_ENV:development}" # Environment from env var
+
+# API Configuration
+api:
+  host: "${API_HOST:0.0.0.0}"
+  port: "${API_PORT:8000}"
+
+# Security Configuration
+security:
+  jwt_secret_key: "${JWT_SECRET_KEY:your-secret-key-change-in-production}"
+  jwt_algorithm: "${JWT_ALGORITHM:HS256}"
+  access_token_expire_minutes: "${ACCESS_TOKEN_EXPIRE_MINUTES:30}"
+  api_key_rotation_days: 90           # Rotate API keys every 90 days
+  session_token_ttl: 3600            # Session token lifetime (1 hour)
+  max_login_attempts: 5               # Maximum failed login attempts
+  lockout_duration: 900               # Account lockout duration (15 minutes)
+
+  # Logging Configuration
+  logging:
+    level: "${LOG_LEVEL:INFO}"
+
+# Agent configuration
+agent:
+  max_iterations: 10                  # Maximum agent iterations
+  timeout: 300                        # Agent execution timeout in seconds
+  memory_window: 20                   # Number of messages to keep in memory
+  tool_timeout: 60                    # Individual tool timeout in seconds
+  
+  # Tool configuration
+  tools:
+    vector_store:
+      enabled: true
+      max_results: 4
+      similarity_threshold: 0.7
+    
+    jira:
+      enabled: true
+      max_results: 10
+      timeout: 30
+
+# Session management
+session:
+  default_provider: "mongodb"         # Default session storage provider
+  max_history_length: 100             # Maximum messages per session
+  session_timeout: 3600               # Session timeout in seconds (1 hour)
+  cleanup_interval: 86400             # Cleanup interval in seconds (24 hours)
+
+# Performance settings
+performance:
+  cache_ttl: 3600                     # Cache time-to-live in seconds (1 hour)
+  batch_processing_size: 100          # Default batch size for bulk operations
+  max_concurrent_requests: 10         # Maximum concurrent API requests
+  request_rate_limit: 100             # Requests per minute limit
+
+# Logging configuration
+logging:
+  level: "INFO"                       # Default log level
+  format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+  max_file_size: "10MB"              # Maximum log file size
+  backup_count: 5                     # Number of backup log files

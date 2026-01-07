@@ -70,3 +70,10 @@ dmypy.json
 # Celery
 celerybeat-schedule
 celerybeat.pid
+/examples
+
+# Scripts
+scripts/
+
+# Private keys and certificates
+*.pem

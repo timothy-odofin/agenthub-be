@@ -16,6 +16,9 @@ ipykernel==6.29.5
 ipdb==0.13.13
 memory-profiler==0.61.0
 
+# Testing utilities
+mongomock==4.1.2  # In-memory MongoDB for testing
+
 # =============================================================================
 # Note: Install base dependencies first with: pip install -r requirements.txt
 # Then install dev dependencies with: pip install -r requirements-dev.txt

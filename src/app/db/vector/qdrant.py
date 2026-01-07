@@ -6,15 +6,13 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from langchain.schema import Document
 from langchain_qdrant import Qdrant as LangchainQdrant
-from qdrant_client import QdrantClient
-from qdrant_client.http.models import Distance, VectorParams
 
 from .providers.db_provider import VectorDBRegistry
-from ...core.config import config
-from ...core.constants import EmbeddingType, VectorDBType
+from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ...core.utils.logger import get_logger
 from .base import VectorDB, DocumentMetadata
 from app.db.vector.embeddings.embedding import EmbeddingFactory
+from app.connections.factory.connection_factory import ConnectionFactory
 
 logger = get_logger(__name__)
 
@@ -23,34 +21,25 @@ class QdrantDB(VectorDB, ABC):
     """Qdrant vector database implementation."""
     
     def __init__(self):
-        super().__init__()
+        # Initialize connection manager before calling super()
+        self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
         self._vectorstore = None
+        
+        # Now call super() which will call get_vector_db_config()
+        super().__init__()
 
     def get_vector_db_config(self) -> Dict[str, Any]:
-        return config.qdrant_config
+        """Get vector database configuration via connection manager."""
+        return self._connection_manager.config
 
-    async def _create_connection(self):
-        """Create connection to Qdrant."""
+    def _create_connection(self):
+        """Create connection to Qdrant using the connection manager factory."""
         try:
             logger.info("Obtaining Qdrant connection...")
-            self._connection = QdrantClient(
-                url=self.config["url"],
-                api_key=self.config["api_key"]
-            )
             
-            # Ensure collection exists
-            collections = self._connection.get_collections().collections
-            collection_names = [c.name for c in collections]
+            # Use the connection manager to establish connection (now sync)
+            self._connection = self._connection_manager.connect()
             
-            if self.config["collection_name"] not in collection_names:
-                logger.info(f"Creating new collection: {self.config['collection_name']}")
-                self._connection.create_collection(
-                    collection_name=self.config["collection_name"],
-                    vectors_config=VectorParams(
-                        size=self.config["embedding_dimension"],
-                        distance=Distance.COSINE
-                    )
-                )
             logger.info(f"Successfully obtained Qdrant connection to {self.config['url']}")
             return self._connection
             
@@ -58,11 +47,12 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to connect to Qdrant: {str(e)}")
             raise
 
-    async def _close_connection(self):
+    def _close_connection(self):
         """Close connection to Qdrant."""
-        if self._connection:
-            self._connection.close()
+        if self._connection_manager:
+            self._connection_manager.disconnect()
             self._connection = None
+            self._connection_manager = None  # Reset manager for clean state
             logger.info("Successfully closed Qdrant connection.")
 
     def _get_vectorstore(self, embedding_function):
@@ -76,18 +66,18 @@ class QdrantDB(VectorDB, ABC):
         logger.info("Using existing Qdrant vectorstore instance.")
         return self._vectorstore
 
-    async def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
+    def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
         """Save documents and generate embeddings."""
         try:
             # Get embedding model
             logger.info(f"Saving {len(docs)} documents...")
-            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type,config)
+            embedding_model = EmbeddingFactory.get_embedding_model(embedding_type)
             logger.info(f"Using embedding model: {embedding_model.__class__.__name__}")
             
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
             
-            # Add documents
+            # Add documents (sync operation)
             logger.info("Adding documents to Qdrant...")
             ids = vectorstore.add_documents(docs)
             logger.info(f"Successfully added {len(docs)} documents to Qdrant collection {self.config['collection_name']}")
@@ -98,7 +88,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to save documents to Qdrant: {str(e)}")
             raise
 
-    async def search_similar(
+    def search_similar(
         self,
         query: str,
         k: int = 5,
@@ -107,12 +97,12 @@ class QdrantDB(VectorDB, ABC):
         """Search for similar documents."""
         try:
             # Get embedding model (using default for now)
-            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
+            embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT)
             
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
             
-            # Perform search
+            # Perform search (sync operation)
             docs = vectorstore.similarity_search(
                 query,
                 k=k,
@@ -128,12 +118,21 @@ class QdrantDB(VectorDB, ABC):
 
     def as_retriever(self, **kwargs):
         """Return vectorstore as retriever."""
+        # Ensure connection is established (sync version)
+        self._ensure_connection_sync()
+        
         # Use default embedding type if not specified
-        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT, config)
+        embedding_model = EmbeddingFactory.get_embedding_model(EmbeddingType.DEFAULT)
         vector_store = self._get_vectorstore(embedding_model)
         return vector_store.as_retriever(**kwargs)
+    
+    def _ensure_connection_sync(self):
+        """Ensure connection is established (synchronous version)."""
+        if self._connection is None:
+            # Simply call the sync method directly
+            self._create_connection()
 
-    async def delete_by_document_id(self, document_id: str) -> bool:
+    def delete_by_document_id(self, document_id: str) -> bool:
         """Delete all chunks of a document by its ID."""
         try:
             logger.info(f"Deleting document with ID: {document_id}")
@@ -163,7 +162,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to delete document {document_id}: {str(e)}")
             return False
 
-    async def get_document_metadata(self, document_id: str) -> Optional[DocumentMetadata]:
+    def get_document_metadata(self, document_id: str) -> Optional[DocumentMetadata]:
         """Get metadata for a document."""
         try:
             from qdrant_client.http.models import Filter, FieldCondition, MatchValue
@@ -202,21 +201,21 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to get metadata for document {document_id}: {str(e)}")
             return None
 
-    async def update_document(self, document_id: str, updated_doc: Document, embedding_type: EmbeddingType) -> bool:
+    def update_document(self, document_id: str, updated_doc: Document, embedding_type: EmbeddingType) -> bool:
         """Update an existing document."""
         try:
             logger.info(f"Updating document with ID: {document_id}")
             
-            # First delete the old document
-            delete_success = await self.delete_by_document_id(document_id)
+            # First delete the old document (sync operation)
+            delete_success = self.delete_by_document_id(document_id)
             if not delete_success:
                 logger.error(f"Failed to delete old document {document_id}")
                 return False
             
-            # Then add the updated document
+            # Then add the updated document (sync operation)
             # Make sure the document has the same ID in metadata
             updated_doc.metadata["document_id"] = document_id
-            ids = await self.save_and_embed(embedding_type, [updated_doc])
+            ids = self.save_and_embed(embedding_type, [updated_doc])
             
             success = len(ids) > 0
             if success:

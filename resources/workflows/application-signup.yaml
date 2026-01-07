@@ -1,0 +1,37 @@
+# Signup Workflow Configuration (YAGNI - only what we need now)
+signup:
+  # Workflow definition
+  name: "User Signup Workflow"
+  version: "1.0.0"
+  description: "User registration workflow with validation"
+  
+  # Validation rules
+  validation:
+    email:
+      required: true
+      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+      
+    username:
+      required: true
+      min_length: 3
+      max_length: 30
+      pattern: "^[a-zA-Z0-9_-]+$"
+      
+    password:
+      required: true
+      min_length: 8
+      max_length: 72
+      require_uppercase: true
+      require_lowercase: true
+      require_digit: true
+      require_special_char: true
+      
+    firstname:
+      required: true
+      min_length: 1
+      max_length: 50
+      
+    lastname:
+      required: true
+      min_length: 1
+      max_length: 50

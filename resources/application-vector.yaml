@@ -1,0 +1,64 @@
+# Vector Database Configuration
+# Settings for vector databases and similarity search
+default:
+  provider: "qdrant"                   # Default vector database
+  embedding: "openai"                  # Default embedding provider
+  similarity_threshold: 0.7            # Minimum similarity score
+  max_results: 10                      # Maximum search results
+
+# Provider-specific configurations
+qdrant:
+  url: "${QDRANT_ENDPOINT}"
+  api_key: "${QDRANT_API_KEY}"
+  collection_name: "${QDRANT_COLLECTION_NAME:agent_hub_collection}"
+  embedding_dimension: "${QDRANT_EMBEDDING_DIMENSION:1536}"
+  distance: "${QDRANT_DISTANCE:Cosine}"
+
+pgvector:
+  connection_string: "${PGVECTOR_CONNECTION_STRING}"
+  collection_name: "${PGVECTOR_COLLECTION_NAME:documents}"
+  embedding_dimension: "${PGVECTOR_EMBEDDING_DIMENSION:1536}"
+  distance_strategy: "${PGVECTOR_DISTANCE_STRATEGY:cosine}"
+  pre_delete_collection: "${PGVECTOR_PRE_DELETE_COLLECTION:false}"
+
+chromadb:
+  collection_name: "${CHROMADB_COLLECTION_NAME:documents}"
+  persist_directory: "${CHROMADB_PERSIST_DIRECTORY:./volumes/chromadb}"
+  embedding_type: "${CHROMADB_EMBEDDING_TYPE:openai}"
+  distance_metric: "${CHROMADB_DISTANCE_METRIC:cosine}"
+
+chroma:
+  host: "${CHROMA_HOST:localhost}"
+  port: "${CHROMA_PORT:8000}"
+  collection_name: "${CHROMA_COLLECTION_NAME:documents}"
+  persist_directory: "${CHROMA_PERSIST_DIRECTORY:./chroma_db}"
+
+pinecone:
+  api_key: "${PINECONE_API_KEY}"     # None if not set
+  environment: "${PINECONE_ENVIRONMENT}"
+  index_name: "${PINECONE_INDEX_NAME:documents}"
+  dimension: "${PINECONE_DIMENSION:1536}"
+  metric: "${PINECONE_METRIC:cosine}"
+
+weaviate:
+  url: "${WEAVIATE_URL:http://localhost:8080}"
+  api_key: "${WEAVIATE_API_KEY}"     # None if not set
+  class_name: "${WEAVIATE_CLASS_NAME:Document}"
+  text_key: "${WEAVIATE_TEXT_KEY:content}"
+
+milvus:
+  host: "${MILVUS_HOST:localhost}"
+  port: "${MILVUS_PORT:19530}"
+  collection_name: "${MILVUS_COLLECTION_NAME:documents}"
+  dimension: "${MILVUS_DIMENSION:1536}"
+  index_type: "${MILVUS_INDEX_TYPE:IVF_FLAT}"
+  metric_type: "${MILVUS_METRIC_TYPE:L2}"
+
+opensearch:
+  host: "${OPENSEARCH_HOST:localhost}"
+  port: "${OPENSEARCH_PORT:9200}"
+  username: "${OPENSEARCH_USERNAME}"  # None if not set
+  password: "${OPENSEARCH_PASSWORD}"  # None if not set
+  index_name: "${OPENSEARCH_INDEX_NAME:documents}"
+  use_ssl: "${OPENSEARCH_USE_SSL:false}"
+  verify_certs: "${OPENSEARCH_VERIFY_CERTS:false}"

@@ -1,0 +1,99 @@
+# Tool Configuration
+# Controls which agent tools are available to the LLM
+# Professional configuration-driven approach for open-source extensibility
+# Connection details are configured separately in application-external.yaml
+
+tools:
+  # Jira Integration Tools
+  jira:
+    enabled: true
+    # Only tools that are currently implemented
+    available_tools:
+      issues:
+        search_jira_issues:
+          enabled: true
+          description: "Search for JIRA issues using JQL (JIRA Query Language)"
+          category: "search"
+        create_jira_issue:
+          enabled: true
+          description: "Create a new JIRA issue with specified details"
+          category: "management"
+        get_jira_issue:
+          enabled: true
+          description: "Get detailed information about a specific JIRA issue"
+          category: "retrieval"
+      projects:
+        get_jira_projects:
+          enabled: true
+          description: "List all accessible JIRA projects"
+          category: "discovery"
+    
+  # Vector Store Tools (includes embedded confluence pages)
+  vector:
+    enabled: true
+    # Only the one tool that is currently implemented
+    available_tools:
+      search:
+        retrieve_information:
+          enabled: true
+          description: "Semantic search across knowledge base using vector embeddings"
+          category: "search"
+
+  # GitHub Integration Tools
+  github:
+    enabled: true
+    # Simplified GitHub tools configuration - direct tool name to boolean mapping
+    # Tool names match exactly with LangChain GitHubToolkit tool names
+    available_tools:
+      # Issues Management
+      "Get Issues": true
+      "Get Issue": true  
+      "Comment on Issue": true
+      
+      # Pull Requests
+      "List open pull requests (PRs)": true
+      "Get Pull Request": true
+      "Create Pull Request": true
+      "Create review request": true
+      "Overview of files included in PR": true
+      "List Pull Requests' Files": true
+      
+      # File Operations
+      "Read File": true
+      "Update File": true
+      "Create File": false  # Disabled for safety
+      "Delete File": false  # Disabled for safety
+      
+      # Repository Navigation
+      "Overview of existing files in Main branch": true
+      "Overview of files in current working branch": true
+      "Get files from a directory": true
+      
+      # Search Capabilities  
+      "Search issues and pull requests": true
+      "Search code": true
+      
+      # Branch Management
+      "List branches in this repository": true
+      "Create a new branch": true
+      "Set active branch": true
+
+  # Datadog Monitoring and Observability Tools
+  datadog:
+    enabled: true
+    available_tools:
+      logs:
+        datadog_search_logs:
+          enabled: true
+          description: "Search Datadog logs for errors, traces, and application behavior"
+          category: "observability"
+      metrics:
+        datadog_query_metrics:
+          enabled: true
+          description: "Query Datadog metrics for system and application performance"
+          category: "observability"
+      monitors:
+        datadog_list_monitors:
+          enabled: true
+          description: "List and check status of Datadog monitors"
+          category: "observability"
