@@ -5,6 +5,7 @@ Loads multiple YAML files using the pattern: application-{profile}.yaml,
 automatically resolves environment variable placeholders with Spring Boot-style syntax,
 and provides dot notation access to configuration values.
 """
+import os
 import logging
 from pathlib import Path
 from typing import Optional, Dict, Any, List
@@ -172,6 +173,13 @@ class Settings:
     
     def _get_resources_directory(self) -> Path:
         """Get the resources directory path."""
+        # Check for environment variable first (useful for deployments)
+        resources_env = os.getenv("RESOURCES_PATH")
+        if resources_env:
+            resources_dir = Path(resources_env)
+            if resources_dir.exists():
+                return resources_dir
+        
         # Look for resources directory relative to project root
         current_file = Path(__file__)
         

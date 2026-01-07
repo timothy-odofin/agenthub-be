@@ -12,6 +12,10 @@ services:
     startCommand: "cd /opt/render/project/src/src && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
+      # Resources Path Configuration
+      - key: RESOURCES_PATH
+        value: /opt/render/project/src/resources
+      
       # Application Settings
       - key: APP_ENV
         value: production
