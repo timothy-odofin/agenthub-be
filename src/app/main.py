@@ -1,7 +1,7 @@
 import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from app.api.v1 import chat, health, ingest_data as ingest, auth
+from app.api.v1 import chat, health, ingest_data as ingest, auth, conversational_auth
 
 # Get allowed origins from environment variable
 allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
@@ -24,6 +24,7 @@ app.add_middleware(
 
 # Routers
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
+app.include_router(conversational_auth.router, prefix="/api/v1/auth", tags=["conversational-auth"])
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(ingest.router, prefix="/api/v1/data", tags=["ingest"])
