@@ -168,3 +168,44 @@ system:
       
       Remember: Your value comes from orchestrating tools effectively when they add value, not from over-using them. Use tools for specific data and actions, answer simple questions directly.
 
+# Conversational Authentication Prompts
+# Used for chatbot-style signup flow with natural language processing
+conversational_auth:
+  # Universal field extraction - ONE prompt for all fields (KISS principle)
+  extraction:
+    universal:
+      system: "You are a field extractor. Extract ONLY the requested field value from the user's message. Return just the value, nothing else."
+      user_template: |
+        The user is providing their {field_type}.
+        
+        User message: "{user_message}"
+        
+        Extract only the {field_type} value. Return just the extracted value with no explanations, no quotes, no additional text.
+        
+        Examples:
+        - "My email is john@example.com" → john@example.com
+        - "Call me johndoe" → johndoe
+        - "I'll use SecurePass123!" → SecurePass123!
+        - "John" → John
+        
+        Extracted {field_type}:
+  
+  # Bot conversation prompts - what the bot says to users
+  prompts:
+    start: "👋 Welcome! Let's create your account. What's your email address?"
+    email_success: "Great! Now choose a username (3-30 characters, letters, numbers, _ or -)."
+    username_success: "Perfect! Create a strong password (min 8 characters, include uppercase, lowercase, number, and special character)."
+    password_success: "Excellent! What's your first name?"
+    firstname_success: "Almost there! What's your last name?"
+    complete: "🎉 Welcome aboard, {firstname}! Your account has been created successfully!"
+  
+  # Validation error messages
+  validation_errors:
+    email_invalid: "❌ That doesn't look like a valid email. Please try again with a valid email address (e.g., john@example.com)."
+    username_invalid: "❌ Username must be 3-30 characters and can only contain letters, numbers, underscores, or hyphens. Please try again."
+    password_weak: "❌ Password needs: {requirements}. Please try again with a stronger password."
+    firstname_invalid: "❌ Please enter a valid first name (1-50 characters, letters only)."
+    lastname_invalid: "❌ Please enter a valid last name (1-50 characters, letters only)."
+    extraction_failed: "❌ I couldn't understand that. Could you please provide your {field_type} more clearly?"
+    signup_error: "❌ Oops! Something went wrong: {error}. Please try again."
+
