@@ -8,7 +8,7 @@ services:
     runtime: python
     plan: free
     branch: feature/deployment
-    buildCommand: "chmod +x scripts/generate_requirements.sh && ./scripts/generate_requirements.sh && pip install -r requirements.txt"
+    buildCommand: "pip install -r requirements.txt"
     startCommand: "uvicorn app.main:app --host 0.0.0.0 --port $PORT"
     healthCheckPath: /health
     envVars:
