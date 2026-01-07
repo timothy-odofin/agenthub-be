@@ -93,6 +93,7 @@ class LLMProvider(str, Enum):
     """Supported LLM providers for the platform."""
     GROQ = "groq"
     OPENAI = "openai"
+    AZURE_OPENAI = "azure_openai"
     ANTHROPIC = "anthropic"
     HUGGINGFACE = "huggingface"
     OLLAMA = "ollama"
