@@ -1,47 +1,29 @@
 #!/bin/bash
 
-# Script to generate a complete requirements.txt for deployment
-# Combines Poetry dependencies with additional requirements
+# Script to install dependencies for deployment
+# Installs Poetry dependencies and additional requirements
 
 set -e
 
-echo "🔄 Generating complete requirements.txt for deployment..."
+echo "🔄 Installing dependencies for deployment..."
 
 # Check if poetry is installed
 if ! command -v poetry &> /dev/null; then
-    echo "❌ Poetry is not installed. Please install it first."
-    exit 1
+    echo "❌ Poetry is not installed. Installing..."
+    pip install poetry
 fi
 
-# Export Poetry dependencies without hashes (for better compatibility)
-echo "📦 Exporting Poetry dependencies..."
-poetry export -f requirements.txt --output requirements-poetry.txt --without-hashes --without dev
+# Install Poetry dependencies (production only, no dev dependencies)
+echo "📦 Installing Poetry dependencies..."
+poetry install --no-dev --no-interaction --no-ansi
 
-# Backup original requirements.txt if it exists
-if [ -f requirements.txt ]; then
-    echo "💾 Backing up original requirements.txt..."
-    cp requirements.txt requirements-original.txt
-fi
-
-# Check if we have additional requirements
-if [ -f requirements-original.txt ]; then
-    echo "🔗 Merging with existing requirements.txt..."
-    # Remove duplicates and merge
-    cat requirements-poetry.txt requirements-original.txt | sort -u > requirements-final.txt
+# Install additional requirements if requirements.txt exists
+if [ -f requirements.txt ] && [ -s requirements.txt ]; then
+    echo "📋 Installing additional requirements from requirements.txt..."
+    pip install -r requirements.txt
 else
-    echo "📋 Using Poetry requirements only..."
-    cp requirements-poetry.txt requirements-final.txt
+    echo "ℹ️  No additional requirements.txt found, skipping..."
 fi
 
-# Replace the main requirements.txt
-mv requirements-final.txt requirements.txt
-
-# Clean up temporary files
-rm -f requirements-poetry.txt
-
-echo "✅ Complete requirements.txt generated successfully!"
-echo ""
-echo "📄 Summary:"
-wc -l requirements.txt
-echo ""
-echo "🚀 You can now deploy with this requirements.txt file"
+echo "✅ All dependencies installed successfully!"
+echo "� Ready to deploy!"
