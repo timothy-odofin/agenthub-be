@@ -60,7 +60,10 @@ google:
 
 azure:
   api_key: "${AZURE_OPENAI_API_KEY}" # Azure OpenAI API key from environment
-  endpoint: "${AZURE_OPENAI_ENDPOINT}"
-  model: "gpt-4"
-  api_version: "2024-02-15-preview"
-  temperature: 0.1
+  endpoint: "${AZURE_OPENAI_ENDPOINT}" # Azure OpenAI endpoint URL
+  model: "${AZURE_OPENAI_DEPLOYMENT:gpt-4}" # Deployment name in Azure
+  api_version: "${AZURE_OPENAI_API_VERSION:2024-02-15-preview}"
+  temperature: "${AZURE_OPENAI_TEMPERATURE:0.1}"
+  max_tokens: "${AZURE_OPENAI_MAX_TOKENS:4096}"
+  timeout: "${AZURE_OPENAI_TIMEOUT:60}"
+
