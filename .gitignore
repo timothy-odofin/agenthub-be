@@ -72,8 +72,9 @@ celerybeat-schedule
 celerybeat.pid
 /examples
 
-# Scripts
-scripts/
+# Scripts (ignore all except deployment script)
+scripts/*
+!scripts/generate_requirements.sh
 
 # Private keys and certificates
 *.pem
