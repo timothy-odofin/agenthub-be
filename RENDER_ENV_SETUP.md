@@ -50,7 +50,17 @@ GITHUB_APP_ID=<copy from your .env>
 GITHUB_APP_CLIENT_ID=<copy from your .env>
 GITHUB_CLIENT_SECRET=<copy from your .env>
 GITHUB_INSTALLATION_ID=<copy from your .env>
-GITHUB_PRIVATE_KEY=<copy CONTENT of your .pem file>
+
+# For GITHUB_PRIVATE_KEY: Copy the ENTIRE content of your .pem file INCLUDING the header/footer lines
+# Example of what to copy:
+# -----BEGIN RSA PRIVATE KEY-----
+# MIIEpQIBAAKCAQEAuYR7I/0XQ/1rVfH25FZyYISAWQqQoTt1Kx73OQpgPcY...
+# ... (all the lines) ...
+# -----END RSA PRIVATE KEY-----
+GITHUB_PRIVATE_KEY=<paste entire content of agent-hub-app.private-key.pem>
+
+# Note: On Render, you can paste multi-line values directly in the environment variable field.
+# The app will use GITHUB_PRIVATE_KEY (raw content) on Render, and GITHUB_PRIVATE_KEY_PATH (file path) locally.
 
 # Frontend URL (update this!)
 ALLOWED_ORIGINS=https://your-frontend-domain.com,http://localhost:3000
@@ -97,7 +107,13 @@ You can use this command to see all your current environment variables:
 cat .env | grep -v "^#" | grep -v "^$"
 ```
 
-Then copy-paste the values (not the entire file!) into Render's dashboard one by one.
+To copy your GitHub private key content:
+
+```bash
+cat agent-hub-app.private-key.pem
+```
+
+Then copy-paste the entire output (including `-----BEGIN RSA PRIVATE KEY-----` and `-----END RSA PRIVATE KEY-----`) into Render's `GITHUB_PRIVATE_KEY` environment variable.
 
 ## After Setting Variables
 
