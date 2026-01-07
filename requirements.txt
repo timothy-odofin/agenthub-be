@@ -2,17 +2,38 @@
 # LLM and AI Dependencies (Complex binary dependencies)
 # =============================================================================
 
-# LangChain ecosystem - Pinned versions for stability
-langchain==0.3.27
-langchain-core==0.3.72
-langchain-community==0.3.27
-langchain-openai==0.3.27
-langchain-postgres==0.0.13
-langchain-qdrant==0.1.4
+# LangChain ecosystem - Compatible versions for stability
+langchain>=0.3.0,<0.4.0
+langchain-core>=0.3.0,<0.4.0
+langchain-community>=0.3.0,<0.4.0
+langchain-openai>=0.3.0,<0.4.0
+langchain-postgres>=0.0.10
+langchain-qdrant>=0.1.0
+langchain-chroma>=0.1.0
+
+# LangGraph for workflow and state-based agents
+langgraph>=0.2.0,<0.3.0
+
+# Additional LangChain provider integrations
+langchain-anthropic>=0.3.0
+langchain-groq>=0.3.0
+langchain-huggingface>=0.3.0
+langchain-google-genai>=2.0.0
+langchain-ollama>=0.2.0
 
 # PostgreSQL drivers - Add both for compatibility
 psycopg2-binary==2.9.11
 psycopg[binary]==3.2.10
+
+# Async PostgreSQL driver for modern async connections
+asyncpg==0.29.0
+
+# MongoDB driver
+pymongo==4.6.0
+
+# Redis driver (async)
+redis==5.0.1
+aioredis==2.0.1
 
 # OpenAI and tokenization
 openai==1.109.1
@@ -44,10 +65,10 @@ pillow==11.3.0
 pillow-heif==1.1.1
 pi_heif==1.1.1
 
-# OCR and computer vision
+# OCR and computer vision - NumPy 1.x compatible versions
 pytesseract==0.3.13
 unstructured-pytesseract==0.3.12
-opencv-python==4.12.0.88
+opencv-python>=4.8.0,<4.12.0
 
 # File type detection
 python-magic==0.4.27
@@ -57,14 +78,15 @@ python-magic==0.4.27
 # =============================================================================
 
 # Core scientific libraries - Compatible versions
-numpy==2.1.2
+numpy>=1.26.0,<2.0.0
 pandas>=2.2.0,<3.0.0
 
 requests==2.32.5
 # test dependencies
-pytest==9.0.1
-pytest-cov==7.0.0
+pytest==8.3.3
+pytest-cov==6.0.0
 pytest-mock==3.15.1
+pytest-asyncio==0.23.8
 
 
 # =============================================================================

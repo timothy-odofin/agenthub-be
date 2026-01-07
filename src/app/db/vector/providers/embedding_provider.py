@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict
 
-from app.core.config import AppConfig
+from app.core.config.providers.vector import vector_config
 from app.core.constants import EmbeddingType
 from app.core.utils.logger import get_logger
 
@@ -20,15 +20,26 @@ class EmbeddingFactory:
         return decorator
 
     @classmethod
-    def get_embedding_model(cls, embedding_type: EmbeddingType, config:AppConfig):
-        """Get or create an embedding model by type."""
-
+    def get_embedding_model(cls, embedding_type: EmbeddingType, embedding_config: Dict[str, Any] = None):
+        """
+        Get or create an embedding model by type.
+        
+        Args:
+            embedding_type: Type of embedding to create
+            embedding_config: Optional embedding configuration. If None, uses default from vector_config
+            
+        Returns:
+            Configured embedding model instance
+        """
         if embedding_type not in cls._registry:
             raise ValueError(f"Unsupported embedding type: {embedding_type}")
 
+        # Use provided config or get default from vector_config
+        config_to_use = embedding_config if embedding_config is not None else vector_config.embedding_config
+
         logger.info(f"Creating new embedding model for type: {embedding_type}")
         try:
-            embedding_model = cls._registry[embedding_type](config.embedding_config)
+            embedding_model = cls._registry[embedding_type](config_to_use)
             return embedding_model
         except Exception as e:
             logger.error(f"Failed to initialize {embedding_type} embedding: {e}")

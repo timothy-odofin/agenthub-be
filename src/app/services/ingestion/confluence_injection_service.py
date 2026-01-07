@@ -6,7 +6,7 @@ from app.core.constants import DataSourceType, EmbeddingType
 from app.core.utils.exception.http_exception_handler import handle_atlassian_errors
 from app.core.utils.logger import get_logger
 from app.db.vector.providers.db_provider import VectorStoreFactory
-from app.services.external.atlassian_service import AtlassianService
+from app.services.external.confluence_service import ConfluenceService
 from app.services.ingestion.base import BaseIngestionService
 from app.services.ingestion.rag_data_provider import RagDataProvider
 
@@ -24,7 +24,7 @@ class ConfluenceIngestionService(BaseIngestionService):
         super().__init__()
         
         # Initialize Confluence client
-        self._atlassian_service = AtlassianService()
+        self._atlassian_service = ConfluenceService()
         self._processed_pages: Dict[str, bool] = {}
         
         # Initialize vector store
@@ -51,7 +51,7 @@ class ConfluenceIngestionService(BaseIngestionService):
 
         return success
 
-    @handle_atlassian_errors(default_return=[])
+    @handle_atlassian_errors(default_return=False)
     async def ingest_single(self, page) -> bool:
         """Ingest a single Confluence  page."""
         try:

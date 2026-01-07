@@ -1,0 +1,46 @@
+# Embedding Configuration
+# Settings for text embedding providers and models
+default:
+  provider: "openai"                   # Default embedding provider
+  model: "${OPENAI_EMBEDDING_MODEL:text-embedding-ada-002}"
+  chunk_size: 1000                    # Default text chunk size
+  chunk_overlap: 200                  # Default chunk overlap
+  batch_size: "${EMBEDDING_BATCH_SIZE:100}"
+  device: "${EMBEDDING_DEVICE:cpu}"   # Device for local models
+
+# Provider-specific configurations
+openai:
+  api_key: "${OPENAI_API_KEY}"
+  model: "${OPENAI_EMBEDDING_MODEL:text-embedding-ada-002}"
+  dimensions: 1536
+  batch_size: 100
+
+huggingface:
+  model: "${HUGGINGFACE_EMBEDDING_MODEL:sentence-transformers/all-MiniLM-L6-v2}"
+  dimensions: 384
+  device: "${EMBEDDING_DEVICE:cpu}"
+  batch_size: "${EMBEDDING_BATCH_SIZE:32}"
+  cache_dir: "./models/huggingface"
+
+instructor:
+  model: "${INSTRUCTOR_EMBEDDING_MODEL:hkunlp/instructor-xl}"
+  device: "${EMBEDDING_DEVICE:cpu}"
+  batch_size: "${EMBEDDING_BATCH_SIZE:32}"
+  cache_dir: "./models/instructor"
+
+cohere:
+  api_key: "${COHERE_API_KEY}"       # None if not set
+  model: "embed-english-v3.0"
+  dimensions: 1024
+  batch_size: 100
+
+sentence_transformers:
+  model: "all-MiniLM-L6-v2"
+  device: "${EMBEDDING_DEVICE:cpu}"
+  batch_size: "${EMBEDDING_BATCH_SIZE:32}"
+  cache_dir: "./models/sentence_transformers"
+
+# Text processing settings
+text_processing:
+  max_text_length: 8000             # Maximum text length per embedding
+  normalize_embeddings: true         # Whether to normalize embeddings

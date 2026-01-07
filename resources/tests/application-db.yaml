@@ -1,0 +1,32 @@
+# Test Database Configuration
+# Settings for test-specific database connections
+
+# Default test database provider
+default:
+  provider: "mongodb"
+  connection_timeout: 5
+  query_timeout: 10
+  max_connections: 5  # Smaller pool for tests
+
+# Test MongoDB Configuration
+mongodb:
+  # Use test-specific database name and URI
+  connection_string: "${TEST_MONGODB_URI:mongodb://localhost:27017}"
+  database: "${TEST_MONGODB_DATABASE:agenthub_test}"
+  
+  # Individual components (if needed)
+  host: "${TEST_MONGODB_HOST:localhost}"
+  port: "${TEST_MONGODB_PORT:27017}"
+  username: "${TEST_MONGODB_USERNAME:}"
+  password: "${TEST_MONGODB_PASSWORD:}"
+  
+  # Connection settings optimized for testing
+  connection_timeout: 5000  # 5 seconds for faster test feedback
+  server_selection_timeout: 5000
+  max_pool_size: 10  # Smaller pool for test environment
+  
+  # Test-specific collections (optional prefix)
+  collection_prefix: ${TEST_COLLECTION_PREFIX:test_}
+
+# Note: PostgreSQL and Redis configurations can be added here later
+# when needed for integration testing of those components
