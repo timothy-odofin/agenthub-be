@@ -19,17 +19,72 @@ class SignupStep(str, Enum):
 
 
 class ConversationalSignupRequest(BaseModel):
-    """Request schema for conversational signup."""
-    message: str = Field(..., description="User's message/input for current step")
-    session_id: Optional[str] = Field(None, description="Session ID to track conversation state")
-    current_step: Optional[SignupStep] = Field(None, description="Current step in signup process")
+    """
+    Request schema for conversational signup with Redis session management.
     
-    # Accumulated data (sent back from frontend to maintain state)
-    email: Optional[str] = Field(None, description="Email collected so far")
-    username: Optional[str] = Field(None, description="Username collected so far")
-    password: Optional[str] = Field(None, description="Password collected so far")
-    firstname: Optional[str] = Field(None, description="First name collected so far")
-    lastname: Optional[str] = Field(None, description="Last name collected so far")
+    Client sends 3 fields:
+    1. message: User's input (required)
+    2. session_id: Tracking ID (null for START, required for all other steps)
+    3. current_step: Current step (null for START, required for all other steps)
+    
+    All validated data is stored server-side in Redis.
+    This prevents password exposure and ensures data integrity.
+    
+    Flow:
+    - First request: {"message": "", "session_id": null, "current_step": "start"}
+    - Server returns: session_id in response (e.g., "abc-123")
+    - Subsequent requests: {"message": "user input", "session_id": "abc-123", "current_step": "email"}
+    """
+    message: str = Field(..., description="User's message/input for current step", examples=["john@example.com"])
+    session_id: Optional[str] = Field(None, description="Session ID from server response (null only for START step)", examples=["abc-123"])
+    current_step: Optional[SignupStep] = Field(None, description="Current step (MUST match next_step from previous response, null only for START)", examples=["email"])
+    
+    # NOTE: Validated fields (email, username, password, etc.) are stored in Redis, 
+    # NOT sent by client. This ensures security and prevents tampering.
+    
+    
+    model_config = {
+        "json_schema_extra": {
+            "examples": [
+                {
+                    "description": "Step 1: START - Initialize signup (session_id is null)",
+                    "message": "",
+                    "current_step": "start",
+                    "session_id": None
+                },
+                {
+                    "description": "Step 2: EMAIL - Provide email (session_id from server response)",
+                    "message": "john@example.com",
+                    "current_step": "email",
+                    "session_id": "abc-123-uuid-from-server"
+                },
+                {
+                    "description": "Step 3: USERNAME - Provide username (same session_id)",
+                    "message": "johndoe",
+                    "current_step": "username",
+                    "session_id": "abc-123-uuid-from-server"
+                },
+                {
+                    "description": "Step 4: PASSWORD - Provide password (same session_id)",
+                    "message": "SecurePass123",
+                    "current_step": "password",
+                    "session_id": "abc-123-uuid-from-server"
+                },
+                {
+                    "description": "Step 5: FIRSTNAME - Provide first name (same session_id)",
+                    "message": "John",
+                    "current_step": "firstname",
+                    "session_id": "abc-123-uuid-from-server"
+                },
+                {
+                    "description": "Step 6: LASTNAME - Provide last name (same session_id)",
+                    "message": "Doe",
+                    "current_step": "lastname",
+                    "session_id": "abc-123-uuid-from-server"
+                }
+            ]
+        }
+    }
 
 
 class ConversationalSignupResponse(BaseModel):

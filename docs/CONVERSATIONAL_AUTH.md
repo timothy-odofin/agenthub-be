@@ -1,6 +1,6 @@
 # Conversational Authentication
 
-> **Smart, chatbot-style signup with natural language understanding**
+> **Smart, chatbot-style signup with natural language understanding and Redis session storage**
 
 ---
 
@@ -9,11 +9,13 @@
 1. [Overview](#overview)
 2. [Quick Start](#quick-start)
 3. [API Reference](#api-reference)
-4. [Frontend Integration](#frontend-integration)
-5. [Smart Extraction](#smart-extraction)
-6. [Customization](#customization)
-7. [Technical Details](#technical-details)
-8. [Testing](#testing)
+4. [Intelligent START Step](#intelligent-start-step)
+5. [Redis Session Storage](#redis-session-storage)
+6. [Frontend Integration](#frontend-integration)
+7. [Smart Extraction](#smart-extraction)
+8. [Customization](#customization)
+9. [Technical Details](#technical-details)
+10. [Testing](#testing)
 
 ---
 
@@ -31,17 +33,18 @@ I wanted signup to feel like a conversation, not a form. Users can type naturall
 ### **Key Features**
 
 - **Natural Language**: LLM-powered extraction understands conversational input
+- **Intelligent START**: Responds to questions before requesting information
+- **Redis Session Storage**: Secure server-side state management (5-minute TTL)
 - **Real-time Validation**: Immediate feedback on each field
 - **Progress Tracking**: Users see completion percentage
 - **Mobile-Friendly**: Perfect for chat interfaces
-- **Backwards Compatible**: Traditional REST signup still works
+- **Security First**: Password hashed immediately, minimal client payload
 
 ### **Available Endpoints**
 
 | Type | Endpoint | Purpose |
 |------|----------|---------|
-| **Conversational** | `GET /api/v1/auth/signup/conversation/start` | Start signup chat |
-| **Conversational** | `POST /api/v1/auth/signup/conversation` | Continue signup |
+| **Conversational** | `POST /api/v1/conversational-signup` | Conversational signup |
 | **Traditional** | `POST /api/v1/auth/signup` | All-at-once signup |
 | **Traditional** | `POST /api/v1/auth/login` | Login |
 | **Traditional** | `POST /api/v1/auth/refresh` | Refresh token |
@@ -52,33 +55,76 @@ I wanted signup to feel like a conversation, not a form. Users can type naturall
 
 ### **How It Works**
 
-Here's what the user experience looks like:
+The system now features **intelligent conversation** with three paths:
 
+#### **Path 1: User Asks Questions First**
 ```
-User: "I want to sign up"
+User: "Hello, what can you do for me?"
+
+Bot: "👋 Hello! I'm your signup assistant. I can help you create a new account.
+
+Here's what I'll need from you:
+📧 Email address - Your unique login identifier
+👤 Username - How you'll be known (3-30 characters)
+🔐 Password - A secure password (min 8 characters, uppercase, lowercase, number)
+👋 First name - Your given name
+📝 Last name - Your family name
+
+The whole process takes less than a minute! I'll guide you through each step.
+
+Would you like to proceed with creating an account?"
+
+User: "Yes, let's do it"
+
+Bot: "Great! Let's get started. What's your email address?"
+```
+
+#### **Path 2: User Ready Immediately**
+```
+User: "" (empty or "start")
 
 Bot: "👋 Welcome! Let's create your account. What's your email address?"
+```
 
+#### **Path 3: Power User (Direct Email)**
+```
+User: "john@example.com"
+
+Bot: "Great! Now choose a username (3-30 characters)."
+  [System detects email, validates, stores in Redis, moves to next step]
+```
+
+### **Complete Signup Flow**
+
+```
 User: "My email is odofintimothy@gmail.com"  ← Natural language!
   ↓ [System extracts: "odofintimothy@gmail.com"]
+  ↓ [Stores in Redis: signup:{session_id}]
 
 Bot: "Great! Now choose a username (3-30 characters)."
 
 User: "You can call me timothy_dev"  ← Natural language!
   ↓ [System extracts: "timothy_dev"]
+  ↓ [Stores in Redis]
 
 Bot: "Perfect! Create a strong password..."
 
 User: "I'll use SecurePass123!"  ← Natural language!
   ↓ [System extracts: "SecurePass123!"]
+  ↓ [Hashes password immediately]
+  ↓ [Stores password_hash in Redis]
 
 Bot: "Excellent! What's your first name?"
 
 User: "Timothy"
+  ↓ [Stores in Redis]
 
 Bot: "Almost there! What's your last name?"
 
 User: "Odofin"
+  ↓ [Retrieves all data from Redis]
+  ↓ [Creates user in MongoDB]
+  ↓ [Deletes Redis session]
 
 Bot: "🎉 Welcome aboard, Timothy! Your account has been created!"
   [Returns access_token, refresh_token, user_id]
@@ -90,19 +136,57 @@ Bot: "🎉 Welcome aboard, Timothy! Your account has been created!"
 
 ## 📍 API Reference
 
+### **Request Payload Structure**
+
+All requests use a **3-field payload**:
+
+```json
+{
+  "message": "string",        // User's input (required)
+  "session_id": "string",     // Session tracking ID (null for START only)
+  "current_step": "string"    // Current step (null for START only)
+}
+```
+
+**Important:** Validated data (email, username, etc.) is stored server-side in Redis. The client never needs to resend validated fields.
+
+---
+
 ### **1. Start Conversation**
 
 ```http
-GET /api/v1/auth/signup/conversation/start
+POST /api/v1/conversational-signup
 ```
 
-**Response:**
+**Request (First time):**
+```json
+{
+  "message": "",             // Empty or user's question
+  "session_id": null,        // null for first request
+  "current_step": "start"    // or null
+}
+```
+
+**Response (User asks question):**
 ```json
 {
   "success": true,
-  "message": "👋 Welcome! Let's create your account. What's your email address?",
-  "next_step": "email",
-  "session_id": "uuid-here",
+  "message": "👋 Hello! I'm your signup assistant...\n\nHere's what I'll need from you:\n📧 Email address\n👤 Username\n🔐 Password\n👋 First name\n📝 Last name\n\nWould you like to proceed?",
+  "next_step": "start",      // Stays on START
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "is_valid": true,
+  "progress_percentage": 0,
+  "fields_remaining": 5
+}
+```
+
+**Response (User ready to proceed):**
+```json
+{
+  "success": true,
+  "message": "Great! Let's get started. What's your email address?",
+  "next_step": "email",      // Moves to EMAIL
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
   "is_valid": true,
   "progress_percentage": 0,
   "fields_remaining": 5
@@ -114,22 +198,19 @@ GET /api/v1/auth/signup/conversation/start
 ### **2. Continue Conversation**
 
 ```http
-POST /api/v1/auth/signup/conversation
+POST /api/v1/conversational-signup
 ```
 
 **Request:**
 ```json
 {
-  "message": "My email is john@example.com",
-  "session_id": "uuid-from-start",
-  "current_step": "email",
-  "email": null,
-  "username": null,
-  "password": null,
-  "firstname": null,
-  "lastname": null
+  "message": "john@example.com",
+  "session_id": "550e8400-...",  // From previous response
+  "current_step": "email"         // From previous response's next_step
 }
 ```
+
+**Note:** Only send `message`, `session_id`, and `current_step`. Validated data is stored in Redis, NOT sent by client.
 
 **Response (Success):**
 ```json
@@ -137,15 +218,11 @@ POST /api/v1/auth/signup/conversation
   "success": true,
   "message": "Great! Now choose a username...",
   "next_step": "username",
-  "session_id": "uuid-here",
+  "session_id": "550e8400-...",
   "is_valid": true,
   "validation_error": null,
   "progress_percentage": 20,
-  "fields_remaining": 4,
-  "user_id": null,
-  "access_token": null,
-  "refresh_token": null,
-  "token_type": "bearer"
+  "fields_remaining": 4
 }
 ```
 
@@ -178,6 +255,162 @@ POST /api/v1/auth/signup/conversation
   "progress_percentage": 100,
   "fields_remaining": 0
 }
+```
+
+---
+
+## 🧠 Intelligent START Step
+
+The START step is **conversational and intelligent**, responding to what users actually say rather than immediately requesting information.
+
+### **Three Conversation Paths**
+
+#### 1. **User Asks Questions** (`ASKS_INFO`)
+- **Examples:** "What do you do?", "What info do you need?", "Help"
+- **System Response:** Explains capabilities, lists required fields, asks if ready to proceed
+- **State:** Stays on START (no Redis session created yet)
+
+#### 2. **User Ready to Proceed** (`READY_TO_PROCEED`)
+- **Examples:** "Yes", "Sure", "Let's go", "I'm ready"
+- **System Response:** "Great! Let's get started. What's your email?"
+- **State:** Creates Redis session, moves to EMAIL
+
+#### 3. **User Provides Email Directly** (`PROVIDES_EMAIL`)
+- **Examples:** "john@example.com", "My email is..."
+- **System Response:** "Great! Now choose a username..."
+- **State:** Creates Redis session, validates email, moves to USERNAME (power user flow)
+
+### **Intent Classification**
+
+The system uses **LLM-powered intent detection** to understand user's message:
+
+```
+User Message → LLM Classification → ASKS_INFO | READY_TO_PROCEED | PROVIDES_EMAIL
+```
+
+This makes the conversation feel natural - users can ask questions before committing to signup.
+
+### **Asking Questions at Any Step**
+
+Users can ask clarifying questions at **any stage**, and the LLM will provide **intelligent, contextual answers**:
+
+**Example 1: START Step**
+```json
+// Request
+{
+  "message": "What do you mean by email address?",
+  "session_id": "12f1dd13-c686-4da0-815e-df1477eed142",
+  "current_step": "start"
+}
+
+// Response - Intelligent answer to specific question
+{
+  "success": true,
+  "message": "An email address is your digital contact (like john@gmail.com) that we'll use to log you in and send important notifications. It's unique to you, so each account needs a different email.\n\nWhat's your email address?",
+  "next_step": "start",  // Stays on START
+  "session_id": "12f1dd13-c686-4da0-815e-df1477eed142",
+  "is_valid": true
+}
+```
+
+**Example 2: EMAIL Step**
+```json
+// Request
+{
+  "message": "Why do you need my email?",
+  "session_id": "uuid-here",
+  "current_step": "email"
+}
+
+// Response - Contextual explanation
+{
+  "success": true,
+  "message": "We need your email for two main reasons:\n1. Login - It's your unique identifier to access your account\n2. Communication - We'll send important updates and notifications\n\nDon't worry, we won't spam you! What's your email address?",
+  "next_step": "email",  // Stays on same step
+  "session_id": "uuid-here",
+  "is_valid": true
+}
+```
+
+**Example 3: PASSWORD Step**
+```json
+// Request
+{
+  "message": "What makes a password strong?",
+  "session_id": "uuid-here",
+  "current_step": "password"
+}
+
+// Response - Specific to password requirements
+{
+  "success": true,
+  "message": "A strong password protects your account from unauthorized access. Here's what makes it strong:\n\n✅ At least 8 characters long\n✅ Mix of UPPERCASE and lowercase letters\n✅ At least one number (0-9)\n✅ Avoid common words or patterns\n\nExample: MySecret2024 (but create your own unique one!)\n\nWhat password would you like to use?",
+  "next_step": "password",
+  "session_id": "uuid-here",
+  "is_valid": true
+}
+```
+
+**How It Works:**
+1. System detects `ASKS_CLARIFICATION` intent
+2. LLM generates personalized answer based on user's specific question
+3. Response includes the answer + politely asks for the field again
+4. User stays on same step (no progress lost)
+
+---
+
+## 🗄️ Redis Session Storage
+
+All validated data is stored **server-side in Redis** for security and data integrity.
+
+### **Why Redis?**
+
+- ✅ **Security:** Password hashed immediately, never stored in plaintext
+- ✅ **No Client Tampering:** Validated data can't be modified by client
+- ✅ **Minimal Payload:** Client sends only 3 fields (message, session_id, current_step)
+- ✅ **Auto-Expiration:** Sessions expire after 5 minutes (configurable)
+- ✅ **Automatic Cleanup:** Deleted after successful signup
+
+### **Session Lifecycle**
+
+```
+1. START (User confirms ready)
+   └─→ Create Redis session: signup:{session_id}
+   
+2. EMAIL → USERNAME → PASSWORD → FIRSTNAME → LASTNAME
+   └─→ Each step stores validated data in Redis
+   
+3. LASTNAME (Final step)
+   ├─→ Retrieve all data from Redis
+   ├─→ Create user in MongoDB
+   ├─→ Delete Redis session (cleanup)
+   └─→ Return JWT tokens
+
+4. Auto-Expiration (if abandoned)
+   └─→ Redis deletes session after 5 minutes
+```
+
+### **Session Data Structure**
+
+```json
+{
+  "email": "john@example.com",
+  "username": "johndoe",
+  "password_hash": "$2b$12$...",    // Hashed, never plaintext
+  "firstname": "John",
+  "lastname": "Doe",
+  "current_step": "LASTNAME",
+  "created_at": 1704638400.0,
+  "last_updated": 1704638400.0
+}
+```
+
+### **Configuration**
+
+```python
+# src/app/db/repositories/signup_session_repository.py
+SESSION_TTL = 300  # 5 minutes (can be changed to 3600 for 1 hour)
+KEY_PREFIX = "signup"
 ```
 
 ---

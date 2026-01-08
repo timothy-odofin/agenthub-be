@@ -29,36 +29,80 @@ async def conversational_signup(
     3. Process continues until all required fields are collected
     4. Account is created automatically when complete
     
-    **Flow Steps:**
-    - START: Initial greeting, ask for email
-    - EMAIL: Validate email, ask for username
-    - USERNAME: Validate username, ask for password
-    - PASSWORD: Validate password strength, ask for first name
-    - FIRSTNAME: Validate first name, ask for last name
-    - LASTNAME: Validate last name, create account
-    - COMPLETE: Return tokens and welcome message
+    **IMPORTANT FOR SWAGGER TESTING:**
+    - Each request MUST include `current_step` matching the `next_step` from previous response
+    - Use the `session_id` from the first response in all subsequent requests
     
-    **Progress Tracking:**
-    - `progress_percentage`: Shows completion (0-100%)
-    - `fields_remaining`: Number of fields still needed
-    - `next_step`: What the bot is asking for next
+    **Complete Flow Example:**
     
-    **Frontend Integration:**
-    ```javascript
-    // Step 1: Start conversation
-    POST /api/v1/auth/signup/conversation
-    { "message": "", "current_step": "start" }
-    
-    // Step 2: User provides email
-    POST /api/v1/auth/signup/conversation
-    { 
-      "message": "john@example.com",
-      "session_id": "...",
-      "current_step": "email"
+    **Request 1 (Start):**
+    ```json
+    {
+      "message": "",
+      "current_step": "start"
     }
-    
-    // Continue until complete...
     ```
+    Response: `next_step: "email"`, `session_id: "abc-123"`
+    
+    **Request 2 (Email):**
+    ```json
+    {
+      "message": "john@example.com",
+      "current_step": "email",
+      "session_id": "abc-123"
+    }
+    ```
+    Response: `next_step: "username"`
+    
+    **Request 3 (Username):**
+    ```json
+    {
+      "message": "johndoe",
+      "current_step": "username",
+      "session_id": "abc-123",
+      "email": "john@example.com"
+    }
+    ```
+    Response: `next_step: "password"`
+    
+    **Request 4 (Password):**
+    ```json
+    {
+      "message": "Password123",
+      "current_step": "password",
+      "session_id": "abc-123",
+      "email": "john@example.com",
+      "username": "johndoe"
+    }
+    ```
+    Response: `next_step: "firstname"`
+    
+    **Request 5 (First Name):**
+    ```json
+    {
+      "message": "John",
+      "current_step": "firstname",
+      "session_id": "abc-123",
+      "email": "john@example.com",
+      "username": "johndoe",
+      "password": "Password123"
+    }
+    ```
+    Response: `next_step: "lastname"`
+    
+    **Request 6 (Last Name - Final):**
+    ```json
+    {
+      "message": "Doe",
+      "current_step": "lastname",
+      "session_id": "abc-123",
+      "email": "john@example.com",
+      "username": "johndoe",
+      "password": "Password123",
+      "firstname": "John"
+    }
+    ```
+    Response: `next_step: "complete"`, includes `access_token` and `refresh_token`
     
     Args:
         request: Conversational signup request with user input and conversation state
