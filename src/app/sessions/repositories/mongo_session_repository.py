@@ -13,6 +13,16 @@ from app.sessions.models.session import ChatSession
 from app.sessions.models.message import ChatMessage
 from app.connections.base import ConnectionType
 from app.sessions.repositories.session_repository_factory import register_repository, SessionRepositoryType
+from app.core.resilience import retry, async_retry, RetryConfig, RetryStrategy
+
+# Resilience configuration for MongoDB operations
+MONGODB_RETRY_CONFIG = RetryConfig(
+    max_attempts=3,
+    base_delay=0.5,
+    max_delay=5.0,
+    strategy=RetryStrategy.EXPONENTIAL,
+    jitter=True
+)
 
 
 @register_repository(SessionRepositoryType.MONGODB)
@@ -76,12 +86,14 @@ class MongoSessionRepository(BaseSessionRepository):
         finally:
             loop.close()
 
+    @async_retry(MONGODB_RETRY_CONFIG)
     async def create_session_async(self, user_id: str, session_data: dict) -> str:
         """Async version of create_session for use in async contexts."""
         session_id = str(uuid.uuid4())
         await self._create_session_async(session_id, user_id, session_data)
         return session_id
     
+    @async_retry(MONGODB_RETRY_CONFIG)
     async def ensure_session_exists(self, session_id: str, user_id: str, session_data: dict = None) -> bool:
         """Ensure a session with the given ID exists for the user. Creates it if it doesn't exist."""
         await self._ensure_connection()
@@ -128,6 +140,7 @@ class MongoSessionRepository(BaseSessionRepository):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             await asyncio.get_event_loop().run_in_executor(executor, insert_session)
     
+    @async_retry(MONGODB_RETRY_CONFIG)
     async def get_session_history(self, user_id: str, session_id: str) -> List[ChatMessage]:
         """Retrieve the chat history for a given session ID"""
         await self._ensure_connection()
@@ -185,6 +198,7 @@ class MongoSessionRepository(BaseSessionRepository):
         finally:
             loop.close()
     
+    @async_retry(MONGODB_RETRY_CONFIG)
     async def _update_session_async(self, user_id: str, session_id: str, data: dict) -> bool:
         """Async implementation of session update."""
         await self._ensure_connection()

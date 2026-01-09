@@ -15,8 +15,26 @@ from atlassian import Jira
 
 from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
+from app.core.resilience import retry, circuit_breaker, RetryConfig, CircuitBreakerConfig, RetryStrategy
 
 logger = get_logger(__name__)
+
+# Resilience configurations for Jira API
+JIRA_RETRY_CONFIG = RetryConfig(
+    max_attempts=3,
+    base_delay=1.0,
+    max_delay=10.0,
+    strategy=RetryStrategy.EXPONENTIAL,
+    jitter=True
+)
+
+JIRA_CIRCUIT_CONFIG = CircuitBreakerConfig(
+    name="jira_api",
+    failure_threshold=5,
+    failure_window=60.0,
+    recovery_timeout=30.0,
+    success_threshold=2
+)
 
 
 @ConnectionRegistry.register(ConnectionType.JIRA)
@@ -128,6 +146,8 @@ class JiraConnectionManager(BaseConnectionManager):
     
     # Jira-specific convenience methods
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def get_server_info(self) -> Dict:
         """Get Jira server information."""
         self.ensure_connected()
@@ -138,6 +158,8 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get server info: {e}")
             raise
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def search_issues(self, jql: str, limit: int = 50, fields: Optional[List[str]] = None) -> Dict:
         """
         Search for issues using JQL.
@@ -169,6 +191,8 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to search issues with JQL '{jql}': {e}")
             raise
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def get_issue(self, issue_key: str, fields: Optional[str] = None, expand: Optional[str] = None) -> Dict:
         """
         Get a specific issue by key.
@@ -189,6 +213,8 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get issue {issue_key}: {e}")
             raise
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def create_issue(self, project_key: str, summary: str, description: str, 
                           issue_type: str = "Task", **additional_fields) -> Dict:
         """
@@ -224,6 +250,8 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to create issue: {e}")
             raise
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def get_projects(self) -> List[Dict]:
         """Get all accessible projects."""
         self.ensure_connected()
@@ -234,6 +262,8 @@ class JiraConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get projects: {e}")
             raise
     
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
     def get_issue_types(self) -> List[Dict]:
         """Get all issue types."""
         self.ensure_connected()

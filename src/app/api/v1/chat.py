@@ -1,4 +1,4 @@
-from fastapi import APIRouter, HTTPException, Query, Depends
+from fastapi import APIRouter, Query, Depends
 from typing import Optional
 from datetime import datetime
 
@@ -15,6 +15,7 @@ from app.schemas.chat import (
 from app.services.chat_service import ChatService
 from app.core.security import get_current_user
 from app.db.models.user import UserInDB
+from app.core.exceptions import ServiceUnavailableError, InternalError
 
 router = APIRouter()
 chat_service = ChatService()
@@ -172,6 +173,10 @@ async def health_check():
     Check the health status of the chat service.
     
     Returns service health information including agent status and available tools.
+    
+    Raises:
+        ServiceUnavailableError: If service is unhealthy
+        InternalError: If health check fails
     """
     try:
         health_status = chat_service.health_check()
@@ -179,7 +184,17 @@ async def health_check():
         if health_status["status"] == "healthy":
             return health_status
         else:
-            raise HTTPException(status_code=503, detail=health_status)
+            raise ServiceUnavailableError(
+                service_name="chat_service",
+                message="Chat service is unhealthy",
+                details=health_status
+            )
             
+    except ServiceUnavailableError:
+        # Re-raise our custom exceptions
+        raise
     except Exception as e:
-        raise HTTPException(status_code=500, detail=str(e))
+        raise InternalError(
+            message="Health check failed",
+            internal_details={"error": str(e), "type": type(e).__name__}
+        )
