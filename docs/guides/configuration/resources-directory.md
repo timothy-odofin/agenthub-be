@@ -5,12 +5,21 @@
 ## Table of Contents
 - [What is the Resources Directory?](#what-is-the-resources-directory)
 - [How It Works](#how-it-works)
+  - [Automatic Discovery and Loading](#automatic-discovery-and-loading)
+  - [Extensibility and Performance](#extensibility-and-performance)
+  - [The Magic of `settings.profile_name`](#the-magic-of-settingsprofile_name)
+  - [Flow Diagram](#flow-diagram)
 - [File Structure](#file-structure)
 - [Accessing Configuration](#accessing-configuration)
 - [Available Profiles](#available-profiles)
 - [Configuration Files](#configuration-files)
 - [Usage Examples](#usage-examples)
 - [Best Practices](#best-practices)
+- [Configuration Approaches: Choosing Your Strategy](#configuration-approaches-choosing-your-strategy)
+  - [Approach 1: Centralized Settings Object](#approach-1-centralized-settings-object-recommended)
+  - [Approach 2: Domain-Specific Config Classes](#approach-2-domain-specific-config-classes)
+  - [Comparison Table](#comparison-table)
+- [Troubleshooting](#troubleshooting)
 
 ---
 
@@ -28,6 +37,152 @@ The `resources/` directory contains **YAML configuration files** that define all
 ---
 
 ## How It Works
+
+### Automatic Discovery and Loading
+
+The configuration system **automatically discovers and loads** all YAML files in the `resources/` directory using a simple naming pattern:
+
+```
+File Pattern: application-{profile_name}.yaml
+Access Pattern: settings.{profile_name}
+```
+
+When the application starts, the `Settings` class:
+
+1. **Scans** the `resources/` directory for files matching `application-*.yaml`
+2. **Extracts** the profile name from the filename (everything after `application-`)
+3. **Loads** the YAML content and resolves environment variables
+4. **Creates** a dynamic attribute on the settings object with the profile name
+5. **Makes it accessible** as a dictionary via `settings.profile_name`
+
+**This is completely automatic** - no code changes needed! Just add a new YAML file and it becomes available.
+
+#### Example: Adding a New Configuration
+
+Let's say you want to add custom monitoring configuration:
+
+**Step 1:** Create the YAML file
+```bash
+# Create: resources/application-monitoring.yaml
+```
+
+**Step 2:** Add your configuration
+```yaml
+# resources/application-monitoring.yaml
+enabled: true
+interval_seconds: 60
+metrics:
+  - cpu_usage
+  - memory_usage
+  - disk_io
+endpoints:
+  prometheus: "http://localhost:9090"
+  grafana: "http://localhost:3000"
+```
+
+**Step 3:** Access it immediately (no code changes!)
+```python
+from app.core.config import Settings
+
+settings = Settings.instance()
+
+# Automatically available!
+monitoring = settings.monitoring
+print(monitoring['enabled'])  # True
+print(monitoring['interval_seconds'])  # 60
+
+# Or use dot notation
+print(settings.monitoring.enabled)  # True
+```
+
+#### How File Names Map to Attributes
+
+The system converts filenames to attribute names using these rules:
+
+| Filename | Profile Name | Access Via |
+|----------|--------------|------------|
+| `application-llm.yaml` | `llm` | `settings.llm` |
+| `application-db.yaml` | `db` | `settings.db` |
+| `application-external.yaml` | `external` | `settings.external` |
+| `application-custom-api.yaml` | `custom-api` | `settings.custom_api` |
+| `application-my_service.yaml` | `my_service` | `settings.my_service` |
+
+**Note:** Hyphens in filenames are preserved in the profile name but work with both hyphen and underscore access (Python converts automatically).
+
+#### Nested Configuration Support
+
+You can also organize configurations in subdirectories:
+
+```
+resources/
+├── application-app.yaml          # Flat: settings.app
+├── application-db.yaml           # Flat: settings.db
+└── workflows/                    # Nested namespace
+    ├── application-approval.yaml # Nested: settings.workflows.approval
+    └── application-signup.yaml   # Nested: settings.workflows.signup
+```
+
+```python
+# Access nested configurations
+approval_config = settings.workflows.approval
+signup_config = settings.workflows.signup
+```
+
+#### Extensibility and Performance
+
+The configuration system is designed to be both extensible and performant:
+
+**Dynamic Loading**
+- The `Settings` class uses Python's `__getattr__` magic method to provide dynamic attribute access
+- Configuration is loaded once at startup and cached in memory
+- New profiles are automatically discovered without code changes
+
+**Profile Control**
+You can control which profiles to load for performance optimization:
+
+```python
+# In src/app/core/config/framework/settings.py
+
+# Option 1: Load all profiles (default)
+PROFILES = ['*']
+
+# Option 2: Load only specific profiles
+PROFILES = ['db', 'llm', 'app']
+
+# Option 3: Change at runtime
+Settings.set_profiles_setting(['vector', 'embeddings'])
+settings = Settings.instance()
+settings.reload_profiles()  # Apply new profile selection
+```
+
+**Internal Architecture**
+
+The configuration system consists of three main components:
+
+| Component | Purpose | Location |
+|-----------|---------|----------|
+| **Settings** | Singleton manager that discovers and loads profiles | `src/app/core/config/framework/settings.py` |
+| **YamlLoader** | Loads YAML files and handles parsing | `src/app/core/config/framework/yaml_loader.py` |
+| **DynamicConfig** | Provides dot notation access to dictionaries | `src/app/core/config/framework/dynamic_config.py` |
+
+**How It Works Internally:**
+
+1. **Discovery Phase**: Settings scans `resources/` for `application-*.yaml` files
+2. **Extraction Phase**: Profile names are extracted from filenames
+3. **Loading Phase**: YamlLoader loads each file and resolves environment variables
+4. **Resolution Phase**: PropertyResolver replaces `${VAR:default}` placeholders
+5. **Creation Phase**: DynamicConfig wraps each profile for dot notation access
+6. **Caching Phase**: All profiles are cached in memory for fast access
+
+```python
+# Example of what happens internally:
+# 1. File discovered: resources/application-llm.yaml
+# 2. Profile name extracted: "llm"
+# 3. YAML content loaded: {'default_provider': 'openai', ...}
+# 4. Env vars resolved: ${OPENAI_API_KEY} → actual key
+# 5. DynamicConfig created: settings.llm
+# 6. Cached for future access
+```
 
 ### The Magic of `settings.profile_name`
 
@@ -850,6 +1005,210 @@ def get_provider_config(provider: str) -> Dict[str, Any]:
     llm_config = get_llm_config()
     return llm_config['providers'][provider]
 ```
+
+---
+
+## Configuration Approaches: Choosing Your Strategy
+
+AgentHub supports **two flexible approaches** to managing configuration. Choose the one that best fits your project's needs:
+
+### Approach 1: Centralized Settings Object (Recommended)
+
+Use the global `Settings` singleton to access all configuration throughout your application.
+
+**When to use:**
+- Small to medium projects
+- You want consistent configuration access everywhere
+- You prefer a single source of truth
+- You're building a monolithic application
+
+**Example:**
+
+```python
+# In any module across your application
+from app.core.config import Settings
+
+settings = Settings.instance()
+
+# Access any configuration
+llm_config = settings.llm
+db_config = settings.db
+vector_config = settings.vector
+
+# Use directly in functions
+def create_database_connection():
+    db = settings.db['postgres']
+    return f"postgresql://{db['user']}:{db['password']}@{db['host']}:{db['port']}/{db['database']}"
+
+def create_llm():
+    llm_config = settings.llm
+    provider = llm_config['default_provider']
+    return LLMFactory.create_llm(provider)
+```
+
+**Pros:**
+- ✅ Simple and consistent
+- ✅ One import pattern everywhere
+- ✅ Easy to test (mock Settings.instance())
+- ✅ Automatic discovery of new configuration files
+- ✅ No need to maintain separate config classes
+
+**Cons:**
+- ❌ Global state (can make testing more complex)
+- ❌ Less explicit dependencies
+- ❌ Everything loads at startup (even unused configs)
+
+### Approach 2: Domain-Specific Config Classes
+
+Create dedicated configuration classes for each domain, backed by the settings object.
+
+**When to use:**
+- Large, complex applications
+- You want strong typing and IDE autocompletion
+- You need domain-specific validation logic
+- You're building microservices or modules
+- You want explicit dependencies
+
+**Example:**
+
+```python
+# src/app/core/config/database_config.py
+from dataclasses import dataclass
+from typing import Dict, Any
+from .framework.settings import Settings
+
+@dataclass
+class DatabaseConfig:
+    """Database configuration with type safety."""
+    
+    def __init__(self):
+        settings = Settings.instance()
+        self._config = settings.db
+    
+    @property
+    def postgres_host(self) -> str:
+        return self._config['postgres']['host']
+    
+    @property
+    def postgres_port(self) -> int:
+        return self._config['postgres']['port']
+    
+    @property
+    def postgres_database(self) -> str:
+        return self._config['postgres']['database']
+    
+    def get_connection_string(self) -> str:
+        """Build PostgreSQL connection string."""
+        pg = self._config['postgres']
+        return f"postgresql://{pg['user']}:{pg['password']}@{pg['host']}:{pg['port']}/{pg['database']}"
+
+# src/app/core/config/llm_config.py
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
+from .framework.settings import Settings
+
+@dataclass
+class LLMConfig:
+    """LLM configuration with type safety."""
+    
+    def __init__(self):
+        settings = Settings.instance()
+        self._config = settings.llm
+    
+    @property
+    def default_provider(self) -> str:
+        return self._config['default_provider']
+    
+    @property
+    def temperature(self) -> float:
+        return self._config.get('temperature', 0.7)
+    
+    @property
+    def max_tokens(self) -> int:
+        return self._config.get('max_tokens', 1000)
+    
+    def get_provider_config(self, provider: str) -> Dict[str, Any]:
+        """Get configuration for a specific provider."""
+        return self._config['providers'][provider]
+
+# Usage in your application
+from app.core.config import DatabaseConfig, LLMConfig
+
+# Inject configs explicitly
+db_config = DatabaseConfig()
+llm_config = LLMConfig()
+
+# Type-safe access with IDE autocompletion
+connection_string = db_config.get_connection_string()
+provider = llm_config.default_provider
+temperature = llm_config.temperature
+```
+
+**Pros:**
+- ✅ Strong typing and IDE support
+- ✅ Explicit dependencies (easier to test)
+- ✅ Domain-specific validation and methods
+- ✅ Better for large teams
+- ✅ Encapsulates configuration logic
+
+**Cons:**
+- ❌ More boilerplate code
+- ❌ Need to create/update config classes
+- ❌ Two layers (YAML → Settings → Config classes)
+
+### Comparison Table
+
+| Aspect | Centralized Settings | Domain-Specific Classes |
+|--------|---------------------|-------------------------|
+| **Complexity** | Low - direct access | Medium - wrapper classes |
+| **Type Safety** | Runtime (dict access) | Compile-time (properties) |
+| **IDE Support** | Limited autocompletion | Full autocompletion |
+| **Testing** | Mock Settings.instance() | Inject config classes |
+| **Setup** | Zero - automatic | Manual - create classes |
+| **Best For** | Rapid development, small apps | Large apps, strong typing |
+| **Code Coupling** | Higher (global settings) | Lower (dependency injection) |
+| **Extensibility** | High - just add YAML files | Medium - update classes |
+
+### Hybrid Approach (Best of Both)
+
+You can combine both approaches:
+
+```python
+# Use centralized settings for simple cases
+from app.core.config import Settings
+
+settings = Settings.instance()
+app_name = settings.app['name']  # Quick access
+
+# Use domain configs for complex cases
+from app.core.config import DatabaseConfig, LLMConfig
+
+class UserService:
+    def __init__(self, db_config: DatabaseConfig, llm_config: LLMConfig):
+        self.db = db_config
+        self.llm = llm_config
+    
+    def create_user(self, user_data: dict):
+        # Type-safe config access
+        conn_string = self.db.get_connection_string()
+        # ... database logic
+```
+
+### Recommendation
+
+**For most users**: Start with **Approach 1 (Centralized Settings)**
+- Simpler to understand and use
+- Less code to maintain
+- Faster development
+- Automatic discovery of new configs
+
+**Upgrade to Approach 2 when:**
+- Your codebase exceeds 10,000 lines
+- You have 3+ developers on the team
+- You need strict type checking
+- You're building reusable modules/microservices
+
+**The beauty of AgentHub's configuration system**: You can switch between approaches at any time! The underlying YAML files and automatic loading remain the same - you just change how you access the configuration.
 
 ---
 

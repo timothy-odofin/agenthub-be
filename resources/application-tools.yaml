@@ -27,6 +27,33 @@ tools:
           enabled: true
           description: "List all accessible JIRA projects"
           category: "discovery"
+
+  # Confluence Integration Tools
+  confluence:
+    enabled: true
+    available_tools:
+      spaces:
+        list_confluence_spaces:
+          enabled: true
+          description: "List all accessible Confluence spaces with their keys and details"
+          category: "discovery"
+        get_confluence_space:
+          enabled: true
+          description: "Get detailed information about a specific Confluence space"
+          category: "retrieval"
+      pages:
+        get_confluence_page:
+          enabled: true
+          description: "Get the full content and metadata of a specific Confluence page by ID"
+          category: "retrieval"
+        list_pages_in_space:
+          enabled: true
+          description: "List all pages in a specific Confluence space"
+          category: "discovery"
+        search_confluence_pages:
+          enabled: true
+          description: "Search for Confluence pages by text query across titles and content"
+          category: "search"
     
   # Vector Store Tools (includes embedded confluence pages)
   vector:
