@@ -1,4 +1,35 @@
+"""
+AgentHub - FastAPI Application Entry Point
+
+This module initializes the FastAPI application with:
+- Multi-environment support via CLI arguments
+- Comprehensive middleware stack
+- Global exception handling
+- API routing
+
+Environment Configuration:
+    Use --env flag to specify environment file:
+        python -m uvicorn app.main:app --env .env.production
+    
+    If not specified, defaults to .env file.
+"""
 import os
+import sys
+
+# ============================================================================
+# ENVIRONMENT INITIALIZATION (Must happen BEFORE other imports)
+# ============================================================================
+# Parse CLI arguments and initialize environment FIRST
+from app.core.cli import get_env_file_from_cli
+from app.core.utils.env_utils import initialize_environment
+
+# Get env file from CLI and initialize environment
+env_file = get_env_file_from_cli()
+env = initialize_environment(env_file)
+
+# ============================================================================
+# APPLICATION IMPORTS (After environment is initialized)
+# ============================================================================
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
@@ -18,8 +49,8 @@ from app.core.utils.logger import get_logger
 logger = get_logger(__name__)
 
 # Get allowed origins from environment variable
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
-allow_credentials = os.getenv("ALLOW_CREDENTIALS", "true").lower() == "true"
+allowed_origins = env.get_list("ALLOWED_ORIGINS", default=["http://localhost:3000"])
+allow_credentials = env.get_bool("ALLOW_CREDENTIALS", default=True)
 
 app = FastAPI(
     title="AgentHub API",
@@ -37,7 +68,7 @@ app.add_middleware(RequestContextMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=[origin.strip() for origin in allowed_origins],
+    allow_origins=allowed_origins,
     allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],

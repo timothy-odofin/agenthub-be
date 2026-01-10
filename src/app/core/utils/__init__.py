@@ -5,7 +5,7 @@ Provides centralized utilities for environment variable management,
 property placeholder resolution, and other common functionality.
 """
 
-from .env_utils import EnvironmentManager, env
+from .env_utils import EnvironmentManager, env, initialize_environment
 from .property_resolver import PropertyResolver, property_resolver
 from .config_converter import (
     dynamic_config_to_dict,
@@ -24,6 +24,7 @@ from .file_utils import (
 __all__ = [
     'EnvironmentManager',
     'env',
+    'initialize_environment',
     'PropertyResolver', 
     'property_resolver',
     'dynamic_config_to_dict',

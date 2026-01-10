@@ -1,5 +1,5 @@
 .PHONY: help install install-dev install-prod install-system-deps clean-install clean-install-dev \
-        run-api run-worker run-infra stop-infra clean \
+        run-api run-api-dev run-api-staging run-api-prod run-worker run-infra stop-infra clean \
         test test-cov test-unit test-integration test-e2e \
         format lint typecheck check-all \
         docker-build docker-up docker-down docker-logs \
@@ -23,7 +23,10 @@ help:
 	@echo "  make clean-install-dev   - Clean installation (development)"
 	@echo ""
 	@echo "🚀 Running Services:"
-	@echo "  make run-api             - Run FastAPI application"
+	@echo "  make run-api             - Run FastAPI application (default .env)"
+	@echo "  make run-api-dev         - Run with development environment (.env.dev)"
+	@echo "  make run-api-staging     - Run with staging environment (.env.staging)"
+	@echo "  make run-api-prod        - Run with production environment (.env.production)"
 	@echo "  make run-worker          - Run Celery worker"
 	@echo "  make run-infra           - Start infrastructure (PostgreSQL, Redis, MongoDB)"
 	@echo "  make stop-infra          - Stop infrastructure services"
@@ -109,8 +112,20 @@ clean-install-dev:
 # ============================================================================
 
 run-api:
-	@echo "🚀 Starting FastAPI application..."
+	@echo "🚀 Starting FastAPI application (default environment)..."
 	poetry run uvicorn src.app.main:app --reload --host 0.0.0.0 --port 8000
+
+run-api-dev:
+	@echo "🚀 Starting FastAPI application (development environment)..."
+	poetry run uvicorn src.app.main:app --env .env.dev --reload --host 0.0.0.0 --port 8000
+
+run-api-staging:
+	@echo "🚀 Starting FastAPI application (staging environment)..."
+	poetry run uvicorn src.app.main:app --env .env.staging --host 0.0.0.0 --port 8000
+
+run-api-prod:
+	@echo "🚀 Starting FastAPI application (production environment)..."
+	poetry run uvicorn src.app.main:app --env .env.production --host 0.0.0.0 --port 8000 --workers 4
 
 run-worker:
 	@echo "⚙️  Starting Celery worker..."

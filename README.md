@@ -298,6 +298,31 @@ DEBUG=true
 LOG_LEVEL=INFO
 ```
 
+### Multi-Environment Support
+
+AgentHub supports different environment configurations for dev/staging/production:
+
+```bash
+# Development (hot reload)
+make run-api-dev          # Uses .env.dev
+
+# Staging
+make run-api-staging      # Uses .env.staging
+
+# Production
+make run-api-prod         # Uses .env.production
+
+# Custom environment file
+uvicorn src.app.main:app --env /path/to/.env.custom
+```
+
+**Example environment files provided:**
+- `.env.dev` - Development with debug enabled
+- `.env.staging` - Staging with production-like settings
+- `.env.production` - Production with security hardened
+
+**[Multi-Environment Guide →](docs/guides/multi-environment.md)**
+
 **[Full installation guide →](docs/getting-started/quickstart.md)**
 
 ---
