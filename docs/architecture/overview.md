@@ -2,6 +2,7 @@
 
 ## Table of Contents
 - [System Architecture](#system-architecture)
+- [Architecture Diagrams](#architecture-diagrams)
 - [Core Components](#core-components)
 - [Technology Stack](#technology-stack)
 - [Design Philosophy](#design-philosophy)
@@ -43,6 +44,241 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 │  └──────────────┘  └──────────────┘  └────────────────────┘    │
 └─────────────────────────────────────────────────────────────────┘
 ```
+
+---
+
+## Architecture Diagrams
+
+AgentHub provides detailed visual diagrams to help you understand the system architecture and request flows. All diagrams are available in the `diagrams/` directory in both PlantUML source format (`.puml`) and rendered SVG format.
+
+### 📊 Available Diagrams
+
+#### 1. [System Architecture](diagrams/AgentHub%20System%20Architecture.svg)
+
+**High-level component view** showing all major system components and their relationships.
+
+**What it shows:**
+- Client applications (React/Angular, Swagger, Mobile)
+- API Gateway layer (FastAPI, middlewares)
+- Service layer (Chat, Agent, Ingestion, Session)
+- Agent framework (Factory, Registry, Agents)
+- LLM providers (OpenAI, Groq, Anthropic, Azure)
+- Tool orchestration (Registry, Executor, Tools)
+- Core infrastructure (Config, Context Manager, Resilience)
+- Data storage (PostgreSQL, MongoDB, Redis)
+- Background workers (Celery)
+- External services (Atlassian, Datadog, GitHub)
+
+**Use this diagram to:**
+- Understand the overall system structure
+- See how components interact
+- Identify integration points
+- Plan new features
+
+**Source:** [`diagrams/system-architecture.puml`](diagrams/system-architecture.puml)
+
+---
+
+#### 2. [Request Flow Sequence](diagrams/AgentHub%20Request%20Flow%20with%20Tool%20Orchestration.svg)
+
+**Detailed sequence diagram** showing the complete flow of a user request with LLM tool orchestration.
+
+**What it shows - 8 Phases:**
+1. **Request Reception & Validation** - Client → API → Validation → Auth
+2. **Session Management** - Load conversation context from MongoDB
+3. **Agent Initialization** - Factory creates agent with tools
+4. **Agent Reasoning** - First LLM call (tool selection)
+5. **Tool Execution** - Execute Jira tool, get results
+6. **Response Generation** - Second LLM call (format response)
+7. **Response Processing** - Save to MongoDB, cache in Redis
+8. **Response Delivery** - Return to client
+
+**Key concepts illustrated:**
+- **Two LLM Calls**: First to decide tools, second to generate response
+- **LLM Decides Tools**: Not hardcoded, based on context and reasoning
+- **Tool Results → LLM**: Tools provide structured data, LLM formats it for users
+- **Graceful Failures**: Retry logic, fallback responses if tools fail
+- **Session Continuity**: Full conversation context maintained
+
+**Real example flow:**
+```
+User: "Show me open bugs in PROJ-123"
+  ↓
+1. Validate request, authenticate user
+2. Load session history
+3. Create ReAct agent with [Jira, Datadog, Vector] tools
+4. LLM analyzes request → decides to use jira_search_issues
+5. Execute Jira tool → returns 3 bugs
+6. LLM formats response → numbered list with details
+7. Save to MongoDB, cache in Redis
+8. Return to user with follow-up suggestions
+```
+
+**Use this diagram to:**
+- Understand the complete request lifecycle
+- See how LLMs decide tool usage
+- Debug flow issues
+- Optimize performance bottlenecks
+
+**Source:** [`diagrams/request-flow-sequence.puml`](diagrams/request-flow-sequence.puml)
+
+---
+
+#### 3. [Error Handling and Validation Flow](diagrams/Error%20Handling%20and%20Validation%20Flow.svg)
+
+**Error scenarios and recovery strategies** showing how AgentHub handles different types of failures.
+
+**What it shows - 6 Scenarios:**
+
+1. **Request Validation Error (422)**
+   - Invalid request format
+   - Missing required fields
+   - Early rejection at API layer
+   - Detailed field-level errors
+
+2. **Authentication Error (401)**
+   - Invalid JWT token
+   - Expired token
+   - User not found
+   - Clear user guidance
+
+3. **LLM Provider Error with Retry**
+   - Rate limit exceeded
+   - Retry with exponential backoff (2s, 4s, 8s)
+   - Circuit breaker monitoring
+   - Transparent to user
+
+4. **Tool Execution Error**
+   - Jira API unavailable
+   - LLM-generated fallback response
+   - Graceful degradation
+   - User informed clearly
+
+5. **Circuit Breaker Protection**
+   - Provider blocked after 5 failures
+   - Automatic failover to backup provider
+   - User doesn't experience failure
+   - Groq → OpenAI fallback example
+
+6. **Unhandled Exception (500)**
+   - Programming bugs
+   - Sanitized error responses (no stack traces)
+   - Unique error IDs for tracking
+   - Full logging for debugging
+   - Monitoring alerts
+
+**Use this diagram to:**
+- Understand error handling strategy
+- Design resilience patterns
+- Debug production issues
+- Plan for failure scenarios
+
+**Source:** [`diagrams/error-handling-flow.puml`](diagrams/error-handling-flow.puml)
+
+---
+
+### 🖼️ Viewing the Diagrams
+
+#### Option 1: VS Code Extension (Recommended)
+
+1. Install [PlantUML extension](https://marketplace.visualstudio.com/items?itemName=jebbs.plantuml)
+2. Install Java (required for PlantUML)
+3. Open any `.puml` file in the `diagrams/` directory
+4. Press `Alt+D` to preview
+
+#### Option 2: View Pre-rendered SVG Files
+
+Simply open the SVG files in the `diagrams/` directory:
+- `AgentHub System Architecture.svg`
+- `AgentHub Request Flow with Tool Orchestration.svg`
+- `Error Handling and Validation Flow.svg`
+
+#### Option 3: PlantUML Online
+
+1. Copy the content from any `.puml` file
+2. Go to [PlantUML Online](http://www.plantuml.com/plantuml/uml/)
+3. Paste and view
+
+#### Option 4: Command Line
+
+```bash
+# Install PlantUML
+brew install plantuml  # macOS
+
+# Generate PNG
+plantuml docs/architecture/diagrams/system-architecture.puml
+
+# Generate SVG (better quality)
+plantuml -tsvg docs/architecture/diagrams/system-architecture.puml
+
+# Generate all diagrams
+plantuml docs/architecture/diagrams/*.puml
+```
+
+#### Option 5: Docker
+
+```bash
+# Generate all diagrams as PNG
+docker run --rm -v $(pwd):/data plantuml/plantuml:latest \
+  docs/architecture/diagrams/*.puml
+
+# Generate as SVG
+docker run --rm -v $(pwd):/data plantuml/plantuml:latest \
+  -tsvg docs/architecture/diagrams/*.puml
+```
+
+---
+
+### 📝 When to Update Diagrams
+
+Update these diagrams when:
+- Adding new components (services, agents, tools)
+- Changing request flow
+- Adding/modifying error handling
+- Making significant architectural changes
+- Adding new integration points
+
+---
+
+### 💡 Tips for Using Diagrams
+
+**System Architecture:**
+- Start from top (User) and follow arrows down
+- Colors represent different layers
+- Dotted lines = configuration/dependency
+- Solid lines = data flow
+
+**Request Flow Sequence:**
+- Read top to bottom, left to right
+- Colored boxes = phases of execution
+- Activation bars = component active
+- Return arrows = responses
+- Alt boxes = alternative scenarios
+
+**Error Handling:**
+- Each group = one error scenario
+- Red/pink = failure paths
+- Green/blue = recovery paths
+- Notes explain the "why"
+
+---
+
+### 🔍 Real-World Scenario Examples
+
+**Scenario 1: Adding a New Tool** (e.g., GitHub tool)
+1. Update **System Architecture**: Add new tool component to "Tools" section
+2. Update **Request Flow**: Add tool execution example
+3. Update **Error Handling**: Add tool-specific error scenario
+
+**Scenario 2: Adding New LLM Provider** (e.g., Google Gemini)
+1. Update **System Architecture**: Add to "LLM Providers" section
+2. Update **Request Flow**: Update LLM call examples
+3. Update **Error Handling**: Add provider-specific error handling
+
+**Scenario 3: New Authentication Method** (e.g., OAuth)
+1. Update **System Architecture**: Modify "API Gateway Layer"
+2. Update **Request Flow**: Update authentication phase
+3. Update **Error Handling**: Add OAuth-specific error scenarios
 
 ---
 
