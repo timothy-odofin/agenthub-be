@@ -375,6 +375,16 @@ uvicorn src.app.main:app --env /path/to/.env.custom
 
 **[Detailed architecture & design patterns →](docs/architecture/overview.md)**
 
+### **Visual Architecture Diagrams** 📊
+
+Explore detailed system diagrams to understand AgentHub's architecture:
+
+- **[System Architecture](docs/architecture/diagrams/AgentHub%20System%20Architecture.svg)** - Complete component view
+- **[Request Flow](docs/architecture/diagrams/AgentHub%20Request%20Flow%20with%20Tool%20Orchestration.svg)** - End-to-end request lifecycle
+- **[Error Handling](docs/architecture/diagrams/Error%20Handling%20and%20Validation%20Flow.svg)** - Resilience & recovery patterns
+
+**[View all diagrams with explanations →](docs/architecture/overview.md#architecture-diagrams)**
+
 ---
 
 ## 📖 Key Guides

@@ -60,6 +60,7 @@ In-depth guides for core features:
 System design and patterns:
 
 - **[Architecture Overview](./architecture/overview.md)** - System components, data flow
+- **[Architecture Diagrams](./architecture/overview.md#architecture-diagrams)** - Visual system diagrams (SVG)
 - **[Design Patterns](./architecture/design-patterns.md)** - Factory, Repository, Strategy
 - **[Configuration System](./architecture/configuration-system.md)** - YAML-based configs
 
