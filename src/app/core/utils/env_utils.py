@@ -14,34 +14,49 @@ T = TypeVar('T')
 class EnvironmentManager:
     """Centralized environment variable manager."""
     
-    def __init__(self, load_dotenv: bool = True):
+    def __init__(self, load_dotenv: bool = True, env_file: Optional[Union[str, Path]] = None):
         """Initialize environment manager.
         
         Args:
             load_dotenv: Whether to load .env file if available
+            env_file: Specific path to environment file. If None, searches for .env
         """
         self._cache: Dict[str, Any] = {}
         self._load_dotenv = load_dotenv
+        self._env_file = Path(env_file) if env_file else None
         
         if load_dotenv:
             self._load_env_file()
     
-    def _load_env_file(self) -> None:
-        """Load .env file if it exists."""
+    def _load_env_file(self, env_file: Optional[Path] = None) -> None:
+        """Load .env file if it exists.
+        
+        Args:
+            env_file: Optional specific path to environment file
+        """
         try:
             from dotenv import load_dotenv
-            env_path = self._find_env_file()
-            if env_path and env_path.exists():
-                load_dotenv(env_path, override=False)  # Don't override existing env vars
+            
+            # Use provided path, or instance path, or search for .env
+            target_path = env_file or self._env_file or self._find_env_file()
+            
+            if target_path and target_path.exists():
+                load_dotenv(target_path, override=False)  # Don't override existing env vars
                 logger = self._get_logger()
-                logger.info(f"Loaded environment variables from {env_path}")
+                logger.info(f"✓ Loaded environment variables from: {target_path}")
+            elif target_path:
+                logger = self._get_logger()
+                logger.warning(f"⚠ Environment file not found: {target_path}")
+            else:
+                logger = self._get_logger()
+                logger.info("No .env file found, using system environment variables only")
         except ImportError:
             # python-dotenv not installed, skip
             logger = self._get_logger()
             logger.warning("python-dotenv not installed, skipping .env file loading")
         except Exception as e:
             logger = self._get_logger()
-            logger.warning(f"Error loading .env file: {e}")
+            logger.error(f"✗ Error loading .env file: {e}")
     
     def _get_logger(self):
         """Get logger instance, avoiding import issues."""
@@ -205,12 +220,44 @@ class EnvironmentManager:
         """Clear the internal cache."""
         self._cache.clear()
     
-    def reload_env(self) -> None:
-        """Reload environment variables from .env file."""
+    def reload_env(self, env_file: Optional[Union[str, Path]] = None) -> None:
+        """Reload environment variables from .env file.
+        
+        Args:
+            env_file: Optional specific path to environment file
+        """
         self.clear_cache()
         if self._load_dotenv:
+            if env_file:
+                self._env_file = Path(env_file)
             self._load_env_file()
 
 
-# Global instance for convenience
-env = EnvironmentManager()
+# Global instance - will be initialized by CLI or default
+env: Optional[EnvironmentManager] = None
+
+
+def initialize_environment(env_file: Optional[Union[str, Path]] = None) -> EnvironmentManager:
+    """Initialize the global environment manager.
+    
+    This should be called early in application startup, ideally from CLI argument parsing.
+    
+    Args:
+        env_file: Path to environment file. If None, searches for .env
+        
+    Returns:
+        Initialized EnvironmentManager instance
+        
+    Example:
+        >>> # In your main.py or CLI entry point
+        >>> from app.core.utils.env_utils import initialize_environment
+        >>> env = initialize_environment('.env.production')
+    """
+    global env
+    env = EnvironmentManager(load_dotenv=True, env_file=env_file)
+    return env
+
+
+# Initialize with default if not already initialized
+if env is None:
+    env = EnvironmentManager(load_dotenv=True)

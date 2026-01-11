@@ -1,0 +1,176 @@
+@startuml AgentHub System Architecture
+
+!define RECTANGLE class
+
+title AgentHub - High-Level System Architecture
+
+' Define colors
+skinparam {
+    BackgroundColor white
+    ArrowColor #333333
+    BorderColor #333333
+    ComponentBackgroundColor #E3F2FD
+    DatabaseBackgroundColor #FFF9C4
+    QueueBackgroundColor #FFE0B2
+    ActorBackgroundColor #C8E6C9
+}
+
+' External Actors
+actor "User" as user #C8E6C9
+rectangle "Client Applications" as clients #E1F5FE {
+    component "React/Angular\nFrontend" as frontend
+    component "Swagger UI\n(API Docs)" as swagger
+    component "Mobile App" as mobile
+}
+
+' API Gateway Layer
+rectangle "API Gateway Layer" as gateway #E3F2FD {
+    component "FastAPI\nApplication" as fastapi
+    component "CORS\nMiddleware" as cors
+    component "Request Context\nMiddleware" as context_mw
+    component "Authentication\nMiddleware" as auth_mw
+}
+
+' Service Layer
+rectangle "Service Layer" as services #F3E5F5 {
+    component "Chat Service" as chat_service
+    component "Agent Service" as agent_service
+    component "Ingestion Service" as ingest_service
+    component "Session Manager" as session_mgr
+}
+
+' Agent Framework Layer
+rectangle "Agent Framework" as agent_layer #FFF3E0 {
+    component "Agent Factory" as agent_factory
+    component "Agent Registry" as agent_registry
+    rectangle "Agents" as agents {
+        component "LangChain\nReAct Agent" as langchain_agent
+        component "LangGraph\nReAct Agent" as langgraph_agent
+        component "Custom Agent" as custom_agent
+    }
+}
+
+' LLM Provider Layer
+rectangle "LLM Providers" as llm_providers #E8F5E9 {
+    component "LLM Factory" as llm_factory
+    rectangle "Providers" as providers {
+        component "OpenAI" as openai
+        component "Groq" as groq
+        component "Anthropic" as anthropic
+        component "Azure OpenAI" as azure
+    }
+}
+
+' Tool Orchestration Layer
+rectangle "Tool Orchestration" as tools #FCE4EC {
+    component "Tool Registry" as tool_registry
+    component "Tool Executor" as tool_executor
+    rectangle "Tools" as tool_impls {
+        component "Jira Tool" as jira_tool
+        component "Confluence Tool" as confluence_tool
+        component "Datadog Tool" as datadog_tool
+        component "Vector Store Tool" as vector_tool
+    }
+}
+
+' Configuration & Utilities
+rectangle "Core Infrastructure" as core #EFEBE9 {
+    component "Configuration\nSystem" as config
+    component "Context Window\nManager" as context_manager
+    component "Resilience\nPatterns" as resilience
+    component "Exception\nHandlers" as exception_handler
+}
+
+' Data Layer
+rectangle "Data Storage" as storage #FFF9C4 {
+    database "PostgreSQL\n(pgvector)" as postgres
+    database "MongoDB\n(Sessions)" as mongo
+    database "Redis\n(Cache)" as redis
+}
+
+' Background Processing
+rectangle "Background Workers" as workers #E0F2F1 {
+    component "Celery Workers" as celery
+    component "Ingestion Queue" as queue
+}
+
+' External Services
+cloud "External Services" as external {
+    component "Atlassian\n(Jira/Confluence)" as atlassian
+    component "Datadog API" as datadog
+    component "GitHub API" as github
+}
+
+' ===== Relationships =====
+
+' User to Clients
+user --> clients : "HTTP/WebSocket"
+
+' Clients to API
+clients --> gateway : "REST API\nWebSocket"
+
+' Gateway flow
+gateway --> services : "Validated\nRequests"
+
+' Service flow
+chat_service --> agent_service : "Process with\nAgent"
+chat_service --> session_mgr : "Load/Save\nSession"
+agent_service --> agent_layer : "Execute Agent"
+ingest_service --> workers : "Queue Jobs"
+
+' Agent flow
+agent_layer --> llm_providers : "Call LLM"
+agent_layer --> tools : "Execute Tools"
+
+' Tool flow
+tools --> external : "API Calls"
+tools --> storage : "Query Data"
+
+' LLM Provider flow
+llm_providers ..> core : "Use Resilience"
+
+' Configuration
+core ..> services : "Provide Config"
+core ..> agent_layer : "Provide Config"
+
+' Storage
+services --> storage : "Read/Write"
+session_mgr --> mongo : "Session Data"
+chat_service --> postgres : "Chat History"
+agent_service --> redis : "Cache"
+
+' Workers
+workers --> storage : "Process Data"
+
+' Notes
+note right of gateway
+  **Entry Point**
+  - Request validation
+  - CORS handling
+  - Authentication
+  - Context tracking
+end note
+
+note right of agent_layer
+  **Agent Orchestration**
+  - Decides tool usage
+  - Multi-step reasoning
+  - Tool result processing
+end note
+
+note right of llm_providers
+  **Multi-Provider Support**
+  - Factory pattern
+  - Automatic failover
+  - Retry logic
+  - Rate limiting
+end note
+
+note bottom of tools
+  **Smart Tool Selection**
+  - LLM decides which tools to use
+  - Tools return structured data
+  - Results fed back to LLM
+end note
+
+@enduml

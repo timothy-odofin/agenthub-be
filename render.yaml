@@ -1,0 +1,157 @@
+# Render Blueprint for AgentHub Backend
+# This file configures the deployment on Render.com
+
+services:
+  # Main FastAPI Application
+  - type: web
+    name: agenthub-api
+    runtime: python
+    plan: free
+    branch: feature/deployment
+    buildCommand: "pip install -r requirements.txt"
+    startCommand: "cd /opt/render/project/src/src && uvicorn app.main:app --host 0.0.0.0 --port $PORT"
+    healthCheckPath: /health
+    envVars:
+      # Resources Path Configuration
+      - key: RESOURCES_PATH
+        value: /opt/render/project/src/resources
+      
+      # Application Settings
+      - key: APP_ENV
+        value: production
+      - key: APP_NAME
+        value: AgentHub
+      - key: APP_VERSION
+        value: 0.1.0
+      - key: DEBUG
+        value: false
+      
+      # Security - JWT
+      - key: JWT_SECRET_KEY
+        sync: false  # Set manually in Render dashboard
+      - key: JWT_ALGORITHM
+        value: HS256
+      - key: ACCESS_TOKEN_EXPIRE_MINUTES
+        value: 30
+      
+      # CORS Settings (Update with your frontend URL)
+      - key: ALLOWED_ORIGINS
+        value: http://localhost:3000,https://your-frontend-domain.com
+      - key: ALLOW_CREDENTIALS
+        value: true
+      
+      # MongoDB Atlas (Your existing cluster)
+      - key: MONGODB_HOST
+        sync: false  # Set manually: chat-session-cluster.kxl3lsm.mongodb.net
+      - key: MONGODB_PORT
+        value: 27017
+      - key: MONGODB_USERNAME
+        sync: false  # Set manually
+      - key: MONGODB_PASSWORD
+        sync: false  # Set manually
+      - key: MONGODB_DATABASE
+        value: polyagent_sessions
+      - key: MONGODB_CONNECTION_STRING
+        sync: false  # Set manually with full connection string
+      - key: SESSION_STORAGE_TYPE
+        value: mongodb
+      - key: SESSION_COLLECTION_NAME
+        value: sessions
+      - key: MESSAGE_COLLECTION_NAME
+        value: messages
+      
+      # PostgreSQL (if needed for PgVector)
+      - key: POSTGRES_USER
+        sync: false
+      - key: POSTGRES_PASSWORD
+        sync: false
+      - key: POSTGRES_DB
+        value: polyagent
+      - key: POSTGRES_HOST
+        sync: false
+      - key: POSTGRES_PORT
+        value: 5432
+      - key: PGVECTOR_COLLECTION_NAME
+        value: agent_hub_collection
+      - key: PGVECTOR_CONNECTION_STRING
+        sync: false
+      
+      # Redis (Render Redis service)
+      - key: REDIS_HOST
+        fromService:
+          type: redis
+          name: agenthub-redis
+          property: host
+      - key: REDIS_PORT
+        fromService:
+          type: redis
+          name: agenthub-redis
+          property: port
+      - key: REDIS_URL
+        fromService:
+          type: redis
+          name: agenthub-redis
+          property: connectionString
+      
+      # LLM Provider - OpenAI
+      - key: OPENAI_API_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      # LLM Provider - Groq
+      - key: GROQ_API_KEY
+        sync: false  # Set manually in Render dashboard
+      
+      # Vector Store - Qdrant
+      - key: QDRANT_API_KEY
+        sync: false  # Set manually
+      - key: QDRANT_ENDPOINT
+        sync: false  # Set manually
+      - key: QDRANT_CLUSTER_ID
+        sync: false  # Set manually
+      
+      # LangChain Tracing
+      - key: LANGCHAIN_API_KEY
+        sync: false  # Set manually
+      - key: LANGCHAIN_PROJECT
+        value: agent-hub-project
+      - key: LANGCHAIN_TRACING_V2
+        value: true
+      - key: LANGCHAIN_ENDPOINT
+        value: https://api.smith.langchain.com
+      
+      # Atlassian Integration
+      - key: ATLASSIAN_API_KEY
+        sync: false  # Set manually
+      - key: ATLASSIAN_BASE_URL_CONFLUENCE
+        sync: false  # Set manually
+      - key: ATLASSIAN_BASE_URL_JIRA
+        sync: false  # Set manually
+      - key: ATLASSIAN_EMAIL
+        sync: false  # Set manually
+      
+      # GitHub Integration
+      - key: GITHUB_APP_ID
+        sync: false  # Set manually
+      - key: GITHUB_APP_CLIENT_ID
+        sync: false  # Set manually
+      - key: GITHUB_CLIENT_SECRET
+        sync: false  # Set manually
+      - key: GITHUB_INSTALLATION_ID
+        sync: false  # Set manually
+      - key: GITHUB_PRIVATE_KEY
+        sync: false  # Set manually (content of .pem file)
+      
+      # Datadog (Optional)
+      - key: DATADOG_API_KEY
+        sync: false  # Set manually if using
+      - key: DATADOG_APP_KEY
+        sync: false  # Set manually if using
+      - key: ENV
+        value: prod
+
+  # Redis for caching and Celery broker
+  - type: redis
+    name: agenthub-redis
+    plan: free
+    maxmemoryPolicy: allkeys-lru
+    ipAllowList: []  # Allow all IPs (adjust for security)

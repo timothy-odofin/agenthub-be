@@ -18,7 +18,8 @@ github:
   # GitHub App configuration (recommended for enhanced access)
   app:
     app_id: "${GITHUB_APP_ID}"                           # From GitHub App settings page
-    private_key_path: "${GITHUB_PRIVATE_KEY_PATH}"       # Path to downloaded .pem file
+    private_key_path: "${GITHUB_PRIVATE_KEY_PATH}"       # Path to downloaded .pem file (for local dev)
+    private_key: "${GITHUB_PRIVATE_KEY}"                 # Raw private key content (for production/Render)
     installation_id: "${GITHUB_INSTALLATION_ID}" 
     client_secret: "${GITHUB_CLIENT_SECRET}"        # Get after installing app (optional - auto-detected if not provided)
   

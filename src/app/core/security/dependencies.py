@@ -5,12 +5,13 @@ Provides reusable dependencies for protecting endpoints with JWT authentication.
 """
 
 from typing import Optional, Dict, Any
-from fastapi import Depends, HTTPException, status
+from fastapi import Depends, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
 from src.app.core.security.token_manager import token_manager
 from src.app.db.repositories.user_repository import user_repository
 from src.app.db.models.user import UserInDB
+from app.core.exceptions import AuthenticationError
 
 
 # HTTP Bearer token scheme
@@ -22,6 +23,7 @@ security = HTTPBearer(
 
 
 async def get_current_user(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> UserInDB:
     """
@@ -31,13 +33,14 @@ async def get_current_user(
     then retrieves the user from the database.
     
     Args:
+        request: FastAPI request object (for request_id tracking)
         credentials: HTTP Bearer credentials from Authorization header
         
     Returns:
         UserInDB object for the authenticated user
         
     Raises:
-        HTTPException: 401 if token is missing, invalid, or user not found
+        AuthenticationError: If token is missing, invalid, or user not found
         
     Example:
         ```python
@@ -46,11 +49,15 @@ async def get_current_user(
             return {"user_id": user.id, "email": user.email}
         ```
     """
+    # Get request_id from middleware (if available)
+    request_id = getattr(request.state, "request_id", None)
+    
     if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="Not authenticated",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "missing_credentials"},
+            request_id=request_id
         )
     
     # Extract token
@@ -60,30 +67,33 @@ async def get_current_user(
     payload = token_manager.verify_token(token)
     
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="Invalid or expired token",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "token_verification_failed"},
+            request_id=request_id
         )
     
     # Extract user_id from payload
     user_id: str = payload.get("user_id")
     
     if not user_id:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid token payload",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="Invalid token payload",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "missing_user_id_in_payload"},
+            request_id=request_id
         )
     
     # Get user from database
     user = await user_repository.get_user_by_id(user_id)
     
     if not user:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="User not found",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="User not found",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "user_not_in_database", "user_id": user_id},
+            request_id=request_id
         )
     
     return user
@@ -132,6 +142,7 @@ async def get_current_user_optional(
 
 
 async def get_token_payload(
+    request: Request,
     credentials: Optional[HTTPAuthorizationCredentials] = Depends(security)
 ) -> Dict[str, Any]:
     """
@@ -142,13 +153,14 @@ async def get_token_payload(
     you only need basic user info from the token.
     
     Args:
+        request: FastAPI request object (for request_id tracking)
         credentials: HTTP Bearer credentials from Authorization header
         
     Returns:
         Dictionary containing token payload (user_id, email, username, etc.)
         
     Raises:
-        HTTPException: 401 if token is missing or invalid
+        AuthenticationError: If token is missing or invalid
         
     Example:
         ```python
@@ -157,21 +169,26 @@ async def get_token_payload(
             return {"user_id": payload["user_id"]}
         ```
     """
+    # Get request_id from middleware (if available)
+    request_id = getattr(request.state, "request_id", None)
+    
     if not credentials:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Not authenticated",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="Not authenticated",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "missing_credentials"},
+            request_id=request_id
         )
     
     token = credentials.credentials
     payload = token_manager.verify_token(token)
     
     if not payload:
-        raise HTTPException(
-            status_code=status.HTTP_401_UNAUTHORIZED,
-            detail="Invalid or expired token",
-            headers={"WWW-Authenticate": "Bearer"},
+        raise AuthenticationError(
+            message="Invalid or expired token",
+            details={"auth_type": "bearer"},
+            internal_details={"reason": "token_verification_failed"},
+            request_id=request_id
         )
     
     return payload

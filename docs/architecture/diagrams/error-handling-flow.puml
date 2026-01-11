@@ -1,0 +1,278 @@
+@startuml Error Handling and Validation Flow
+
+title AgentHub - Error Handling & Validation Flow
+
+participant "Client" as client
+participant "FastAPI\nRouter" as api
+participant "Request\nValidation" as validation
+participant "Exception\nHandler" as exception
+participant "Chat\nService" as service
+participant "Agent" as agent
+participant "LLM Provider" as llm
+participant "Tool" as tool
+participant "Resilience\nLayer" as resilience
+
+' ===== SCENARIO 1: REQUEST VALIDATION ERROR =====
+group #LightPink Scenario 1: Request Validation Error
+    client -> api : POST /api/v1/chat/message\n{message: null}  ❌
+    activate api
+    
+    api -> validation : Validate Pydantic schema
+    activate validation
+    
+    validation -> validation : Check required fields:\n- message: ❌ null (required)\n- session_id: ✓ optional
+    
+    validation --> api : **RequestValidationError**\n[\n  {\n    field: "message",\n    error: "Field required"\n  }\n]
+    deactivate validation
+    
+    api -> exception : Handle validation error
+    activate exception
+    
+    exception -> exception : Format error response:\n- Extract field errors\n- Add request_id\n- Log validation failure
+    
+    exception --> api : **Formatted Response**
+    deactivate exception
+    
+    api --> client : **422 Unprocessable Entity**\n{\n  status: "error",\n  error_code: "VALIDATION_ERROR",\n  message: "Invalid request",\n  details: [\n    {field: "message", error: "Field required"}\n  ],\n  request_id: "req_abc123"\n}
+    deactivate api
+    
+    note right of client
+        **Early Exit**
+        Request never reaches
+        business logic layer
+    end note
+end
+
+' ===== SCENARIO 2: AUTHENTICATION ERROR =====
+group #LightCoral Scenario 2: Authentication Error
+    client -> api : POST /api/v1/chat/message\nAuthorization: Bearer invalid_token
+    activate api
+    
+    api -> validation : Verify JWT token
+    activate validation
+    
+    validation -> validation : Decode JWT:\n- Signature invalid ❌\n- Token expired ❌\n- User not found ❌
+    
+    validation --> api : **HTTPException(401)**\n"Invalid or expired token"
+    deactivate validation
+    
+    api -> exception : Handle HTTP exception
+    activate exception
+    exception --> api : Format 401 response
+    deactivate exception
+    
+    api --> client : **401 Unauthorized**\n{\n  status: "error",\n  error_code: "AUTH_ERROR",\n  message: "Invalid or expired token",\n  hint: "Please login again"\n}
+    deactivate api
+end
+
+' ===== SCENARIO 3: LLM PROVIDER ERROR WITH RETRY =====
+group #LightYellow Scenario 3: LLM Provider Error with Retry
+    client -> api : Valid request ✓
+    activate api
+    api -> service : Process chat
+    activate service
+    service -> agent : Execute agent
+    activate agent
+    
+    agent -> llm : First LLM call\n(tool selection)
+    activate llm
+    
+    llm -> llm : Call OpenAI API
+    llm --> agent : **RateLimitError**\n"Rate limit exceeded"
+    deactivate llm
+    
+    agent -> resilience : Handle LLM error
+    activate resilience
+    
+    resilience -> resilience : Check error type:\n- RateLimitError → Retry\n- AuthError → No retry\n- NetworkError → Retry
+    
+    resilience -> resilience : **Retry Strategy**\n- Attempt 1/3\n- Wait 2s (exponential)\n- Circuit breaker: CLOSED
+    
+    note right of resilience
+        **Resilience Patterns**
+        - Retry with backoff
+        - Circuit breaker
+        - Fallback to different provider
+    end note
+    
+    resilience -> llm : Retry #1 (after 2s)
+    activate llm
+    llm --> resilience : **Timeout Error**
+    deactivate llm
+    
+    resilience -> resilience : Attempt 2/3\nWait 4s
+    
+    resilience -> llm : Retry #2 (after 4s)
+    activate llm
+    llm --> resilience : **Success** ✓
+    deactivate llm
+    
+    resilience --> agent : LLM response (succeeded on retry)
+    deactivate resilience
+    
+    agent --> service : Continue processing
+    service --> api : Success response
+    api --> client : 200 OK\n(with retry metadata)
+    
+    note right of client
+        **Transparent Retry**
+        User sees slight delay
+        but request succeeds
+    end note
+end
+
+' ===== SCENARIO 4: TOOL EXECUTION ERROR =====
+group #LightSalmon Scenario 4: Tool Execution Error
+    client -> api : "Show Jira issues"
+    activate api
+    api -> service : Process
+    activate service
+    service -> agent : Execute
+    activate agent
+    
+    agent -> llm : Tool selection
+    activate llm
+    llm --> agent : Use jira_search_issues
+    deactivate llm
+    
+    agent -> tool : Execute Jira tool
+    activate tool
+    
+    tool -> tool : Call Jira REST API
+    
+    alt #LightPink Jira API Down
+        tool --> agent : **ToolExecutionError**\n{\n  tool: "jira_search_issues",\n  error: "Connection failed",\n  status_code: 503\n}
+        deactivate tool
+        
+        agent -> agent : **Fallback Strategy**\n1. Try alternative tool?\n2. Return partial data?\n3. Inform user gracefully?
+        
+        agent -> llm : Reformulate without tool data\n{\n  context: "Jira unavailable",\n  instruction: "Apologize and suggest retry"\n}
+        activate llm
+        
+        llm --> agent : "I'm unable to connect to Jira\nright now. Please try again\nin a few minutes."
+        deactivate llm
+        
+        agent --> service : **Graceful Response**\n{\n  success: false,\n  message: "Service temporarily unavailable",\n  tool_errors: ["jira_search_issues"],\n  retry_after: 60\n}
+        deactivate agent
+        
+        service --> api : Partial success response
+        deactivate service
+        
+        api --> client : **200 OK** (with error metadata)\n{\n  success: false,\n  message: "I'm unable to connect to Jira...",\n  metadata: {\n    tool_errors: ["jira_search_issues"],\n    retry_suggested: true\n  }\n}
+        deactivate api
+    end
+    
+    note right of client
+        **Graceful Degradation**
+        - User informed clearly
+        - No crash or 500 error
+        - Suggests retry action
+    end note
+end
+
+' ===== SCENARIO 5: CIRCUIT BREAKER OPEN =====
+group #LightBlue Scenario 5: Circuit Breaker Protection
+    client -> api : Request with Groq provider
+    activate api
+    api -> service : Process
+    activate service
+    service -> agent : Execute
+    activate agent
+    
+    agent -> resilience : Check circuit breaker\nfor Groq provider
+    activate resilience
+    
+    resilience -> resilience : **Circuit Breaker State**\n- State: OPEN (after 5 failures)\n- Opened at: 2 minutes ago\n- Half-open after: 5 minutes
+    
+    resilience --> agent : **CircuitBreakerOpen**\n"Groq provider temporarily blocked"
+    deactivate resilience
+    
+    agent -> agent : **Automatic Fallback**\nSwitch to backup provider:\nGroq → OpenAI
+    
+    agent -> llm : Use OpenAI instead
+    activate llm
+    llm --> agent : Success ✓
+    deactivate llm
+    
+    agent --> service : Response generated\n(with fallback provider)
+    deactivate agent
+    service --> api : Success
+    deactivate service
+    api --> client : **200 OK**\n{\n  message: "...",\n  metadata: {\n    provider_used: "openai",\n    fallback_triggered: true,\n    original_provider: "groq"\n  }\n}
+    deactivate api
+    
+    note right of client
+        **Automatic Failover**
+        - Circuit breaker protects system
+        - Automatic provider switch
+        - User doesn't experience failure
+    end note
+end
+
+' ===== SCENARIO 6: UNHANDLED EXCEPTION =====
+group #LightGray Scenario 6: Unhandled Exception (Catch-All)
+    client -> api : Request
+    activate api
+    api -> service : Process
+    activate service
+    
+    service -> service : **Unexpected Error**\nDivision by zero ❌\n(Programming bug)
+    
+    service --> api : **Unhandled Exception**\nZeroDivisionError
+    deactivate service
+    
+    api -> exception : Global exception handler
+    activate exception
+    
+    exception -> exception : **Error Processing**\n1. Generate unique error ID\n2. Log full stack trace\n3. Sanitize error for user\n4. Alert monitoring (Datadog)
+    
+    exception -> exception : **Security Check**\nDon't expose:\n- Stack traces\n- Internal paths\n- Credentials
+    
+    exception --> api : Safe error response
+    deactivate exception
+    
+    api --> client : **500 Internal Server Error**\n{\n  status: "error",\n  error_code: "INTERNAL_ERROR",\n  message: "An unexpected error occurred",\n  error_id: "err_xyz789",\n  support: "Contact support with error_id"\n}
+    deactivate api
+    
+    note right of exception
+        **Security & Debugging**
+        - User sees safe message
+        - Full details in logs
+        - Error ID for tracking
+        - Monitoring alerted
+    end note
+end
+
+' ===== ERROR RESPONSE SUMMARY =====
+note over client, tool
+    **Error Handling Strategy**
+    
+    **Validation Errors (422)**
+    - Early rejection at API layer
+    - Detailed field-level errors
+    - No business logic executed
+    
+    **Authentication Errors (401/403)**
+    - JWT validation
+    - Permission checks
+    - Clear guidance for users
+    
+    **External Service Errors**
+    - Retry with exponential backoff
+    - Circuit breaker protection
+    - Automatic provider failover
+    - Graceful degradation
+    
+    **Tool Execution Errors**
+    - LLM-generated fallback responses
+    - Partial success handling
+    - User-friendly error messages
+    
+    **Unhandled Exceptions (500)**
+    - Sanitized error responses
+    - Full logging for debugging
+    - Monitoring alerts
+    - Unique error IDs
+end note
+
+@enduml

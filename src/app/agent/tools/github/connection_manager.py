@@ -61,6 +61,7 @@ class GitHubConnectionManager:
             'app': {
                 'app_id': github_config.app.app_id,
                 'private_key_path': github_config.app.private_key_path,
+                'private_key': github_config.app.private_key if hasattr(github_config.app, 'private_key') else None,
                 'installation_id': github_config.app.installation_id,
                 'client_secret': github_config.app.client_secret,
             } if hasattr(github_config, 'app') else {},
@@ -74,9 +75,11 @@ class GitHubConnectionManager:
         # Check if we have GitHub App credentials
         app_config = config.get('app', {})
         app_id = app_config.get('app_id')
-        private_key_path = app_config.get('private_key_path')  # This should be file path
+        private_key_raw = app_config.get('private_key')  # Raw key content (for production)
+        private_key_path = app_config.get('private_key_path')  # File path (for local dev)
         
-        if not app_id or not private_key_path:
+        # Determine which authentication method to use
+        if not app_id or (not private_key_raw and not private_key_path):
             # Fall back to personal access token
             api_key = config.get('api_key')
             if api_key:
@@ -87,11 +90,18 @@ class GitHubConnectionManager:
         
         logger.info(f"Using GitHub App authentication (App ID: {app_id})")
         
-        # Read private key from file using utility
-        try:
-            private_key = read_private_key_file(private_key_path)
-        except FileReadError as e:
-            raise ValueError(f"Failed to read GitHub App private key: {e}")
+        # Get private key content - prioritize raw key (for production), then file path (for local dev)
+        if private_key_raw and private_key_raw != 'None':
+            logger.info("Using raw private key content from environment variable")
+            private_key = private_key_raw
+        elif private_key_path and private_key_path != 'None':
+            logger.info(f"Reading private key from file: {private_key_path}")
+            try:
+                private_key = read_private_key_file(private_key_path)
+            except FileReadError as e:
+                raise ValueError(f"Failed to read GitHub App private key: {e}")
+        else:
+            raise ValueError("No GitHub private key provided (neither raw content nor file path)")
         
         # GitHub App authentication using GithubIntegration
         self._github_integration = GithubIntegration(

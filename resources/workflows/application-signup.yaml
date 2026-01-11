@@ -1,37 +1,214 @@
 # Signup Workflow Configuration (YAGNI - only what we need now)
-signup:
-  # Workflow definition
-  name: "User Signup Workflow"
-  version: "1.0.0"
-  description: "User registration workflow with validation"
+# Workflow definition
+name: "User Signup Workflow"
+version: "1.0.0"
+description: "User registration workflow with validation"
+
+# Validation rules
+validation:
+  email:
+    required: true
+    pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    
+  username:
+    required: true
+    min_length: 3
+    max_length: 30
+    pattern: "^[a-zA-Z0-9_-]+$"
+    
+  password:
+    required: true
+    min_length: 8
+    max_length: 72
+    require_uppercase: true
+    require_lowercase: true
+    require_digit: true
+    require_special_char: true
+    
+  firstname:
+    required: true
+    min_length: 1
+    max_length: 50
+    
+  lastname:
+    required: true
+    min_length: 1
+    max_length: 50
+
+# Conversational Signup Prompts
+# Used for chatbot-style signup flow with natural language processing
+conversational_auth:
+  # Intent classification - detect if user is providing data or asking questions
+  intent_classification:
+    # For START step - detect if user is asking questions or ready to signup
+    start:
+      system: |
+        You are an intent classifier for a signup conversation.
+        
+        Classify the user's message into ONE of these intents:
+        - ASKS_INFO: User is asking what the system can do, what they need, or wants information
+        - READY_TO_PROCEED: User is ready to start signup (says yes, sure, let's go, proceed, etc.)
+        - PROVIDES_EMAIL: User is directly providing their email address
+        
+        Return ONLY the intent name, nothing else.
+      
+      user_template: |
+        Context: User is at the start of the signup process.
+        
+        User's message: "{user_message}"
+        
+        What is the user's intent? Return only: ASKS_INFO, READY_TO_PROCEED, or PROVIDES_EMAIL
+    
+    # For field steps - detect if user is providing data or asking questions
+    field:
+      system: |
+        You are an intent classifier for a conversational signup flow.
+        
+        Classify the user's message into ONE of these intents:
+        - PROVIDES_DATA: User is providing the requested information
+        - ASKS_CLARIFICATION: User is asking what the field means or needs help
+        - CONFUSED: User seems confused or is providing unrelated information
+        
+        Return ONLY the intent name (PROVIDES_DATA, ASKS_CLARIFICATION, or CONFUSED), nothing else.
+      
+      user_template: |
+        We asked the user for their {field_type}.
+        
+        User's response: "{user_message}"
+        
+        What is the user's intent? Return only: PROVIDES_DATA, ASKS_CLARIFICATION, or CONFUSED
   
-  # Validation rules
-  validation:
-    email:
-      required: true
-      pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+  # Intelligent START clarification - answer user's question about signup
+  start_clarification:
+    system: |
+      You are helping someone who wants to sign up for an account. They have a question about the signup process.
       
-    username:
-      required: true
-      min_length: 3
-      max_length: 30
-      pattern: "^[a-zA-Z0-9_-]+$"
+      Answer their specific question naturally and conversationally. Don't introduce yourself as an AI assistant.
+      Be direct, friendly, and human-like.
       
-    password:
-      required: true
-      min_length: 8
-      max_length: 72
-      require_uppercase: true
-      require_lowercase: true
-      require_digit: true
-      require_special_char: true
+      Required signup information:
+      - Email address: unique login identifier (e.g., john@example.com)
+      - Username: 3-30 characters, letters/numbers/underscores/hyphens
+      - Password: min 8 characters, 1 uppercase, 1 lowercase, 1 number
+      - First name: your given name (letters only)
+      - Last name: your family name/surname (letters only)
       
-    firstname:
-      required: true
-      min_length: 1
-      max_length: 50
+      After answering their question, naturally ask if they'd like to get started.
+    
+    user_template: |
+      User's question: "{user_message}"
       
-    lastname:
-      required: true
-      min_length: 1
-      max_length: 50
+      Answer their question naturally and conversationally, then ask if they're ready to create an account.
+  
+  # Intelligent field clarification - answer user's question about the field
+  field_clarification:
+    system: |
+      You are a helpful signup assistant. The user is being asked for their {field_type} but has a question about it.
+      
+      Answer their specific question clearly and concisely, then ask for the {field_type}.
+      
+      Field Requirements:
+      - email: Valid email format (e.g., john@example.com), used for login
+      - username: 3-30 characters, letters/numbers/underscores/hyphens, how you'll be known
+      - password: Min 8 chars, 1 uppercase, 1 lowercase, 1 number, keeps account secure
+      - firstname: 1-50 letters only, your given name
+      - lastname: 1-50 letters only, your family name/surname
+      
+      Be conversational and helpful. Answer the question they asked, don't just repeat requirements.
+    
+    user_template: |
+      Current signup step: {field_type}
+      User's question: "{user_message}"
+      
+      Answer their question about {field_type} specifically, then ask for their {field_type}.
+  
+  # Simple clarification prompts (fallback for when LLM clarification not needed)
+  clarifications:
+    email: |
+      📧 An email address is your unique identifier for logging in. It should look like john@example.com or jane@gmail.com.
+      
+      What's your email address?
+    
+    username: |
+      👤 A username is how you'll be known on the platform. It should be:
+      - Between 3-30 characters
+      - Use letters, numbers, underscores (_), or hyphens (-)
+      - Example: john_doe, user123, jane-smith
+      
+      What username would you like?
+    
+    password: |
+      🔐 Your password keeps your account secure. It must:
+      - Be at least 8 characters long
+      - Include at least one uppercase letter (A-Z)
+      - Include at least one lowercase letter (a-z)
+      - Include at least one number (0-9)
+      
+      Example: SecurePass123 (don't use this exact one!)
+      
+      What password would you like to use?
+    
+    firstname: "👋 Your first name is what we'll call you. It should contain only letters (e.g., John, Maria, Wei). What's your first name?"
+    
+    lastname: "📝 Your last name (surname/family name) completes your profile. It should contain only letters. What's your last name?"
+  
+  # Universal field extraction - ONE prompt for all fields (KISS principle)
+  extraction:
+    universal:
+      system: "You are a field extractor. Extract ONLY the requested field value from the user's message. Return just the value, nothing else."
+      user_template: |
+        The user is providing their {field_type}.
+        
+        User message: "{user_message}"
+        
+        Extract only the {field_type} value. Return just the extracted value with no explanations, no quotes, no additional text.
+        
+        Examples:
+        - "My email is john@example.com" → john@example.com
+        - "Call me johndoe" → johndoe
+        - "I'll use SecurePass123!" → SecurePass123!
+        - "John" → John
+        
+        Extracted {field_type}:
+  
+  # Bot conversation prompts - what the bot says to users
+  prompts:
+    # Greeting and explanation when user asks what the system can do
+    greeting_explanation: |
+      👋 Hello! I'm your signup assistant. I can help you create a new account.
+      
+      Here's what I'll need from you:
+      📧 Email address - Your unique login identifier
+      👤 Username - How you'll be known (3-30 characters)
+      🔐 Password - A secure password (min 8 characters, uppercase, lowercase, number)
+      👋 First name - Your given name
+      📝 Last name - Your family name
+      
+      The whole process takes less than a minute! I'll guide you through each step.
+      
+      Would you like to proceed with creating an account? (Just say 'yes', 'sure', 'let's go', or similar)
+    
+    # When user is ready to proceed
+    proceed_to_signup: "Great! Let's get started. What's your email address?"
+    
+    # Default start message (when user sends empty message or just "start")
+    start: "👋 Welcome! Let's create your account. What's your email address?"
+    
+    email_success: "Great! Now choose a username (3-30 characters, letters, numbers, _ or -)."
+    username_success: "Perfect! Create a password (min 8 characters, at least one uppercase, one lowercase, and one number)."
+    password_success: "Excellent! What's your first name?"
+    firstname_success: "Almost there! What's your last name?"
+    complete: "🎉 Welcome aboard, {firstname}! Your account has been created successfully!"
+  
+  # Validation error messages
+  validation_errors:
+    email_invalid: "❌ That doesn't look like a valid email. Please try again with a valid email address (e.g., john@example.com)."
+    email_exists: "❌ This email is already registered. Please use a different email or try logging in."
+    username_invalid: "❌ Username must be 3-30 characters and can only contain letters, numbers, underscores, or hyphens. Please try again."
+    username_exists: "❌ This username is already taken. Please choose a different username."
+    password_weak: "❌ Password must be at least 8 characters and include: {requirements}. Please try again."
+    firstname_invalid: "❌ Please enter a valid first name (1-50 characters, letters only)."
+    lastname_invalid: "❌ Please enter a valid last name (1-50 characters, letters only)."
+    extraction_failed: "❌ I couldn't understand that. Could you please provide your {field_type} more clearly?"
+    signup_error: "❌ Oops! Something went wrong: {error}. Please try again."
+    session_not_found: "❌ Your session has expired. Please start again."
