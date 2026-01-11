@@ -1,0 +1,236 @@
+@startuml AgentHub Request Flow with Tool Orchestration
+
+title AgentHub - Detailed Request Flow with LLM Tool Orchestration
+
+' Define participants
+actor "User" as user
+participant "Client\n(React/Swagger)" as client
+participant "FastAPI\nRouter" as api
+participant "Request\nValidation" as validation
+participant "Auth\nMiddleware" as auth
+participant "Chat\nService" as chat_service
+participant "Session\nManager" as session_mgr
+participant "Agent\nService" as agent_service
+participant "Agent Factory" as factory
+participant "ReAct Agent\n(LangChain)" as agent
+participant "LLM Provider\n(OpenAI/Groq)" as llm
+participant "Tool Registry" as tool_registry
+participant "Tool Executor" as tool_executor
+participant "Jira Tool" as jira
+participant "Datadog Tool" as datadog
+participant "Vector Store" as vector
+database "MongoDB" as mongo
+database "Redis" as redis
+
+' ===== PHASE 1: REQUEST RECEPTION & VALIDATION =====
+group #LightBlue Request Reception & Validation
+    user -> client : Enter message:\n"Show me open bugs in PROJ-123"
+    activate client
+    
+    client -> api : POST /api/v1/chat/message\n{message, session_id, token}
+    activate api
+    
+    api -> validation : Validate request schema\n(Pydantic)
+    activate validation
+    
+    alt #LightPink Validation Fails
+        validation --> api : ValidationError
+        api --> client : 422 Unprocessable Entity\n{error: "Invalid request format"}
+        client --> user : Show error message
+        note right: **Early Exit**\nBad request format
+    end
+    
+    validation -> auth : Verify JWT token
+    activate auth
+    
+    alt #LightPink Authentication Fails
+        auth --> api : Unauthorized
+        api --> client : 401 Unauthorized\n{error: "Invalid token"}
+        client --> user : Redirect to login
+        note right: **Early Exit**\nInvalid/expired token
+    end
+    
+    auth --> validation : Token valid\nUser: user@example.com
+    deactivate auth
+    validation --> api : ✓ Request validated\nUser authenticated
+    deactivate validation
+end
+
+' ===== PHASE 2: SESSION & CONTEXT LOADING =====
+group #LightGreen Session Management
+    api -> chat_service : chat(message, user_id, session_id)
+    activate chat_service
+    
+    chat_service -> session_mgr : load_session(session_id, user_id)
+    activate session_mgr
+    
+    session_mgr -> mongo : Find session by ID
+    activate mongo
+    mongo --> session_mgr : Session document\n{history: [...], metadata: {...}}
+    deactivate mongo
+    
+    session_mgr -> session_mgr : Build conversation context\nfrom history
+    session_mgr --> chat_service : Session context loaded\n(last 10 messages)
+    deactivate session_mgr
+    
+    chat_service -> redis : Check cache for\nsimilar queries
+    activate redis
+    redis --> chat_service : Cache miss
+    deactivate redis
+end
+
+' ===== PHASE 3: AGENT INITIALIZATION =====
+group #LightYellow Agent Initialization
+    chat_service -> agent_service : process(message, context)
+    activate agent_service
+    
+    agent_service -> factory : get_agent(type=REACT, framework=LANGCHAIN)
+    activate factory
+    
+    factory -> tool_registry : get_available_tools()
+    activate tool_registry
+    tool_registry --> factory : [JiraTool, DatadogTool,\nVectorStoreTool, ...]
+    deactivate tool_registry
+    
+    factory -> agent : create(llm_provider, tools, config)
+    activate agent
+    factory --> agent_service : Agent initialized
+    deactivate factory
+end
+
+' ===== PHASE 4: AGENT REASONING (FIRST LLM CALL) =====
+group #LightCyan Agent Reasoning & Tool Selection
+    agent_service -> agent : execute(message, session_context)
+    
+    agent -> agent : Prepare prompt with:\n- User message\n- Session context\n- Available tools
+    
+    agent -> llm : Call LLM with tools\n{\n  message: "Show me open bugs",\n  tools: [jira_tool, datadog_tool, ...],\n  context: [...]\n}
+    activate llm
+    
+    llm -> llm : **LLM Decision Making**\n1. Analyze user request\n2. Review available tools\n3. Decide: Need Jira tool\n4. Generate tool call parameters
+    
+    llm --> agent : **AgentThinking Response**\n{\n  thought_process: "User wants Jira bugs...",\n  selected_action: "use_tool",\n  tool_selection: "jira_search_issues",\n  tool_parameters: {\n    project: "PROJ-123",\n    status: "open",\n    issue_type: "Bug"\n  },\n  confidence_level: 0.92\n}
+    deactivate llm
+    
+    note right of llm
+        **LLM Reasoning**
+        - Understands "open bugs" → Jira
+        - Extracts project: PROJ-123
+        - Filters: status=open, type=Bug
+        - Confidence: High (0.92)
+    end note
+end
+
+' ===== PHASE 5: TOOL EXECUTION =====
+group #LightSalmon Tool Execution
+    agent -> tool_executor : execute_tool(\n  tool="jira_search_issues",\n  params={project, status, issue_type}\n)
+    activate tool_executor
+    
+    tool_executor -> tool_registry : get_tool("jira_search_issues")
+    activate tool_registry
+    tool_registry --> tool_executor : JiraTool instance
+    deactivate tool_registry
+    
+    tool_executor -> jira : search_issues(PROJ-123, status=open, type=Bug)
+    activate jira
+    
+    jira -> jira : Build JQL query:\n"project=PROJ-123 AND \nstatus=Open AND \nissuetype=Bug"
+    
+    jira -> jira : Call Jira REST API\nGET /rest/api/3/search
+    
+    alt #LightPink Tool Execution Fails
+        jira --> tool_executor : JiraAPIError:\n"Connection timeout"
+        tool_executor -> tool_executor : Apply retry logic\n(3 retries, exponential backoff)
+        
+        alt Retry Exhausted
+            tool_executor --> agent : ToolResult(\n  success=False,\n  error="Jira API unavailable"\n)
+            agent -> llm : Reformulate response\nwithout tool data
+            llm --> agent : "I'm having trouble connecting\nto Jira. Please try again."
+            agent --> agent_service : Response without tools
+            note right: **Graceful Degradation**\nReturn error response to user
+        end
+    end
+    
+    jira --> tool_executor : **Jira Response**\n[\n  {key: "PROJ-123-45", summary: "Login bug", ...},\n  {key: "PROJ-123-67", summary: "UI crash", ...},\n  {key: "PROJ-123-89", summary: "API error", ...}\n]
+    deactivate jira
+    
+    tool_executor --> agent : **ToolResult**\n{\n  success: True,\n  tool_name: "jira_search_issues",\n  result: [3 bugs],\n  execution_time_ms: 342\n}
+    deactivate tool_executor
+    
+    note right of tool_executor
+        **Tool Result Sanitization**
+        - Validate response format
+        - Remove sensitive fields
+        - Add execution metadata
+        - Structure for LLM consumption
+    end note
+end
+
+' ===== PHASE 6: RESPONSE GENERATION (SECOND LLM CALL) =====
+group #LightGreen Response Generation
+    agent -> llm : Generate final response\n{\n  original_query: "Show me open bugs",\n  tool_results: [3 Jira issues],\n  context: session_history\n}
+    activate llm
+    
+    llm -> llm : **LLM Response Synthesis**\n1. Analyze tool results\n2. Format user-friendly response\n3. Add follow-up suggestions\n4. Include relevant details
+    
+    llm --> agent : **ChatAgentResponse**\n{\n  response_text: "Found 3 open bugs:\n    1. PROJ-123-45: Login bug (P1)\n    2. PROJ-123-67: UI crash (P2)\n    3. PROJ-123-89: API error (P3)",\n  response_type: "tool_result",\n  tools_invoked: ["jira_search_issues"],\n  follow_up_suggestions: [\n    "View details of bug PROJ-123-45?",\n    "Show bugs by priority?"\n  ],\n  confidence: 0.95\n}
+    deactivate llm
+    
+    note right of llm
+        **Response Enhancement**
+        - Human-readable format
+        - Numbered list
+        - Priority indicators
+        - Actionable follow-ups
+    end note
+end
+
+' ===== PHASE 7: RESPONSE PROCESSING & STORAGE =====
+group #LightBlue Response Processing & Storage
+    agent --> agent_service : AgentResponse(\n  content="Found 3 open bugs...",\n  tools_used=["jira_search_issues"],\n  processing_time_ms=892\n)
+    deactivate agent
+    
+    agent_service --> chat_service : Formatted response\nwith metadata
+    deactivate agent_service
+    
+    chat_service -> session_mgr : save_message(\n  session_id,\n  user_message,\n  agent_response\n)
+    activate session_mgr
+    
+    session_mgr -> mongo : Update session document\n{\n  $push: {messages: [user_msg, agent_msg]},\n  $set: {updated_at: now}\n}
+    activate mongo
+    mongo --> session_mgr : Session updated
+    deactivate mongo
+    deactivate session_mgr
+    
+    chat_service -> redis : Cache response\nkey: query_hash
+    activate redis
+    redis --> chat_service : Cached
+    deactivate redis
+end
+
+' ===== PHASE 8: RESPONSE DELIVERY =====
+group #LightYellow Response Delivery
+    chat_service --> api : ChatResponse\n{\n  success: true,\n  message: "Found 3 open bugs...",\n  tools_used: ["jira_search_issues"],\n  processing_time_ms: 892,\n  session_id: "sess_123"\n}
+    deactivate chat_service
+    
+    api --> client : 200 OK\n{ChatResponse JSON}
+    deactivate api
+    
+    client -> client : Render response:\n- Format bug list\n- Show follow-up buttons\n- Display tool badges
+    
+    client --> user : Display formatted response\nwith interactive elements
+    deactivate client
+end
+
+' ===== ALTERNATE FLOWS =====
+
+note over user, redis
+    **Key Flow Characteristics**
+    1. **Two LLM Calls**: First for tool selection, second for response generation
+    2. **LLM Decides Tools**: Not hardcoded, based on context
+    3. **Tool Results → LLM**: Tools provide data, LLM formats it
+    4. **Graceful Failures**: Retry logic, fallback responses
+    5. **Session Continuity**: Full conversation context maintained
+end note
+
+@enduml

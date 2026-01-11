@@ -11,8 +11,26 @@ import requests
 
 from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
+from app.core.resilience import retry, circuit_breaker, RetryConfig, CircuitBreakerConfig, RetryStrategy
 
 logger = get_logger(__name__)
+
+# Resilience configurations for Confluence API
+CONFLUENCE_RETRY_CONFIG = RetryConfig(
+    max_attempts=3,
+    base_delay=1.0,
+    max_delay=10.0,
+    strategy=RetryStrategy.EXPONENTIAL,
+    jitter=True
+)
+
+CONFLUENCE_CIRCUIT_CONFIG = CircuitBreakerConfig(
+    name="confluence_api",
+    failure_threshold=5,
+    failure_window=60.0,
+    recovery_timeout=30.0,
+    success_threshold=2
+)
 
 
 @ConnectionRegistry.register(ConnectionType.CONFLUENCE)
@@ -132,6 +150,8 @@ class ConfluenceConnectionManager(BaseConnectionManager):
     
     # Confluence-specific convenience methods
     
+    @retry(CONFLUENCE_RETRY_CONFIG)
+    @circuit_breaker(CONFLUENCE_CIRCUIT_CONFIG)
     def get_spaces(self, space_keys: Optional[List[str]] = None) -> List[Dict]:
         """
         Get Confluence spaces.
@@ -169,6 +189,8 @@ class ConfluenceConnectionManager(BaseConnectionManager):
                     logger.warning(f"Failed to get space {space_key}: {e}")
             return spaces
     
+    @retry(CONFLUENCE_RETRY_CONFIG)
+    @circuit_breaker(CONFLUENCE_CIRCUIT_CONFIG)
     def get_pages_in_space(self, space_key: str, limit: Optional[int] = None) -> List[Dict]:
         """
         Get pages in a Confluence space.
@@ -192,6 +214,8 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             expand='body.storage,metadata.labels'
         )
     
+    @retry(CONFLUENCE_RETRY_CONFIG)
+    @circuit_breaker(CONFLUENCE_CIRCUIT_CONFIG)
     def get_page_content(self, page_id: str) -> Optional[Dict]:
         """
         Get detailed page content.
@@ -213,6 +237,8 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             logger.error(f"Failed to get page content for {page_id}: {e}")
             return None
     
+    @retry(CONFLUENCE_RETRY_CONFIG)
+    @circuit_breaker(CONFLUENCE_CIRCUIT_CONFIG)
     def search_content(self, query: str, limit: Optional[int] = None) -> List[Dict]:
         """
         Search Confluence content.

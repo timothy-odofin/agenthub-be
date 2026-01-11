@@ -65,20 +65,36 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 await self.disconnect()
         
         try:
+            # Build connection pool parameters
+            pool_params = {
+                'host': self.config['host'],
+                'port': self.config['port'],
+                'db': self.config.get('db', 0),  # Use 'db' instead of 'database'
+                'password': self.config.get('password'),
+                'max_connections': self.config.get('connection_pool_size', 10),
+                'socket_timeout': self.config.get('socket_timeout', 5),
+                'socket_connect_timeout': self.config.get('socket_connect_timeout', 5),
+                'health_check_interval': self.config.get('health_check_interval', 30),
+                'retry_on_timeout': True,
+                'decode_responses': True  # Automatically decode byte responses to strings
+            }
+            
+            # Handle SSL configuration for Redis 5.x
+            # In Redis 5.x, SSL is configured via connection_class, not a boolean parameter
+            use_ssl = self.config.get('ssl', False)
+            if use_ssl:
+                # Import SSL connection class only if needed
+                from redis.asyncio.connection import SSLConnection
+                pool_params['connection_class'] = SSLConnection
+                # Add SSL cert requirements if specified
+                if self.config.get('ssl_cert_reqs'):
+                    import ssl
+                    pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], ssl.CERT_REQUIRED)
+                if self.config.get('ssl_ca_certs'):
+                    pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
+            
             # Create connection pool
-            self._connection_pool = redis.ConnectionPool(
-                host=self.config['host'],
-                port=self.config['port'],
-                db=self.config.get('db', 0),  # Use 'db' instead of 'database'
-                password=self.config.get('password'),
-                ssl=self.config.get('ssl', False),
-                max_connections=self.config.get('connection_pool_size', 10),
-                socket_timeout=self.config.get('socket_timeout', 5),
-                socket_connect_timeout=self.config.get('socket_connect_timeout', 5),
-                health_check_interval=self.config.get('health_check_interval', 30),
-                retry_on_timeout=True,
-                decode_responses=True  # Automatically decode byte responses to strings
-            )
+            self._connection_pool = redis.ConnectionPool(**pool_params)
             
             # Create Redis client
             self._redis_client = redis.Redis(connection_pool=self._connection_pool)
