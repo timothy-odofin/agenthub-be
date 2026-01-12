@@ -117,3 +117,11 @@ class AgentStatus(str, Enum):
     COMPLETED = "completed"
     ERROR = "error"
     CANCELLED = "cancelled"
+
+
+class CacheType(str, Enum):
+    """Supported cache provider types."""
+    REDIS = "redis"
+    MEMCACHED = "memcached"
+    IN_MEMORY = "in_memory"
+    ELASTICACHE = "elasticache"

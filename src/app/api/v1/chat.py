@@ -7,6 +7,8 @@ from app.schemas.chat import (
     ChatResponse,
     CreateSessionRequest,
     CreateSessionResponse,
+    UpdateSessionTitleRequest,
+    UpdateSessionTitleResponse,
     SessionHistoryResponse,
     SessionListResponse,
     SessionMessage,
@@ -78,9 +80,47 @@ async def create_session(
     return CreateSessionResponse(
         success=True,
         session_id=session_id,
-        title=req.title or f"Chat session {datetime.now().strftime('%Y-%m-%d %H:%M')}",
+        title=req.title or chat_service.title_service.get_default_title(),
         created_at=datetime.now().isoformat()
     )
+
+
+@router.put("/sessions/{session_id}/title", response_model=UpdateSessionTitleResponse)
+async def update_session_title(
+    session_id: str,
+    req: UpdateSessionTitleRequest,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """
+    Update the title of a chat session.
+    
+    Requires authentication via JWT Bearer token.
+    
+    - **session_id**: ID of the session to update
+    - **title**: New title for the session
+    
+    Returns the updated session details.
+    """
+    success = await chat_service.update_session_title(
+        user_id=str(current_user.id),
+        session_id=session_id,
+        title=req.title
+    )
+    
+    if success:
+        return UpdateSessionTitleResponse(
+            success=True,
+            session_id=session_id,
+            title=req.title,
+            message="Session title updated successfully"
+        )
+    else:
+        return UpdateSessionTitleResponse(
+            success=False,
+            session_id=session_id,
+            title=req.title,
+            message="Failed to update session title"
+        )
 
 
 @router.get("/sessions/{session_id}/messages", response_model=SessionHistoryResponse)

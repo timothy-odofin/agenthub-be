@@ -27,6 +27,15 @@ class CreateSessionResponse(BaseModel):
     created_at: str
     errors: List[str] = []
 
+class UpdateSessionTitleRequest(BaseModel):
+    title: str
+
+class UpdateSessionTitleResponse(BaseModel):
+    success: bool
+    session_id: str
+    title: str
+    message: Optional[str] = None
+
 class SessionMessage(BaseModel):
     role: str  # "user" or "assistant"
     content: str

@@ -9,14 +9,13 @@ Key Features:
 - Automatic session expiration (15 minutes TTL)
 - Password hashing on storage
 - Validation tracking
+- Uses Redis cache layer for consistency with confirmation workflow
 """
 
-import json
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-from app.connections.factory.connection_factory import ConnectionFactory
-from app.connections.base import ConnectionType
+from app.services.cache.instances import signup_cache
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -51,32 +50,25 @@ class SignupSessionRepository:
     
     def __init__(self):
         """
-        Initialize the signup session repository.
+        Initialize the signup session repository with Redis cache layer.
         
-        Automatically connects to Redis using existing ConnectionFactory.
+        Uses signup_cache for consistency with confirmation workflow.
+        Cache namespace 'signup' automatically prefixes all keys.
         """
-        self._redis_manager = None
-        logger.info("SignupSessionRepository initialized")
-    
-    @property
-    def redis(self):
-        """Get Redis connection manager, connecting if necessary."""
-        if self._redis_manager is None:
-            self._redis_manager = ConnectionFactory.get_connection_manager(ConnectionType.REDIS)
-            logger.info("Connected to Redis for SignupSessionRepository")
-        return self._redis_manager
+        self.cache = signup_cache
+        logger.info("SignupSessionRepository initialized with signup_cache")
     
     def _make_key(self, session_id: str) -> str:
         """
-        Generate Redis key for session.
+        Return session_id (cache namespace 'signup' handles prefixing automatically).
         
         Args:
             session_id: Unique session identifier
             
         Returns:
-            Redis key in format "signup:{session_id}"
+            Session ID (will become "signup:{session_id}" in Redis)
         """
-        return f"{self.KEY_PREFIX}:{session_id}"
+        return session_id
     
     async def create_session(
         self, 
@@ -109,11 +101,11 @@ class SignupSessionRepository:
                 **(initial_data or {})
             }
             
-            # Store as JSON string with TTL
-            await self.redis.set(
-                key, 
-                json.dumps(session_data), 
-                ex=self.SESSION_TTL
+            # Store with TTL (cache handles JSON serialization)
+            await self.cache.set(
+                key=key,
+                value=session_data,
+                ttl=self.SESSION_TTL
             )
             
             logger.info(f"Created signup session: {session_id}")
@@ -140,20 +132,15 @@ class SignupSessionRepository:
         """
         try:
             key = self._make_key(session_id)
-            data = await self.redis.get(key)
+            session_data = await self.cache.get(key)
             
-            if data is None:
+            if session_data is None:
                 logger.debug(f"Session not found or expired: {session_id}")
                 return None
             
-            # Parse JSON
-            session_data = json.loads(data)
             logger.debug(f"Retrieved session: {session_id}")
             return session_data
             
-        except json.JSONDecodeError as e:
-            logger.error(f"Invalid JSON in session {session_id}: {e}")
-            return None
         except Exception as e:
             logger.error(f"Failed to get session {session_id}: {e}", exc_info=True)
             return None
@@ -190,12 +177,12 @@ class SignupSessionRepository:
             session_data[field] = value
             session_data["last_updated"] = datetime.utcnow().timestamp()
             
-            # Save back to Redis with refreshed TTL
+            # Save back to Redis with refreshed TTL (cache handles serialization)
             key = self._make_key(session_id)
-            await self.redis.set(
-                key, 
-                json.dumps(session_data), 
-                ex=self.SESSION_TTL
+            await self.cache.set(
+                key=key,
+                value=session_data,
+                ttl=self.SESSION_TTL
             )
             
             logger.debug(f"Updated field '{field}' in session: {session_id}")
@@ -238,12 +225,12 @@ class SignupSessionRepository:
             session_data.update(data)
             session_data["last_updated"] = datetime.utcnow().timestamp()
             
-            # Save back to Redis with refreshed TTL
+            # Save back to Redis with refreshed TTL (cache handles serialization)
             key = self._make_key(session_id)
-            await self.redis.set(
-                key, 
-                json.dumps(session_data), 
-                ex=self.SESSION_TTL
+            await self.cache.set(
+                key=key,
+                value=session_data,
+                ttl=self.SESSION_TTL
             )
             
             logger.debug(f"Updated session with {len(data)} fields: {session_id}")
@@ -271,9 +258,9 @@ class SignupSessionRepository:
         """
         try:
             key = self._make_key(session_id)
-            result = await self.redis.delete(key)
+            result = await self.cache.delete(key)
             
-            if result > 0:
+            if result:
                 logger.info(f"Deleted signup session: {session_id}")
                 return True
             else:
@@ -301,8 +288,8 @@ class SignupSessionRepository:
         """
         try:
             key = self._make_key(session_id)
-            result = await self.redis.exists(key)
-            return result > 0
+            result = await self.cache.exists(key)
+            return result
             
         except Exception as e:
             logger.error(f"Failed to check session existence {session_id}: {e}", exc_info=True)
@@ -328,7 +315,7 @@ class SignupSessionRepository:
         try:
             key = self._make_key(session_id)
             ttl = seconds or self.SESSION_TTL
-            result = await self.redis.expire(key, ttl)
+            result = await self.cache.set_ttl(key, ttl)
             
             if result:
                 logger.debug(f"Extended TTL for session {session_id} to {ttl}s")
