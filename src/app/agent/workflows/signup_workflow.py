@@ -296,6 +296,10 @@ async def create_user(state: SignupState) -> SignupState:
     """
     Create user with hashed password.
     
+    Handles both regular signup (plaintext password) and conversational signup 
+    (pre-hashed password from Redis). Checks if password is already hashed 
+    to prevent double-hashing issue that breaks login.
+    
     Args:
         state: Current signup state
         
@@ -303,8 +307,23 @@ async def create_user(state: SignupState) -> SignupState:
         Updated state with user_id on success or error on failure
     """
     try:
-        # Hash password
-        hashed_password = password_manager.hash_password(state["password"])
+        password = state["password"]
+        
+        # Check if password is already hashed (from conversational signup)
+        # Bcrypt hashes always start with $2a$, $2b$, or $2y$ and are 60 chars
+        is_already_hashed = (
+            password.startswith(("$2a$", "$2b$", "$2y$")) and 
+            len(password) == 60
+        )
+        
+        if is_already_hashed:
+            # Password already hashed (from conversational signup via Redis)
+            logger.info("Password already hashed (conversational signup), skipping hash")
+            hashed_password = password
+        else:
+            # Regular signup - hash the plaintext password
+            logger.info("Hashing plaintext password (regular signup)")
+            hashed_password = password_manager.hash_password(password)
         
         # Create user
         user = await user_repository.create_user(
