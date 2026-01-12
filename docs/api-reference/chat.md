@@ -1,6 +1,6 @@
 # Chat API
 
-> 💬 **Conversational AI with session management and message history**
+> **Conversational AI with session management and message history**
 
 ## Overview
 
@@ -37,8 +37,8 @@ Content-Type: application/json
 
 | Field | Type | Required | Description |
 |-------|------|----------|-------------|
-| `message` | string | ✅ Yes | User's message (min 1 char) |
-| `session_id` | string (UUID) | ❌ No | Existing session ID (creates new if null) |
+| `message` | string | Yes | User's message (min 1 char) |
+| `session_id` | string (UUID) | No | Existing session ID (creates new if null) |
 
 **Success Response** (200 OK):
 ```json
@@ -552,11 +552,11 @@ The AI agent can invoke various tools during conversation:
 ### 1. Session Management
 
 ```python
-# ✅ GOOD - Maintain session across messages
+# GOOD - Maintain session across messages
 session_id = response["session_id"]
 next_request = {"message": "...", "session_id": session_id}
 
-# ❌ BAD - Create new session each time
+# BAD - Create new session each time
 # This loses conversation context
 requests.post("/chat/message", json={"message": "..."})
 ```
@@ -564,7 +564,7 @@ requests.post("/chat/message", json={"message": "..."})
 ### 2. Error Handling
 
 ```python
-# ✅ GOOD - Handle errors gracefully
+# GOOD - Handle errors gracefully
 try:
     response = chat.send("Hello")
 except Exception as e:
@@ -579,7 +579,7 @@ except Exception as e:
 ### 3. Pagination
 
 ```python
-# ✅ GOOD - Fetch all sessions properly
+# GOOD - Fetch all sessions properly
 def get_all_sessions():
     sessions = []
     page = 1
@@ -591,7 +591,7 @@ def get_all_sessions():
         page += 1
     return sessions
 
-# ❌ BAD - Only get first page
+# BAD - Only get first page
 sessions = fetch_page(1)["sessions"]
 ```
 

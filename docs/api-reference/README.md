@@ -1,6 +1,6 @@
 # API Reference
 
-> 📡 **Complete REST API documentation** for AgentHub backend services
+> **Complete REST API documentation** for AgentHub backend services
 
 ## Table of Contents
 
@@ -430,10 +430,10 @@ http://localhost:8000/docs
 ```
 
 **Features**:
-- ✅ Try out API endpoints
-- ✅ See request/response schemas
-- ✅ Test authentication flow
-- ✅ View all available endpoints
+- Try out API endpoints
+- See request/response schemas
+- Test authentication flow
+- View all available endpoints
 
 ### ReDoc
 
@@ -442,9 +442,9 @@ http://localhost:8000/redoc
 ```
 
 **Features**:
-- ✅ Clean, readable documentation
-- ✅ Better for documentation reading
-- ✅ Download OpenAPI spec
+- Clean, readable documentation
+- Better for documentation reading
+- Download OpenAPI spec
 
 ### OpenAPI Schema
 
@@ -462,16 +462,16 @@ Download the raw OpenAPI 3.0 specification.
 
 | Endpoint | Method | Auth Required | Purpose |
 |----------|--------|---------------|---------|
-| `/auth/signup` | POST | ❌ | Create account |
-| `/auth/login` | POST | ❌ | Login |
-| `/auth/refresh` | POST | ❌ | Refresh token |
-| `/auth/signup/conversation` | POST | ❌ | Conversational signup |
-| `/chat/message` | POST | ✅ | Send message |
-| `/chat/sessions` | GET | ✅ | List sessions |
-| `/chat/sessions/{id}/messages` | GET | ✅ | Get history |
-| `/ingest/load/{source}` | POST | ✅ | Ingest data |
-| `/health` | GET | ❌ | Health check |
-| `/health/test-celery` | GET | ❌ | Test workers |
+| `/auth/signup` | POST | | Create account |
+| `/auth/login` | POST | | Login |
+| `/auth/refresh` | POST | | Refresh token |
+| `/auth/signup/conversation` | POST | | Conversational signup |
+| `/chat/message` | POST | | Send message |
+| `/chat/sessions` | GET | | List sessions |
+| `/chat/sessions/{id}/messages` | GET | | Get history |
+| `/ingest/load/{source}` | POST | | Ingest data |
+| `/health` | GET | | Health check |
+| `/health/test-celery` | GET | | Test workers |
 
 ---
 
@@ -583,4 +583,4 @@ Explore detailed documentation for each API:
 
 ---
 
-Thank you for using AgentHub! 🚀
+Thank you for using AgentHub! 

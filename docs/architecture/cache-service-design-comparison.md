@@ -151,10 +151,10 @@ await cache.set("key", value)
 
 | Aspect | Registry Pattern (Your Approach) | Direct Service (My Approach) |
 |--------|----------------------------------|------------------------------|
-| Add new cache backend | ✅ Create new class, register with decorator | ❌ Need to refactor existing code |
-| Switch implementations | ✅ Change config, no code changes | ❌ Code changes required |
-| Multiple backends simultaneously | ✅ Easy (different factories) | ❌ Difficult |
-| Backend-specific features | ✅ Each impl can have unique methods | ⚠️ Limited to common interface |
+| Add new cache backend | Create new class, register with decorator | Need to refactor existing code |
+| Switch implementations | Change config, no code changes | Code changes required |
+| Multiple backends simultaneously | Easy (different factories) | Difficult |
+| Backend-specific features | Each impl can have unique methods | Limited to common interface |
 
 **Winner: Registry Pattern** - Much more extensible
 
@@ -162,10 +162,10 @@ await cache.set("key", value)
 
 | Aspect | Registry Pattern | Direct Service |
 |--------|------------------|----------------|
-| Contribution-friendly | ✅ Clear structure for PRs ("Add Memcached provider") | ❌ Less obvious extension points |
-| Documentation clarity | ✅ "We support Redis, Memcached, etc." | ⚠️ "We use Redis" |
-| Community adoption | ✅ Users can add custom backends | ❌ Fork required for custom backends |
-| Enterprise appeal | ✅ "Flexible architecture" | ⚠️ "Redis-locked" |
+| Contribution-friendly | Clear structure for PRs ("Add Memcached provider") | Less obvious extension points |
+| Documentation clarity | "We support Redis, Memcached, etc." | "We use Redis" |
+| Community adoption | Users can add custom backends | Fork required for custom backends |
+| Enterprise appeal | "Flexible architecture" | "Redis-locked" |
 
 **Winner: Registry Pattern** - Better for open source
 
@@ -173,10 +173,10 @@ await cache.set("key", value)
 
 | Aspect | Registry Pattern | Direct Service |
 |--------|------------------|----------------|
-| Code to maintain | ⚠️ More files (base class, registry, factory, multiple impls) | ✅ Single file |
-| Testing complexity | ⚠️ Test each implementation + factory + registry | ✅ Test one implementation |
-| Learning curve | ⚠️ Steeper (need to understand pattern) | ✅ Straightforward |
-| Debugging | ⚠️ More layers to trace through | ✅ Direct path |
+| Code to maintain | More files (base class, registry, factory, multiple impls) | Single file |
+| Testing complexity | Test each implementation + factory + registry | Test one implementation |
+| Learning curve | Steeper (need to understand pattern) | Straightforward |
+| Debugging | More layers to trace through | Direct path |
 
 **Winner: Direct Service** - Simpler to maintain
 
@@ -184,9 +184,9 @@ await cache.set("key", value)
 
 | Aspect | Registry Pattern | Direct Service |
 |--------|------------------|----------------|
-| Runtime overhead | ⚠️ Factory lookup + abstraction layer | ✅ Direct calls |
-| Memory footprint | ⚠️ Multiple classes loaded | ✅ Single class |
-| Optimization potential | ⚠️ Must work for all backends | ✅ Redis-specific optimizations |
+| Runtime overhead | Factory lookup + abstraction layer | Direct calls |
+| Memory footprint | Multiple classes loaded | Single class |
+| Optimization potential | Must work for all backends | Redis-specific optimizations |
 
 **Winner: Direct Service** - Slightly faster
 
@@ -194,9 +194,9 @@ await cache.set("key", value)
 
 | Aspect | Registry Pattern | Direct Service |
 |--------|------------------|----------------|
-| Immediate use case | ⚠️ Over-engineering (only need Redis now) | ✅ YAGNI - solves current problem |
-| Roadmap alignment | ✅ IF planning to support multiple caches | ⚠️ IF not planning other backends |
-| Consistency | ✅ Matches existing patterns (Connection, Agent, Tool) | ❌ Different from existing patterns |
+| Immediate use case | Over-engineering (only need Redis now) | YAGNI - solves current problem |
+| Roadmap alignment | IF planning to support multiple caches | IF not planning other backends |
+| Consistency | Matches existing patterns (Connection, Agent, Tool) | Different from existing patterns |
 
 **Winner: Depends on roadmap** - Registry if planning multiple backends
 
@@ -249,7 +249,7 @@ app.config_from_object({
 
 I **strongly recommend the Registry Pattern** for these reasons:
 
-#### ✅ **Pros:**
+#### **Pros:**
 
 1. **Consistency with Your Architecture**
    - Matches your existing patterns: ConnectionRegistry, AgentRegistry, ToolRegistry
@@ -278,7 +278,7 @@ I **strongly recommend the Registry Pattern** for these reasons:
    - Critical for multi-environment deployments
    - Users appreciate deployment flexibility
 
-#### ⚠️ **Cons:**
+#### **Cons:**
 
 1. **Initial Overhead**
    - More files to create upfront
@@ -429,11 +429,11 @@ If we choose Registry Pattern, here's the migration strategy:
 
 **Choose Registry Pattern** for your open-source project because:
 
-1. ✅ **Architectural Consistency** - Matches your existing patterns perfectly
-2. ✅ **Open Source Success** - Easier for community to extend and contribute
-3. ✅ **Enterprise Readiness** - Flexibility attracts more users
-4. ✅ **Future-Proof** - Don't paint yourself into Redis-only corner
-5. ✅ **Professional Image** - Shows thoughtful architecture
+1. **Architectural Consistency** - Matches your existing patterns perfectly
+2. **Open Source Success** - Easier for community to extend and contribute
+3. **Enterprise Readiness** - Flexibility attracts more users
+4. **Future-Proof** - Don't paint yourself into Redis-only corner
+5. **Professional Image** - Shows thoughtful architecture
 
 The upfront cost is worth it for an open-source project aiming for adoption.
 

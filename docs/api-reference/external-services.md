@@ -1,13 +1,13 @@
 # External Services API
 
-> 🔌 **Integration with Jira, Confluence, and other external services**
+> **Integration with Jira, Confluence, and other external services**
 
 ## Overview
 
 AgentHub integrates with external services to provide seamless access to organizational data through AI agents. Currently supports Atlassian products (Jira, Confluence).
 
-**Base Path**: `/api/v1/external/`  
-**Authentication**: Required (JWT Bearer token)  
+**Base Path**: `/api/v1/external/` 
+**Authentication**: Required (JWT Bearer token) 
 **Status**: Planned (configuration ready)
 
 ---
@@ -18,17 +18,17 @@ AgentHub integrates with external services to provide seamless access to organiz
 
 | Service | Status | Purpose |
 |---------|--------|---------|
-| **Jira** | ✅ Configured | Issue tracking, project management |
-| **Confluence** | ✅ Configured | Documentation, knowledge base |
+| **Jira** | Configured | Issue tracking, project management |
+| **Confluence** | Configured | Documentation, knowledge base |
 
 ### Coming Soon
 
 | Service | Status | Purpose |
 |---------|--------|---------|
-| **GitHub** | 🔄 Planned | Code repositories, issues, PRs |
-| **Slack** | 🔄 Planned | Team communication |
-| **Google Drive** | 🔄 Planned | Document storage |
-| **Microsoft Teams** | 🔄 Planned | Team collaboration |
+| **GitHub** | Planned | Code repositories, issues, PRs |
+| **Slack** | Planned | Team communication |
+| **Google Drive** | Planned | Document storage |
+| **Microsoft Teams** | Planned | Team collaboration |
 
 ---
 
@@ -40,15 +40,15 @@ AgentHub integrates with external services to provide seamless access to organiz
 
 ```yaml
 external:
-  jira:
-    base_url: "https://your-domain.atlassian.net"
-    email: "your-email@example.com"
-    api_token: "${JIRA_API_TOKEN}"
-    project_keys:
-      - "PROJ"
-      - "DEV"
-      - "OPS"
-    enabled: true
+jira:
+base_url: "https://your-domain.atlassian.net"
+email: "your-email@example.com"
+api_token: "${JIRA_API_TOKEN}"
+project_keys:
+- "PROJ"
+- "DEV"
+- "OPS"
+enabled: true
 ```
 
 **Environment Variables**:
@@ -70,15 +70,15 @@ export JIRA_API_TOKEN="your_jira_api_token"
 
 ```yaml
 external:
-  confluence:
-    base_url: "https://your-domain.atlassian.net/wiki"
-    email: "your-email@example.com"
-    api_token: "${CONFLUENCE_API_TOKEN}"
-    spaces:
-      - "ENG"
-      - "DOCS"
-      - "PROD"
-    enabled: true
+confluence:
+base_url: "https://your-domain.atlassian.net/wiki"
+email: "your-email@example.com"
+api_token: "${CONFLUENCE_API_TOKEN}"
+spaces:
+- "ENG"
+- "DOCS"
+- "PROD"
+enabled: true
 ```
 
 **Environment Variables**:
@@ -102,28 +102,28 @@ List Jira issues filtered by project, status, assignee, etc.
 **Planned Request**:
 ```bash
 curl "http://localhost:8000/api/v1/external/jira/issues?project=PROJ&status=Open" \
-  -H "Authorization: Bearer eyJhbGci..."
+-H "Authorization: Bearer eyJhbGci..."
 ```
 
 **Planned Response**:
 ```json
 {
-  "issues": [
-    {
-      "key": "PROJ-123",
-      "summary": "Implement user authentication",
-      "status": "In Progress",
-      "assignee": "john.doe@example.com",
-      "priority": "High",
-      "created": "2026-01-05T10:00:00Z",
-      "updated": "2026-01-10T14:30:00Z",
-      "description": "Implement JWT-based authentication...",
-      "url": "https://your-domain.atlassian.net/browse/PROJ-123"
-    }
-  ],
-  "total": 1,
-  "page": 1,
-  "page_size": 50
+"issues": [
+{
+"key": "PROJ-123",
+"summary": "Implement user authentication",
+"status": "In Progress",
+"assignee": "john.doe@example.com",
+"priority": "High",
+"created": "2026-01-05T10:00:00Z",
+"updated": "2026-01-10T14:30:00Z",
+"description": "Implement JWT-based authentication...",
+"url": "https://your-domain.atlassian.net/browse/PROJ-123"
+}
+],
+"total": 1,
+"page": 1,
+"page_size": 50
 }
 ```
 
@@ -136,40 +136,40 @@ Get detailed information about a specific Jira issue.
 **Planned Request**:
 ```bash
 curl http://localhost:8000/api/v1/external/jira/issues/PROJ-123 \
-  -H "Authorization: Bearer eyJhbGci..."
+-H "Authorization: Bearer eyJhbGci..."
 ```
 
 **Planned Response**:
 ```json
 {
-  "key": "PROJ-123",
-  "summary": "Implement user authentication",
-  "description": "Implement JWT-based authentication with access and refresh tokens...",
-  "status": "In Progress",
-  "assignee": {
-    "name": "John Doe",
-    "email": "john.doe@example.com",
-    "avatar": "https://..."
-  },
-  "priority": "High",
-  "labels": ["authentication", "security"],
-  "components": ["Backend", "API"],
-  "created": "2026-01-05T10:00:00Z",
-  "updated": "2026-01-10T14:30:00Z",
-  "comments": [
-    {
-      "author": "jane.smith@example.com",
-      "body": "Added login endpoint",
-      "created": "2026-01-08T12:00:00Z"
-    }
-  ],
-  "attachments": [
-    {
-      "filename": "auth_diagram.png",
-      "url": "https://..."
-    }
-  ],
-  "url": "https://your-domain.atlassian.net/browse/PROJ-123"
+"key": "PROJ-123",
+"summary": "Implement user authentication",
+"description": "Implement JWT-based authentication with access and refresh tokens...",
+"status": "In Progress",
+"assignee": {
+"name": "John Doe",
+"email": "john.doe@example.com",
+"avatar": "https://..."
+},
+"priority": "High",
+"labels": ["authentication", "security"],
+"components": ["Backend", "API"],
+"created": "2026-01-05T10:00:00Z",
+"updated": "2026-01-10T14:30:00Z",
+"comments": [
+{
+"author": "jane.smith@example.com",
+"body": "Added login endpoint",
+"created": "2026-01-08T12:00:00Z"
+}
+],
+"attachments": [
+{
+"filename": "auth_diagram.png",
+"url": "https://..."
+}
+],
+"url": "https://your-domain.atlassian.net/browse/PROJ-123"
 }
 ```
 
@@ -182,24 +182,24 @@ Create a new Jira issue.
 **Planned Request**:
 ```bash
 curl -X POST http://localhost:8000/api/v1/external/jira/issues \
-  -H "Authorization: Bearer eyJhbGci..." \
-  -H "Content-Type: application/json" \
-  -d '{
-    "project": "PROJ",
-    "summary": "Fix login bug",
-    "description": "Users unable to login with valid credentials",
-    "issue_type": "Bug",
-    "priority": "High",
-    "assignee": "john.doe@example.com"
-  }'
+-H "Authorization: Bearer eyJhbGci..." \
+-H "Content-Type: application/json" \
+-d '{
+"project": "PROJ",
+"summary": "Fix login bug",
+"description": "Users unable to login with valid credentials",
+"issue_type": "Bug",
+"priority": "High",
+"assignee": "john.doe@example.com"
+}'
 ```
 
 **Planned Response**:
 ```json
 {
-  "key": "PROJ-124",
-  "url": "https://your-domain.atlassian.net/browse/PROJ-124",
-  "message": "Issue created successfully"
+"key": "PROJ-124",
+"url": "https://your-domain.atlassian.net/browse/PROJ-124",
+"message": "Issue created successfully"
 }
 ```
 
@@ -214,27 +214,27 @@ Search Confluence pages by title, space, or content.
 **Planned Request**:
 ```bash
 curl "http://localhost:8000/api/v1/external/confluence/pages?space=ENG&query=authentication" \
-  -H "Authorization: Bearer eyJhbGci..."
+-H "Authorization: Bearer eyJhbGci..."
 ```
 
 **Planned Response**:
 ```json
 {
-  "pages": [
-    {
-      "id": "12345678",
-      "title": "Authentication Architecture",
-      "space": "ENG",
-      "url": "https://your-domain.atlassian.net/wiki/spaces/ENG/pages/12345678",
-      "excerpt": "This page describes our authentication system...",
-      "created": "2025-12-01T10:00:00Z",
-      "updated": "2026-01-10T14:00:00Z",
-      "author": "john.doe@example.com"
-    }
-  ],
-  "total": 1,
-  "page": 1,
-  "page_size": 50
+"pages": [
+{
+"id": "12345678",
+"title": "Authentication Architecture",
+"space": "ENG",
+"url": "https://your-domain.atlassian.net/wiki/spaces/ENG/pages/12345678",
+"excerpt": "This page describes our authentication system...",
+"created": "2025-12-01T10:00:00Z",
+"updated": "2026-01-10T14:00:00Z",
+"author": "john.doe@example.com"
+}
+],
+"total": 1,
+"page": 1,
+"page_size": 50
 }
 ```
 
@@ -247,31 +247,31 @@ Get full content of a Confluence page.
 **Planned Request**:
 ```bash
 curl http://localhost:8000/api/v1/external/confluence/pages/12345678 \
-  -H "Authorization: Bearer eyJhbGci..."
+-H "Authorization: Bearer eyJhbGci..."
 ```
 
 **Planned Response**:
 ```json
 {
-  "id": "12345678",
-  "title": "Authentication Architecture",
-  "space": "ENG",
-  "content": "# Authentication Architecture\n\n## Overview\n...",
-  "content_html": "<h1>Authentication Architecture</h1>...",
-  "url": "https://your-domain.atlassian.net/wiki/spaces/ENG/pages/12345678",
-  "created": "2025-12-01T10:00:00Z",
-  "updated": "2026-01-10T14:00:00Z",
-  "author": {
-    "name": "John Doe",
-    "email": "john.doe@example.com"
-  },
-  "labels": ["architecture", "security"],
-  "attachments": [
-    {
-      "filename": "auth_flow.png",
-      "url": "https://..."
-    }
-  ]
+"id": "12345678",
+"title": "Authentication Architecture",
+"space": "ENG",
+"content": "# Authentication Architecture\n\n## Overview\n...",
+"content_html": "<h1>Authentication Architecture</h1>...",
+"url": "https://your-domain.atlassian.net/wiki/spaces/ENG/pages/12345678",
+"created": "2025-12-01T10:00:00Z",
+"updated": "2026-01-10T14:00:00Z",
+"author": {
+"name": "John Doe",
+"email": "john.doe@example.com"
+},
+"labels": ["architecture", "security"],
+"attachments": [
+{
+"filename": "auth_flow.png",
+"url": "https://..."
+}
+]
 }
 ```
 
@@ -288,9 +288,9 @@ AI Agent:
 1. Calls GET /jira/issues?assignee=user@example.com&status=Open
 2. Processes results
 3. Responds: "You have 3 open tickets:
-   - PROJ-123: Implement user authentication (High priority)
-   - PROJ-125: Fix API response time (Medium priority)
-   - DEV-42: Update documentation (Low priority)"
+- PROJ-123: Implement user authentication (High priority)
+- PROJ-125: Fix API response time (Medium priority)
+- DEV-42: Update documentation (Low priority)"
 ```
 
 ---
@@ -304,11 +304,11 @@ AI Agent:
 1. Calls GET /confluence/pages?query=authentication
 2. Retrieves relevant pages
 3. Responds: "I found 5 pages about authentication:
-   1. Authentication Architecture (ENG space)
-   2. JWT Token Guide (DOCS space)
-   3. OAuth2 Integration (DOCS space)
-   
-   The main architecture page explains..."
+1. Authentication Architecture (ENG space)
+2. JWT Token Guide (DOCS space)
+3. OAuth2 Integration (DOCS space)
+
+The main architecture page explains..."
 ```
 
 ---
@@ -322,29 +322,29 @@ from app.services.atlassian_service import AtlassianService
 
 # Test Jira connection
 async def test_jira():
-    service = AtlassianService()
-    
-    try:
-        # Get test issue
-        issue = await service.get_jira_issue("PROJ-1")
-        print(f"✓ Jira connected: {issue['summary']}")
-        return True
-    except Exception as e:
-        print(f"✗ Jira connection failed: {e}")
-        return False
+service = AtlassianService()
+
+try:
+# Get test issue
+issue = await service.get_jira_issue("PROJ-1")
+print(f"Jira connected: {issue['summary']}")
+return True
+except Exception as e:
+print(f" Jira connection failed: {e}")
+return False
 
 # Test Confluence connection
 async def test_confluence():
-    service = AtlassianService()
-    
-    try:
-        # Search pages
-        pages = await service.search_confluence_pages("test")
-        print(f"✓ Confluence connected: Found {len(pages)} pages")
-        return True
-    except Exception as e:
-        print(f"✗ Confluence connection failed: {e}")
-        return False
+service = AtlassianService()
+
+try:
+# Search pages
+pages = await service.search_confluence_pages("test")
+print(f"Confluence connected: Found {len(pages)} pages")
+return True
+except Exception as e:
+print(f" Confluence connection failed: {e}")
+return False
 ```
 
 ---
@@ -356,16 +356,16 @@ async def test_confluence():
 **Best Practices**:
 
 ```bash
-# ✅ GOOD - Use environment variables
+# GOOD - Use environment variables
 export JIRA_API_TOKEN="your_token"
 
-# ❌ BAD - Hardcode in config
+# BAD - Hardcode in config
 api_token: "ATATxxxxxxxx"
 
-# ✅ GOOD - Use secrets manager
+# GOOD - Use secrets manager
 export JIRA_API_TOKEN=$(aws secretsmanager get-secret-value --secret-id jira-token --query SecretString --output text)
 
-# ✅ GOOD - Use .env file (local development)
+# GOOD - Use .env file (local development)
 # .env
 JIRA_API_TOKEN=your_token
 CONFLUENCE_API_TOKEN=your_token
@@ -376,10 +376,10 @@ CONFLUENCE_API_TOKEN=your_token
 Jira/Confluence API tokens inherit user permissions:
 
 **Required Permissions**:
-- ✅ Read issues (Jira)
-- ✅ Create issues (Jira)
-- ✅ Read pages (Confluence)
-- ✅ Search content (Confluence)
+- Read issues (Jira)
+- Create issues (Jira)
+- Read pages (Confluence)
+- Search content (Confluence)
 
 ---
 
@@ -390,38 +390,38 @@ Jira/Confluence API tokens inherit user permissions:
 ```json
 // Invalid Credentials (401)
 {
-  "error": "Authentication failed",
-  "message": "Invalid Jira API token",
-  "service": "jira"
+"error": "Authentication failed",
+"message": "Invalid Jira API token",
+"service": "jira"
 }
 
 // Forbidden (403)
 {
-  "error": "Authorization failed",
-  "message": "User does not have access to project PROJ",
-  "service": "jira"
+"error": "Authorization failed",
+"message": "User does not have access to project PROJ",
+"service": "jira"
 }
 
 // Not Found (404)
 {
-  "error": "Resource not found",
-  "message": "Issue PROJ-999 does not exist",
-  "service": "jira"
+"error": "Resource not found",
+"message": "Issue PROJ-999 does not exist",
+"service": "jira"
 }
 
 // Rate Limited (429)
 {
-  "error": "Rate limit exceeded",
-  "message": "Too many requests to Jira API",
-  "retry_after": 60,
-  "service": "jira"
+"error": "Rate limit exceeded",
+"message": "Too many requests to Jira API",
+"retry_after": 60,
+"service": "jira"
 }
 
 // Service Unavailable (503)
 {
-  "error": "Service unavailable",
-  "message": "Jira API is currently down",
-  "service": "jira"
+"error": "Service unavailable",
+"message": "Jira API is currently down",
+"service": "jira"
 }
 ```
 
@@ -440,9 +440,9 @@ Jira/Confluence API tokens inherit user permissions:
 - 60 requests per minute per user
 
 **AgentHub Handling**:
-- ✅ Automatic retry with exponential backoff
-- ✅ Request queuing
-- ✅ Rate limit warnings
+- Automatic retry with exponential backoff
+- Request queuing
+- Rate limit warnings
 
 ---
 
@@ -486,7 +486,7 @@ AI Agent:
 - Checks recent comments
 - Reviews linked issues
 - Responds: "PROJ-123 is In Progress. Last updated by Jane Smith 2 hours ago. 
-  She added: 'Login endpoint complete, working on token refresh.'"
+She added: 'Login endpoint complete, working on token refresh.'"
 ```
 
 ---
@@ -530,15 +530,15 @@ confluence_url = settings.external.confluence.base_url
 ```yaml
 # Enable/disable services without code changes
 external:
-  jira:
-    enabled: true  # Toggle on/off
-    timeout_seconds: 30
-    retry_attempts: 3
-  
-  confluence:
-    enabled: true
-    timeout_seconds: 30
-    retry_attempts: 3
+jira:
+enabled: true # Toggle on/off
+timeout_seconds: 30
+retry_attempts: 3
+
+confluence:
+enabled: true
+timeout_seconds: 30
+retry_attempts: 3
 ```
 
 ---
@@ -553,20 +553,20 @@ from app.services.atlassian_service import AtlassianService
 
 @pytest.mark.asyncio
 async def test_get_jira_issue():
-    service = AtlassianService()
-    issue = await service.get_jira_issue("PROJ-1")
-    
-    assert issue["key"] == "PROJ-1"
-    assert "summary" in issue
-    assert "status" in issue
+service = AtlassianService()
+issue = await service.get_jira_issue("PROJ-1")
+
+assert issue["key"] == "PROJ-1"
+assert "summary" in issue
+assert "status" in issue
 
 @pytest.mark.asyncio
 async def test_search_confluence():
-    service = AtlassianService()
-    pages = await service.search_confluence_pages("test")
-    
-    assert isinstance(pages, list)
-    assert len(pages) > 0
+service = AtlassianService()
+pages = await service.search_confluence_pages("test")
+
+assert isinstance(pages, list)
+assert len(pages) > 0
 ```
 
 ### Integration Tests
@@ -575,12 +575,12 @@ async def test_search_confluence():
 # tests/integration/test_jira_service_integration.py
 @pytest.mark.integration
 async def test_jira_connection():
-    """Test actual Jira API connection."""
-    service = AtlassianService()
-    
-    # This calls real Jira API
-    issues = await service.list_jira_issues(project="PROJ", limit=1)
-    assert len(issues) > 0
+"""Test actual Jira API connection."""
+service = AtlassianService()
+
+# This calls real Jira API
+issues = await service.list_jira_issues(project="PROJ", limit=1)
+assert len(issues) > 0
 ```
 
 ---
@@ -591,21 +591,21 @@ async def test_jira_connection():
 
 ```python
 async def check_external_services():
-    """Check health of external services."""
-    health = {
-        "jira": await test_jira_connection(),
-        "confluence": await test_confluence_connection()
-    }
-    
-    return health
+"""Check health of external services."""
+health = {
+"jira": await test_jira_connection(),
+"confluence": await test_confluence_connection()
+}
+
+return health
 
 async def test_jira_connection():
-    try:
-        service = AtlassianService()
-        await service.get_jira_issue("PROJ-1")
-        return {"status": "up", "response_time_ms": 120}
-    except:
-        return {"status": "down"}
+try:
+service = AtlassianService()
+await service.get_jira_issue("PROJ-1")
+return {"status": "up", "response_time_ms": 120}
+except:
+return {"status": "down"}
 ```
 
 ---
@@ -616,12 +616,12 @@ async def test_jira_connection():
 
 ```yaml
 external:
-  github:
-    token: "${GITHUB_TOKEN}"
-    organization: "your-org"
-    repositories:
-      - "repo1"
-      - "repo2"
+github:
+token: "${GITHUB_TOKEN}"
+organization: "your-org"
+repositories:
+- "repo1"
+- "repo2"
 ```
 
 **Planned Features**:
@@ -636,11 +636,11 @@ external:
 
 ```yaml
 external:
-  slack:
-    bot_token: "${SLACK_BOT_TOKEN}"
-    channels:
-      - "engineering"
-      - "support"
+slack:
+bot_token: "${SLACK_BOT_TOKEN}"
+channels:
+- "engineering"
+- "support"
 ```
 
 **Planned Features**:
@@ -659,7 +659,7 @@ external:
 
 ---
 
-**Last Updated**: January 10, 2026  
+**Last Updated**: January 10, 2026 
 **Status**: Configuration Ready (Endpoints Planned)
 
 ---

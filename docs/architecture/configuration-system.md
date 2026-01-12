@@ -38,7 +38,7 @@ api_key = llm_config['providers']['openai']['api_key']
 temperature = llm_config['temperature']
 ```
 
-**📚 For detailed resources/ directory guide, see: [Resources Directory Guide](../guides/configuration/resources-directory.md)**
+**For detailed resources/ directory guide, see: [Resources Directory Guide](../guides/configuration/resources-directory.md)**
 
 ---
 
@@ -161,13 +161,13 @@ response = await llm.generate(
 
 ### Key Features
 
-✅ **Flexible Access**: Use `settings.llm` (dict) OR `settings.llm.temperature` (dot notation)  
-✅ **Auto Environment Variables**: `${VAR_NAME}` automatically resolved from environment  
-✅ **Default Values**: `${VAR_NAME:default}` provides fallback if not set  
-✅ **No Boilerplate**: Just add YAML file, access immediately  
-✅ **Type Safe**: Values validated at load time  
+**Flexible Access**: Use `settings.llm` (dict) OR `settings.llm.temperature` (dot notation)  
+**Auto Environment Variables**: `${VAR_NAME}` automatically resolved from environment  
+**Default Values**: `${VAR_NAME:default}` provides fallback if not set  
+**No Boilerplate**: Just add YAML file, access immediately  
+**Type Safe**: Values validated at load time  
 
-**📖 Complete Guide**: See [Resources Directory Guide](../guides/configuration/resources-directory.md) for 40+ examples
+**Complete Guide**: See [Resources Directory Guide](../guides/configuration/resources-directory.md) for 40+ examples
 
 ---
 
@@ -1080,28 +1080,28 @@ if not is_valid:
 
 ### 1. **Organize by Concern**
 
-✅ **Good**: Separate files for different domains
+**Good**: Separate files for different domains
 ```
 application-llm.yaml        # LLM configuration
 application-db.yaml         # Database configuration
 application-external.yaml   # External services
 ```
 
-❌ **Bad**: Everything in one file
+**Bad**: Everything in one file
 ```
 application.yaml  # 1000+ lines
 ```
 
 ### 2. **Use Environment Variables for Secrets**
 
-✅ **Good**:
+**Good**:
 ```yaml
 llm:
   openai:
     api_key: "${OPENAI_API_KEY}"  # From environment
 ```
 
-❌ **Bad**:
+**Bad**:
 ```yaml
 llm:
   openai:
@@ -1110,13 +1110,13 @@ llm:
 
 ### 3. **Provide Defaults**
 
-✅ **Good**:
+**Good**:
 ```yaml
 llm:
   temperature: ${LLM_TEMPERATURE:0.7}  # Default: 0.7
 ```
 
-❌ **Bad**:
+**Bad**:
 ```yaml
 llm:
   temperature: ${LLM_TEMPERATURE}  # No default
@@ -1143,10 +1143,10 @@ ConfigValidator.validate_settings(settings)  # Fail fast
 
 ```python
 # Type-safe access
-settings.llm.openai.api_key  # ✅ IDE autocomplete
+settings.llm.openai.api_key  # IDE autocomplete
 
 # Avoid dictionary access
-settings["llm"]["openai"]["api_key"]  # ❌ No type safety
+settings["llm"]["openai"]["api_key"]  # No type safety
 ```
 
 ---
@@ -1269,4 +1269,4 @@ FileNotFoundError: resources/application-llm.yaml
 
 **Last Updated**: January 8, 2026  
 **Maintainer**: AgentHub Team  
-**Status**: ✅ Production configuration system
+**Status**: Production configuration system
