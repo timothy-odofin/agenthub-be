@@ -783,6 +783,56 @@ print(message.timestamp)    # datetime object
 
 ## Querying Sessions
 
+### Get Single Session
+
+```python
+# Retrieve a specific session by ID
+session = repo.get_session(
+    user_id="user123",
+    session_id="abc-123-def-456"
+)
+
+if session:
+    print(f"Title: {session.title}")
+    print(f"Created: {session.created_at}")
+    print(f"Metadata: {session.metadata}")
+else:
+    print("Session not found or doesn't belong to user")
+```
+
+**Use Cases**:
+- Background title generation - check if session exists before updating
+- Session validation - ensure session belongs to user
+- Display session details in UI
+
+### Get Session Messages with Limit
+
+```python
+# Get last 100 messages (default)
+messages = repo.get_session_messages(
+    user_id="user123",
+    session_id="abc-123-def-456"
+)
+
+# Get only last 20 messages for preview
+recent_messages = repo.get_session_messages(
+    user_id="user123",
+    session_id="abc-123-def-456",
+    limit=20
+)
+
+# Count user messages for title generation
+user_message_count = sum(
+    1 for msg in messages 
+    if msg.role == "user"
+)
+```
+
+**Use Cases**:
+- Title generation - count messages to decide when to generate title
+- Message preview - show recent conversation without loading full history
+- Analytics - count messages by role, analyze conversation patterns
+
 ### List User Sessions
 
 ```python
@@ -1175,6 +1225,8 @@ class BaseSessionRepository(ABC):
     
     # Core operations
     def create_session(user_id: str, session_data: dict) -> str
+    def get_session(user_id: str, session_id: str) -> ChatSession  # Get single session
+    def get_session_messages(user_id: str, session_id: str, limit: int = 100) -> List[ChatMessage]  # Get messages with limit
     async def get_session_history(user_id: str, session_id: str) -> List[ChatMessage]
     def update_session(user_id: str, session_id: str, data: dict) -> bool
     def list_paginated_sessions(user_id: str, page: int, limit: int) -> List[ChatSession]

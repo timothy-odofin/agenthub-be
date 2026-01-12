@@ -9,32 +9,40 @@ Requirements:
     - requests: pip install requests
 """
 
-from typing import Any, Optional, Dict, List
+from typing import Any, Optional, Dict, List, Union
 import requests
 from atlassian import Jira
 
 from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 from app.core.resilience import retry, circuit_breaker, RetryConfig, CircuitBreakerConfig, RetryStrategy
+from app.core.config import settings
 
 logger = get_logger(__name__)
 
-# Resilience configurations for Jira API
-JIRA_RETRY_CONFIG = RetryConfig(
-    max_attempts=3,
-    base_delay=1.0,
-    max_delay=10.0,
-    strategy=RetryStrategy.EXPONENTIAL,
-    jitter=True
-)
+# Resilience configurations for Jira API - loaded from settings
+def _get_jira_retry_config() -> RetryConfig:
+    """Get retry configuration from settings."""
+    return RetryConfig(
+        max_attempts=settings.app.resilience.retry.max_attempts,
+        base_delay=settings.app.resilience.retry.base_delay,
+        max_delay=settings.app.resilience.retry.max_delay,
+        strategy=RetryStrategy[settings.app.resilience.retry.strategy],
+        jitter=settings.app.resilience.retry.jitter
+    )
 
-JIRA_CIRCUIT_CONFIG = CircuitBreakerConfig(
-    name="jira_api",
-    failure_threshold=5,
-    failure_window=60.0,
-    recovery_timeout=30.0,
-    success_threshold=2
-)
+def _get_jira_circuit_config() -> CircuitBreakerConfig:
+    """Get circuit breaker configuration from settings."""
+    return CircuitBreakerConfig(
+        name="jira_api",
+        failure_threshold=settings.app.resilience.circuit_breaker.failure_threshold,
+        failure_window=settings.app.resilience.circuit_breaker.failure_window,
+        recovery_timeout=settings.app.resilience.circuit_breaker.recovery_timeout,
+        success_threshold=settings.app.resilience.circuit_breaker.success_threshold
+    )
+
+JIRA_RETRY_CONFIG = _get_jira_retry_config()
+JIRA_CIRCUIT_CONFIG = _get_jira_circuit_config()
 
 
 @ConnectionRegistry.register(ConnectionType.JIRA)
@@ -49,7 +57,7 @@ class JiraConnectionManager(BaseConnectionManager):
     def get_connection_name(self) -> str:
         """Return the configuration name for Jira."""
         return ConnectionType.JIRA.value
-    
+
     def validate_config(self) -> None:
         """Validate Jira configuration."""
         required_fields = ['base_url', 'username', 'api_token']
@@ -171,22 +179,67 @@ class JiraConnectionManager(BaseConnectionManager):
             
         Returns:
             Search results
+            
+        Note:
+            Uses requests directly with the new /rest/api/3/search/jql endpoint
+            because the atlassian-python-api library still uses the deprecated
+            /rest/api/3/search endpoint internally.
         """
         self.ensure_connected()
         
         try:
-            # Use API v3 endpoint instead of deprecated v2
-            params = {
-                'jql': jql,
-                'maxResults': limit,
-                'startAt': 0
+            # Build the API URL with the new endpoint  
+            url = f"{self.config['base_url']}/rest/api/3/search/jql"
+            
+            # Prepare headers
+            headers = {
+                "Accept": "application/json",
+                "Content-Type": "application/json"
             }
             
+            # Prepare the payload according to the new API spec
+            payload = {
+                "jql": jql,
+                "maxResults": limit
+            }
+            
+            # Add fields if specified
             if fields:
-                params['fields'] = ','.join(fields) if isinstance(fields, list) else fields
-                
-            # Use the get method with API v3 endpoint
-            return self._jira_client.get('/rest/api/3/search/jql', params=params)
+                if isinstance(fields, list):
+                    payload["fields"] = fields
+                else:
+                    payload["fields"] = [fields]
+            
+            # Make the API call with basic auth
+            response = requests.post(
+                url,
+                json=payload,
+                headers=headers,
+                auth=(self.config['username'], self.config['api_token']),
+                verify=self.config.get('verify_ssl', True),
+                timeout=self.config.get('timeout', 30)
+            )
+            
+            # Check for errors
+            if response.status_code not in (200, 201):
+                error_msg = f"HTTP {response.status_code}: {response.text}"
+                logger.error(f"Failed to search issues with JQL '{jql}': {error_msg}")
+                response.raise_for_status()
+            
+            result = response.json()
+            logger.info(f"Successfully searched issues with JQL: {jql}")
+            
+            # The new API returns slightly different structure - convert to match old format
+            # New API: {'isLast': true, 'issues': [...]}
+            # Old API: {'issues': [...], 'maxResults': 50, 'startAt': 0, 'total': 1}
+            # Add compatibility fields if they're missing
+            if 'issues' in result and 'maxResults' not in result:
+                result['maxResults'] = limit
+                result['startAt'] = 0
+                result['total'] = len(result.get('issues', []))
+            
+            return result
+            
         except Exception as e:
             logger.error(f"Failed to search issues with JQL '{jql}': {e}")
             raise
@@ -208,7 +261,14 @@ class JiraConnectionManager(BaseConnectionManager):
         self.ensure_connected()
         
         try:
-            return self._jira_client.issue(issue_key, fields=fields, expand=expand)
+            params = {}
+            if fields:
+                params['fields'] = fields
+            if expand:
+                params['expand'] = expand
+            # Use REST API to ensure consistent dict shape
+            issue = self._jira_client.get(f'/rest/api/3/issue/{issue_key}', params=params)
+            return issue
         except Exception as e:
             logger.error(f"Failed to get issue {issue_key}: {e}")
             raise
@@ -272,6 +332,200 @@ class JiraConnectionManager(BaseConnectionManager):
             return self._jira_client.issue_types()
         except Exception as e:
             logger.error(f"Failed to get issue types: {e}")
+            raise
+    
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
+    def add_comment(self, issue_key: str, comment_body: Union[str, dict]) -> Dict:
+        """
+        Add a comment to an issue.
+        
+        Args:
+            issue_key: Issue key (e.g., 'PROJ-123')
+            comment_body: The comment - either plain text string or ADF dict
+            
+        Returns:
+            Created comment data
+            
+        Note:
+            - For plain text: pass a string directly
+            - For ADF with mentions: pass a dict with version, type, and content fields
+        """
+        self.ensure_connected()
+        
+        try:
+            # Check if comment_body is ADF format (dict with proper structure)
+            if isinstance(comment_body, dict) and comment_body.get('type') == 'doc':
+                # ADF format - use requests directly to send proper JSON
+                return self._add_adf_comment(issue_key, comment_body)
+            else:
+                # Plain text - use atlassian library (works fine for strings)
+                result = self._jira_client.issue_add_comment(issue_key, comment_body)
+                logger.info(f"Added comment to issue {issue_key}")
+                return result
+        except Exception as e:
+            logger.error(f"Failed to add comment to issue {issue_key}: {e}")
+            raise
+    
+    def _add_adf_comment(self, issue_key: str, adf_body: dict) -> Dict:
+        """
+        Add ADF format comment using direct API call.
+        
+        Args:
+            issue_key: Issue key (e.g., 'PROJ-123')
+            adf_body: ADF document structure as dict
+            
+        Returns:
+            Created comment data
+            
+        Note:
+            Uses requests directly because atlassian-python-api doesn't handle
+            ADF JSON properly - it converts it to string instead of keeping as object.
+        """
+        # Build the API URL
+        url = f"{self.config['base_url']}/rest/api/3/issue/{issue_key}/comment"
+        
+        # Prepare headers
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json"
+        }
+        
+        # Prepare the payload - ADF must be sent as actual JSON object, not string
+        payload = {
+            "body": adf_body
+        }
+        
+        # Make the API call with basic auth
+        response = requests.post(
+            url,
+            json=payload,  # This sends as proper JSON, not stringified
+            headers=headers,
+            auth=(self.config['username'], self.config['api_token']),
+            verify=self.config.get('verify_ssl', True),
+            timeout=self.config.get('timeout', 30)
+        )
+        
+        # Check for errors
+        if response.status_code not in (200, 201):
+            error_msg = f"HTTP {response.status_code}: {response.text}"
+            logger.error(f"Failed to add ADF comment to {issue_key}: {error_msg}")
+            response.raise_for_status()
+        
+        result = response.json()
+        logger.info(f"Added ADF comment to issue {issue_key}")
+        return result
+    
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
+    def search_users(self, query: str, max_results: int = 50) -> List[Dict]:
+        """
+        Search for users in Jira.
+        
+        Args:
+            query: Search query (username, email, or display name)
+            max_results: Maximum number of results to return
+            
+        Returns:
+            List of user objects with accountId, displayName, emailAddress, etc.
+        """
+        self.ensure_connected()
+        
+        try:
+            # Use the REST user search endpoint (consistent across API versions)
+            params = {
+                'query': query,
+                'maxResults': max_results
+            }
+            users = self._jira_client.get('/rest/api/3/user/search', params=params)
+            logger.info(f"Found {len(users) if users else 0} users matching '{query}'")
+            return users or []
+        except Exception as e:
+            logger.error(f"Failed to search users with query '{query}': {e}")
+            raise
+    
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
+    def get_user_by_account_id(self, account_id: str) -> Dict:
+        """
+        Get user details by account ID.
+        
+        Args:
+            account_id: Atlassian account ID
+            
+        Returns:
+            User object with accountId, displayName, emailAddress, etc.
+        """
+        self.ensure_connected()
+        
+        try:
+            user = self._jira_client.user(account_id)
+            logger.info(f"Retrieved user details for account ID: {account_id}")
+            return user
+        except Exception as e:
+            logger.error(f"Failed to get user with account ID '{account_id}': {e}")
+            raise
+    
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
+    def get_all_users(self, start_at: int = 0, max_results: int = 50) -> List[Dict]:
+        """
+        Get all users (with pagination support).
+        
+        Args:
+            start_at: Starting index for pagination (default: 0)
+            max_results: Maximum number of results to return (default: 50)
+            
+        Returns:
+            List of user objects with accountId, displayName, emailAddress, etc.
+            
+        Note:
+            This may return a large number of users. Consider using search_users 
+            for more targeted results.
+        """
+        self.ensure_connected()
+        
+        try:
+            params = {
+                'startAt': start_at,
+                'maxResults': max_results
+            }
+            # Use users search endpoint
+            users = self._jira_client.get('/rest/api/3/users/search', params=params)
+            logger.info(f"Retrieved {len(users) if users else 0} users (start: {start_at}, limit: {max_results})")
+            return users or []
+        except Exception as e:
+            logger.error(f"Failed to get all users: {e}")
+            raise
+    
+    @retry(JIRA_RETRY_CONFIG)
+    @circuit_breaker(JIRA_CIRCUIT_CONFIG)
+    def get_project_users(self, project_key: str, start_at: int = 0, max_results: int = 50) -> List[Dict]:
+        """
+        Get users who have access to a specific project.
+        
+        Args:
+            project_key: Project key (e.g., 'PROJ')
+            start_at: Starting index for pagination (default: 0)
+            max_results: Maximum number of results to return (default: 50)
+            
+        Returns:
+            List of user objects with accountId, displayName, emailAddress, etc.
+        """
+        self.ensure_connected()
+        
+        try:
+            params = {
+                'project': project_key,
+                'startAt': start_at,
+                'maxResults': max_results
+            }
+            # Use assignable user search for project membership/permissions
+            users = self._jira_client.get('/rest/api/3/user/assignable/search', params=params)
+            logger.info(f"Retrieved {len(users) if users else 0} users for project {project_key}")
+            return users or []
+        except Exception as e:
+            logger.error(f"Failed to get users for project '{project_key}': {e}")
             raise
     
     def get_connection_info(self) -> Dict[str, Any]:

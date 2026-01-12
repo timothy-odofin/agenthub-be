@@ -5,11 +5,11 @@ This module provides repository classes for database operations following
 the repository pattern with singleton instances.
 """
 
-from src.app.db.repositories.user_repository import (
+from app.db.repositories.user_repository import (
     UserRepository,
     user_repository,
 )
-from src.app.db.repositories.signup_session_repository import (
+from app.db.repositories.signup_session_repository import (
     SignupSessionRepository,
     signup_session_repository,
 )

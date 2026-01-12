@@ -128,8 +128,13 @@ class GitHubToolFactory:
         for tool in tools:
             tool_name = getattr(tool, 'name', 'Unknown')
             
-            # Check if tool is enabled in simplified config (direct tool name -> boolean)
-            is_enabled = tools_config.get(tool_name, False)
+            # Check if tool is enabled in simplified config
+            # Handle both boolean values and dict with 'enabled' key
+            tool_setting = tools_config.get(tool_name, False)
+            if isinstance(tool_setting, dict):
+                is_enabled = tool_setting.get('enabled', False)
+            else:
+                is_enabled = bool(tool_setting)
             
             if is_enabled:
                 enhanced_tool = self._create_enhanced_tool(tool, repository)

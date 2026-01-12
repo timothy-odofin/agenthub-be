@@ -53,6 +53,31 @@ class JiraClient(metaclass=SingletonMeta):
         self._ensure_connected()
         return self._connection_manager.get_server_info()
     
+    def add_comment(self, issue_key: str, comment_body: str):
+        """Add a comment to an issue."""
+        self._ensure_connected()
+        return self._connection_manager.add_comment(issue_key, comment_body)
+    
+    def search_users(self, query: str, max_results: int = 50):
+        """Search for users in Jira."""
+        self._ensure_connected()
+        return self._connection_manager.search_users(query, max_results)
+    
+    def get_user_by_account_id(self, account_id: str):
+        """Get user details by account ID."""
+        self._ensure_connected()
+        return self._connection_manager.get_user_by_account_id(account_id)
+    
+    def get_all_users(self, start_at: int = 0, max_results: int = 50):
+        """Get all users with pagination."""
+        self._ensure_connected()
+        return self._connection_manager.get_all_users(start_at, max_results)
+    
+    def get_project_users(self, project_key: str, start_at: int = 0, max_results: int = 50):
+        """Get users who have access to a specific project."""
+        self._ensure_connected()
+        return self._connection_manager.get_project_users(project_key, start_at, max_results)
+    
     def disconnect(self):
         """Close the Jira connection."""
         if self._connection_manager:
