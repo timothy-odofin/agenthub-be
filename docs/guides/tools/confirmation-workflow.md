@@ -1,6 +1,6 @@
 # Confirmation Workflow for Mutating Actions
 
-> 🔒 **Two-phase confirmation protocol** ensuring user approval before executing actions that modify external systems
+> **Two-phase confirmation protocol** ensuring user approval before executing actions that modify external systems
 
 ## Overview
 
@@ -10,31 +10,31 @@ The confirmation workflow is a critical safety feature that prevents the AI agen
 
 ```
 User Request
-     ↓
+↓
 Agent Decision
-     ↓
+↓
 ┌─────────────────────────┐
-│  Phase 1: PREPARE       │
-│  - prepare_action       │
-│  - Generate preview     │
-│  - Store pending action │
+│ Phase 1: PREPARE │
+│ - prepare_action │
+│ - Generate preview │
+│ - Store pending action │
 └───────┬─────────────────┘
-        ↓
+↓
 User Reviews Preview
-        ↓
+↓
 User Confirms/Cancels
-        ↓
+↓
 ┌─────────────────────────┐
-│  Phase 2: EXECUTE       │
-│  - confirm_action       │
-│  - Execute stored tool  │
-│  - Return result        │
+│ Phase 2: EXECUTE │
+│ - confirm_action │
+│ - Execute stored tool │
+│ - Return result │
 └─────────────────────────┘
 ```
 
 ## Why It Matters
 
-### Without Confirmation Workflow ❌
+### Without Confirmation Workflow 
 ```
 User: "Tag @john on SCRUM-2 to provide user stories"
 Agent: [Calls add_jira_comment directly]
@@ -42,16 +42,16 @@ Agent: "Done - I mentioned John on SCRUM-2"
 User: "Wait, I wanted to review the message first!"
 ```
 
-### With Confirmation Workflow ✅
+### With Confirmation Workflow 
 ```
 User: "Tag @john on SCRUM-2 to provide user stories"
 Agent: [Calls prepare_action]
 Agent: "I've prepared to add this comment to SCRUM-2:
-       
-       '@John Smith - could you please provide more user stories
-       for this sprint? We need detailed acceptance criteria.'
-       
-       Would you like me to proceed?"
+
+'@John Smith - could you please provide more user stories
+for this sprint? We need detailed acceptance criteria.'
+
+Would you like me to proceed?"
 User: "Change 'could you please' to 'please'"
 Agent: [User revises, then confirms]
 Agent: [Calls confirm_action]
@@ -67,36 +67,36 @@ Agent: "Done - comment added to SCRUM-2"
 **Parameters**:
 ```python
 {
-    "tool_name": str,      # Name of the tool to execute (e.g., "add_jira_comment")
-    "tool_args": dict,     # Arguments to pass to the tool
-    "risk_level": str,     # "high", "medium", or "low"
-    "user_id": str,        # User making the request
-    "session_id": str      # Optional session context
+"tool_name": str, # Name of the tool to execute (e.g., "add_jira_comment")
+"tool_args": dict, # Arguments to pass to the tool
+"risk_level": str, # "high", "medium", or "low"
+"user_id": str, # User making the request
+"session_id": str # Optional session context
 }
 ```
 
 **Returns**:
 ```python
 {
-    "action_id": str,           # Unique ID for this pending action
-    "preview": str,             # Human-readable description
-    "expires_at": datetime,     # Expiration timestamp (5 minutes)
-    "risk_level": str
+"action_id": str, # Unique ID for this pending action
+"preview": str, # Human-readable description
+"expires_at": datetime, # Expiration timestamp (5 minutes)
+"risk_level": str
 }
 ```
 
 **Example**:
 ```python
 prepare_action(
-    tool_name="create_jira_issue",
-    tool_args={
-        "project": "PROJ",
-        "summary": "Fix login bug on mobile",
-        "description": "Users report crashes...",
-        "issue_type": "Bug"
-    },
-    risk_level="medium",
-    user_id="user_123"
+tool_name="create_jira_issue",
+tool_args={
+"project": "PROJ",
+"summary": "Fix login bug on mobile",
+"description": "Users report crashes...",
+"issue_type": "Bug"
+},
+risk_level="medium",
+user_id="user_123"
 )
 ```
 
@@ -107,26 +107,26 @@ prepare_action(
 **Parameters**:
 ```python
 {
-    "action_id": str,  # ID from prepare_action response
-    "user_id": str     # Must match original user
+"action_id": str, # ID from prepare_action response
+"user_id": str # Must match original user
 }
 ```
 
 **Returns**:
 ```python
 {
-    "status": "success",
-    "result": {...},           # Tool execution result
-    "executed_tool": str,      # Tool that was executed
-    "execution_time": float    # Time taken
+"status": "success",
+"result": {...}, # Tool execution result
+"executed_tool": str, # Tool that was executed
+"execution_time": float # Time taken
 }
 ```
 
 **Example**:
 ```python
 confirm_action(
-    action_id="action_abc123",
-    user_id="user_123"
+action_id="action_abc123",
+user_id="user_123"
 )
 ```
 
@@ -137,8 +137,8 @@ confirm_action(
 **Parameters**:
 ```python
 {
-    "action_id": str,
-    "user_id": str
+"action_id": str,
+"user_id": str
 }
 ```
 
@@ -149,14 +149,14 @@ confirm_action(
 **Parameters**:
 ```python
 {
-    "user_id": str,
-    "session_id": str  # Optional
+"user_id": str,
+"session_id": str # Optional
 }
 ```
 
 ## Risk Levels
 
-### High Risk 🔴
+### High Risk 
 **Impact**: Significant, hard to reverse
 - Creating GitHub pull requests (triggers CI/CD, notifies teams)
 - Updating files in repositories (affects codebase)
@@ -165,7 +165,7 @@ confirm_action(
 
 **Expiration**: 5 minutes
 
-### Medium Risk 🟡
+### Medium Risk 
 **Impact**: Moderate, some reversibility
 - Adding comments to issues (can be edited/deleted)
 - Updating issue status
@@ -173,7 +173,7 @@ confirm_action(
 
 **Expiration**: 5 minutes
 
-### Low Risk 🟢
+### Low Risk 
 **Impact**: Limited, easily reversible
 - Reading data
 - Searching
@@ -185,55 +185,55 @@ confirm_action(
 
 ### CRITICAL: What Agents MUST Do
 
-1. ✅ **Use prepare_action for ALL mutating operations**
-   - Create, update, delete operations
-   - Adding comments or mentions
-   - Triggering workflows
+1. **Use prepare_action for ALL mutating operations**
+- Create, update, delete operations
+- Adding comments or mentions
+- Triggering workflows
 
-2. ✅ **Show preview to user and wait for confirmation**
-   - Never say "Done" after prepare_action
-   - Clearly present what will happen
-   - Wait for explicit user approval
+2. **Show preview to user and wait for confirmation**
+- Never say "Done" after prepare_action
+- Clearly present what will happen
+- Wait for explicit user approval
 
-3. ✅ **Only execute after user confirms**
-   - Call confirm_action only after user says yes
-   - Respect cancellations
+3. **Only execute after user confirms**
+- Call confirm_action only after user says yes
+- Respect cancellations
 
-4. ✅ **Communicate action state clearly**
-   - "I've **prepared** to..." (after prepare_action)
-   - "Done - action **completed**" (after confirm_action)
+4. **Communicate action state clearly**
+- "I've **prepared** to..." (after prepare_action)
+- "Done - action **completed**" (after confirm_action)
 
 ### PROHIBITED: What Agents MUST NEVER Do
 
-1. ❌ **Never call mutating tools directly**
-   ```python
-   # WRONG - bypasses confirmation
-   add_jira_comment(issue_key="SCRUM-2", comment="...")
-   
-   # CORRECT - uses confirmation workflow
-   prepare_action(
-       tool_name="add_jira_comment",
-       tool_args={"issue_key": "SCRUM-2", "comment": "..."},
-       risk_level="medium"
-   )
-   ```
+1. **Never call mutating tools directly**
+```python
+# WRONG - bypasses confirmation
+add_jira_comment(issue_key="SCRUM-2", comment="...")
 
-2. ❌ **Never say "Done" before user confirms**
-   ```
-   # WRONG
-   Agent: "Done - I mentioned John on SCRUM-2"  # Action not executed yet!
-   
-   # CORRECT
-   Agent: "I've prepared to mention John. Would you like me to proceed?"
-   ```
+# CORRECT - uses confirmation workflow
+prepare_action(
+tool_name="add_jira_comment",
+tool_args={"issue_key": "SCRUM-2", "comment": "..."},
+risk_level="medium"
+)
+```
 
-3. ❌ **Never skip showing the preview**
-   - Users must see what will happen
-   - Especially important for comments with mentions
+2. **Never say "Done" before user confirms**
+```
+# WRONG
+Agent: "Done - I mentioned John on SCRUM-2" # Action not executed yet!
 
-4. ❌ **Never execute without user approval**
-   - Even if it seems obvious
-   - Even for "small" changes
+# CORRECT
+Agent: "I've prepared to mention John. Would you like me to proceed?"
+```
+
+3. **Never skip showing the preview**
+- Users must see what will happen
+- Especially important for comments with mentions
+
+4. **Never execute without user approval**
+- Even if it seems obvious
+- Even for "small" changes
 
 ## Usage Examples
 
@@ -246,32 +246,32 @@ confirm_action(
 1. Agent Thought: Creating Jira issue is mutating - need confirmation
 
 2. Agent Action: prepare_action(
-     tool_name="create_jira_issue",
-     tool_args={
-       "project": "PROJ",
-       "summary": "Login page crashes on mobile Safari",
-       "description": "Users report crashes when accessing login...",
-       "issue_type": "Bug"
-     },
-     risk_level="high",
-     user_id="user_123"
-   )
+tool_name="create_jira_issue",
+tool_args={
+"project": "PROJ",
+"summary": "Login page crashes on mobile Safari",
+"description": "Users report crashes when accessing login...",
+"issue_type": "Bug"
+},
+risk_level="high",
+user_id="user_123"
+)
 
 3. Agent Response: "I've prepared to create a Jira issue:
-   
-   Project: PROJ
-   Type: Bug
-   Summary: Login page crashes on mobile Safari
-   
-   This will create a new issue and notify the project team.
-   Would you like me to proceed?"
+
+Project: PROJ
+Type: Bug
+Summary: Login page crashes on mobile Safari
+
+This will create a new issue and notify the project team.
+Would you like me to proceed?"
 
 4. User: "yes"
 
 5. Agent Action: confirm_action(
-     action_id="action_abc123",
-     user_id="user_123"
-   )
+action_id="action_abc123",
+user_id="user_123"
+)
 
 6. Agent Response: "Done - created issue PROJ-456"
 ```
@@ -283,28 +283,28 @@ confirm_action(
 **Agent Flow**:
 ```
 1. Agent searches for user: search_jira_users(query="asiyanbola")
-   → Finds Ahmad Asiyanbola (accountId: 123abc)
+→ Finds Ahmad Asiyanbola (accountId: 123abc)
 
 2. Agent prepares comment:
-   prepare_action(
-     tool_name="add_jira_comment",
-     tool_args={
-       "issue_key": "SCRUM-2",
-       "comment_body": "{JSON ADF format with mention}"
-     },
-     risk_level="medium",
-     user_id="user_123"
-   )
+prepare_action(
+tool_name="add_jira_comment",
+tool_args={
+"issue_key": "SCRUM-2",
+"comment_body": "{JSON ADF format with mention}"
+},
+risk_level="medium",
+user_id="user_123"
+)
 
 3. Agent shows preview:
-   "I've prepared to add this comment to SCRUM-2:
-   
-   '@Ahmad Asiyanbola - Could you please provide more user stories
-   for this sprint? We need detailed acceptance criteria and example
-   scenarios to properly scope the work.'
-   
-   This will mention Ahmad and send him a notification.
-   Would you like me to proceed?"
+"I've prepared to add this comment to SCRUM-2:
+
+'@Ahmad Asiyanbola - Could you please provide more user stories
+for this sprint? We need detailed acceptance criteria and example
+scenarios to properly scope the work.'
+
+This will mention Ahmad and send him a notification.
+Would you like me to proceed?"
 
 4. User reviews and confirms
 
@@ -322,20 +322,20 @@ confirm_action(
 1. Agent: prepare_action(...)
 
 2. Agent: "I've prepared to create a pull request:
-   
-   From: feature/new-ui
-   To: main
-   Title: Add new user interface
-   
-   This will trigger CI/CD pipelines and notify reviewers.
-   Would you like me to proceed?"
+
+From: feature/new-ui
+To: main
+Title: Add new user interface
+
+This will trigger CI/CD pipelines and notify reviewers.
+Would you like me to proceed?"
 
 3. User: "Actually, no. I want to add more commits first."
 
 4. Agent: cancel_action(action_id="...", user_id="...")
 
 5. Agent: "OK, I've cancelled the PR creation. Let me know when
-   you're ready to create it."
+you're ready to create it."
 ```
 
 ## Configuration
@@ -347,10 +347,10 @@ Pending actions are stored in Redis with automatic expiration:
 ```yaml
 # resources/application-tools.yaml
 tools:
-  confirmation:
-    cache:
-      ttl: 300  # 5 minutes
-      namespace: "confirmation"
+confirmation:
+cache:
+ttl: 300 # 5 minutes
+namespace: "confirmation"
 ```
 
 ### Backend Implementation
@@ -401,38 +401,38 @@ The confirmation service uses:
 ### For Agent Developers
 
 1. **Always use prepare_action for mutating operations**
-   - Even if it seems redundant
-   - Better safe than sorry
+- Even if it seems redundant
+- Better safe than sorry
 
 2. **Make previews detailed and clear**
-   - Show exactly what will happen
-   - Include who will be notified
-   - Mention any side effects
+- Show exactly what will happen
+- Include who will be notified
+- Mention any side effects
 
 3. **Test confirmation workflow thoroughly**
-   - Happy path (confirm)
-   - Cancellation path
-   - Expiration handling
+- Happy path (confirm)
+- Cancellation path
+- Expiration handling
 
 4. **Set appropriate risk levels**
-   - High: Irreversible or high-impact changes
-   - Medium: Moderate impact, some reversibility
-   - Low: Minimal impact
+- High: Irreversible or high-impact changes
+- Medium: Moderate impact, some reversibility
+- Low: Minimal impact
 
 ### For Users
 
 1. **Review previews carefully**
-   - Check message content before confirming
-   - Verify @mentions are correct
-   - Ensure parameters are what you expect
+- Check message content before confirming
+- Verify @mentions are correct
+- Ensure parameters are what you expect
 
 2. **Confirm promptly**
-   - Actions expire after 5 minutes
-   - You'll need to re-request if expired
+- Actions expire after 5 minutes
+- You'll need to re-request if expired
 
 3. **Use cancel freely**
-   - No penalty for cancelling
-   - Better to cancel and revise than confirm wrong action
+- No penalty for cancelling
+- Better to cancel and revise than confirm wrong action
 
 ## Related Documentation
 

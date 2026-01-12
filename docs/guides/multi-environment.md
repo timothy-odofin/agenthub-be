@@ -315,7 +315,7 @@ python -m uvicorn app.main:app --env .env.prod --env-required
 Check startup logs for which file was loaded:
 
 ```
-✓ Loaded environment variables from: .env.dev
+Loaded environment variables from: .env.dev
 ```
 
 Or verify programmatically:

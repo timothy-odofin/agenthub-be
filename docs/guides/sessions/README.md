@@ -1,6 +1,6 @@
 # Session Management Layer
 
-> 💬 **Multi-backend session management** for chat conversations with PostgreSQL and MongoDB support, factory pattern for extensibility, and resilience patterns
+> **Multi-backend session management** for chat conversations with PostgreSQL and MongoDB support, factory pattern for extensibility, and resilience patterns
 
 ## Table of Contents
 
@@ -508,12 +508,12 @@ CREATE INDEX IF NOT EXISTS idx_messages_session_id ON chat_messages(session_id);
 ```
 
 **Key Features**:
-- ✅ **UUID Primary Keys** - Globally unique identifiers
-- ✅ **Foreign Key Constraint** - Messages reference sessions
-- ✅ **Cascade Delete** - Deleting session deletes messages
-- ✅ **Check Constraint** - Role must be 'user' or 'assistant'
-- ✅ **JSONB Metadata** - Flexible schema for session metadata
-- ✅ **Indexes** - Fast lookups by user_id and session_id
+- **UUID Primary Keys** - Globally unique identifiers
+- **Foreign Key Constraint** - Messages reference sessions
+- **Cascade Delete** - Deleting session deletes messages
+- **Check Constraint** - Role must be 'user' or 'assistant'
+- **JSONB Metadata** - Flexible schema for session metadata
+- **Indexes** - Fast lookups by user_id and session_id
 
 ### Postgres Usage
 
@@ -1129,10 +1129,10 @@ session_id = redis_repo.create_session(
 ### 1. Use Factory for Repository Creation
 
 ```python
-# ✅ GOOD - Use factory
+# GOOD - Use factory
 repo = SessionRepositoryFactory.get_default_repository()
 
-# ❌ BAD - Direct instantiation
+# BAD - Direct instantiation
 from app.sessions.repositories.mongo_session_repository import MongoSessionRepository
 repo = MongoSessionRepository()
 ```
@@ -1140,29 +1140,29 @@ repo = MongoSessionRepository()
 ### 2. Always Scope by User ID
 
 ```python
-# ✅ GOOD - User-scoped operations
+# GOOD - User-scoped operations
 messages = await repo.get_session_history(
     user_id="user123",
     session_id=session_id
 )
 
-# ❌ BAD - No user validation (security risk)
+# BAD - No user validation (security risk)
 messages = await repo.get_messages(session_id)  # Don't do this
 ```
 
 ### 3. Handle Session Creation Carefully
 
 ```python
-# ✅ GOOD - Auto-generate if not provided
+# GOOD - Auto-generate if not provided
 session_id = session_id or str(uuid.uuid4())
 
-# ✅ GOOD - Use idempotent creation (MongoDB)
+# GOOD - Use idempotent creation (MongoDB)
 created = await repo.ensure_session_exists(
     session_id=session_id,
     user_id=user_id
 )
 
-# ❌ BAD - Assume session always exists
+# BAD - Assume session always exists
 messages = await repo.get_session_history(user_id, session_id)
 # Should check if session exists first
 ```
@@ -1170,21 +1170,21 @@ messages = await repo.get_session_history(user_id, session_id)
 ### 4. Use Pagination for Session Lists
 
 ```python
-# ✅ GOOD - Paginated
+# GOOD - Paginated
 sessions = repo.list_paginated_sessions(
     user_id="user123",
     page=0,
     limit=20
 )
 
-# ❌ BAD - Fetch all sessions (memory issues for active users)
+# BAD - Fetch all sessions (memory issues for active users)
 # Don't do: sessions = repo.get_all_sessions(user_id)
 ```
 
 ### 5. Clean Up Old Sessions
 
 ```python
-# ✅ GOOD - Implement session cleanup
+# GOOD - Implement session cleanup
 async def cleanup_old_sessions(user_id: str, keep_last_n: int = 50):
     """Keep only last N sessions for user."""
     sessions = repo.list_paginated_sessions(user_id, page=0, limit=1000)
@@ -1197,7 +1197,7 @@ async def cleanup_old_sessions(user_id: str, keep_last_n: int = 50):
 ### 6. Add Meaningful Metadata
 
 ```python
-# ✅ GOOD - Rich metadata
+# GOOD - Rich metadata
 session_data = {
     "title": "Billing Support",
     "metadata": {
@@ -1209,7 +1209,7 @@ session_data = {
     }
 }
 
-# ❌ BAD - No metadata
+# BAD - No metadata
 session_data = {"title": "New Chat"}
 ```
 
@@ -1375,10 +1375,10 @@ if not session_exists:
 
 **Solution**:
 ```python
-# ❌ BAD
+# BAD
 messages = repo.get_session_history(user_id, session_id)
 
-# ✅ GOOD
+# GOOD
 messages = await repo.get_session_history(user_id, session_id)
 ```
 
@@ -1449,4 +1449,4 @@ Want to contribute a new session repository backend?
 
 ---
 
-Thank you for using AgentHub's session management system! 💬
+Thank you for using AgentHub's session management system! 

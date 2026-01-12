@@ -1,6 +1,6 @@
 # Background Workers System
 
-> ⚙️ **Async task processing** with Celery for long-running operations, file ingestion, and background jobs
+> **Async task processing** with Celery for long-running operations, file ingestion, and background jobs
 
 ## Table of Contents
 
@@ -146,10 +146,10 @@ broker='redis://localhost:6379/0'
 ```
 
 **Features**:
-- ✅ Fast in-memory queue
-- ✅ Message persistence
-- ✅ Multiple worker support
-- ✅ Task priority support
+- Fast in-memory queue
+- Message persistence
+- Multiple worker support
+- Task priority support
 
 #### Redis as Backend
 
@@ -161,10 +161,10 @@ backend='redis://localhost:6379/0'
 ```
 
 **Features**:
-- ✅ Result persistence
-- ✅ TTL support for auto-cleanup
-- ✅ Query task status
-- ✅ Retrieve task results
+- Result persistence
+- TTL support for auto-cleanup
+- Query task status
+- Retrieve task results
 
 ---
 
@@ -248,10 +248,10 @@ def task_file_ingestion(
 ```
 
 **Key Features**:
-- ✅ **Async Bridge**: Uses `asyncio.run()` to call async ingestion service
-- ✅ **Batch Processing**: Handles multiple files
-- ✅ **Configuration**: Uses DataSourceConfig for settings
-- ✅ **Error Handling**: Returns success/failure status
+- **Async Bridge**: Uses `asyncio.run()` to call async ingestion service
+- **Batch Processing**: Handles multiple files
+- **Configuration**: Uses DataSourceConfig for settings
+- **Error Handling**: Returns success/failure status
 
 **Usage**:
 ```python
@@ -644,7 +644,7 @@ celery_app.conf.update(
 ### 1. Use Async for I/O Operations
 
 ```python
-# ✅ GOOD - Async I/O operations
+# GOOD - Async I/O operations
 @shared_task
 def process_files_task(file_paths: List[str]):
     async def process():
@@ -654,7 +654,7 @@ def process_files_task(file_paths: List[str]):
     
     return asyncio.run(process())
 
-# ❌ BAD - Blocking I/O in task
+# BAD - Blocking I/O in task
 @shared_task
 def process_files_task(file_paths: List[str]):
     for file_path in file_paths:
@@ -665,13 +665,13 @@ def process_files_task(file_paths: List[str]):
 ### 2. Set Task Timeouts
 
 ```python
-# ✅ GOOD - Set timeout
+# GOOD - Set timeout
 @shared_task(time_limit=300, soft_time_limit=270)
 def long_running_task():
     # Will be killed after 300 seconds
     pass
 
-# ❌ BAD - No timeout (can hang forever)
+# BAD - No timeout (can hang forever)
 @shared_task
 def long_running_task():
     while True:
@@ -681,7 +681,7 @@ def long_running_task():
 ### 3. Use Retry Logic
 
 ```python
-# ✅ GOOD - Automatic retry
+# GOOD - Automatic retry
 @shared_task(bind=True, max_retries=3, default_retry_delay=60)
 def unstable_task(self, data):
     try:
@@ -692,7 +692,7 @@ def unstable_task(self, data):
         # Retry with exponential backoff
         raise self.retry(exc=exc, countdown=60 * (2 ** self.request.retries))
 
-# ❌ BAD - No retry on failure
+# BAD - No retry on failure
 @shared_task
 def unstable_task(data):
     return api_call(data)  # Fails permanently on error
@@ -701,7 +701,7 @@ def unstable_task(data):
 ### 4. Log Task Progress
 
 ```python
-# ✅ GOOD - Log progress
+# GOOD - Log progress
 @shared_task(bind=True)
 def batch_process_task(self, items):
     total = len(items)
@@ -720,7 +720,7 @@ def batch_process_task(self, items):
 ### 5. Handle Task Failures Gracefully
 
 ```python
-# ✅ GOOD - Graceful error handling
+# GOOD - Graceful error handling
 @shared_task
 def critical_task(data):
     try:
@@ -730,7 +730,7 @@ def critical_task(data):
         logger.error(f"Task failed: {e}", exc_info=True)
         return {"success": False, "error": str(e)}
 
-# ❌ BAD - Unhandled exceptions
+# BAD - Unhandled exceptions
 @shared_task
 def critical_task(data):
     result = process_data(data)  # Can crash task
@@ -805,12 +805,12 @@ celery_app.conf.update(
 
 **Solutions**:
 ```python
-# ✅ GOOD - Use JSON-serializable types
+# GOOD - Use JSON-serializable types
 @shared_task
 def my_task(data: dict, items: list):
     pass
 
-# ❌ BAD - Custom objects not serializable
+# BAD - Custom objects not serializable
 @shared_task
 def my_task(obj: MyCustomClass):
     pass
@@ -943,4 +943,4 @@ result = job.apply_async()
 
 ---
 
-Thank you for using AgentHub's background workers system! ⚙️
+Thank you for using AgentHub's background workers system! 

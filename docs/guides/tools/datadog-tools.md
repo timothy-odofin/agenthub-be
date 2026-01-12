@@ -243,7 +243,7 @@ ALERTS:
    ID: 12346 | Type: metric alert
    Query: avg(last_15m):avg:http.response.time{service:api} > 2000
 
-⚠️ Attention needed: 2 monitors in Alert state
+Attention needed: 2 monitors in Alert state
 ```
 
 ## Best Practices

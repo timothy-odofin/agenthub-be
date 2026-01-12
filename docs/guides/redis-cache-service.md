@@ -266,23 +266,23 @@ RedisCacheService(namespace: str, default_ttl: int = 900)
 ## Benefits
 
 ### vs. In-Memory Storage
-- ✅ **Persistent** across server restarts (until TTL)
-- ✅ **Scalable** - works in multi-instance deployments
-- ✅ **Automatic cleanup** via Redis TTL
-- ✅ **No memory leaks** - Redis manages memory
+- **Persistent** across server restarts (until TTL)
+- **Scalable** - works in multi-instance deployments
+- **Automatic cleanup** via Redis TTL
+- **No memory leaks** - Redis manages memory
 
 ### vs. Direct Redis Access
-- ✅ **DRY** - reuse existing ConnectionManager
-- ✅ **Consistent API** across features
-- ✅ **Automatic serialization** - no manual JSON handling
-- ✅ **Namespace isolation** - no key collisions
-- ✅ **Built-in indexing** - easy secondary lookups
+- **DRY** - reuse existing ConnectionManager
+- **Consistent API** across features
+- **Automatic serialization** - no manual JSON handling
+- **Namespace isolation** - no key collisions
+- **Built-in indexing** - easy secondary lookups
 
 ### vs. Custom Repositories
-- ✅ **Less boilerplate** - no custom class needed
-- ✅ **Standardized** - same API everywhere
-- ✅ **Tested** - one well-tested implementation
-- ✅ **Maintainable** - one place to add features
+- **Less boilerplate** - no custom class needed
+- **Standardized** - same API everywhere
+- **Tested** - one well-tested implementation
+- **Maintainable** - one place to add features
 
 ## Testing
 

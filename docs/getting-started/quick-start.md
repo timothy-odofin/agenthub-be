@@ -1,6 +1,6 @@
 # Quick Start Guide
 
-> ⚡ **Get AgentHub running in 5 minutes!**
+> **Get AgentHub running in 5 minutes!**
 
 ## Table of Contents
 - [Prerequisites](#prerequisites)
@@ -93,7 +93,7 @@ docker-compose ps
 cp .env.example .env
 
 # Edit with your settings
-nano .env  # or use your favorite editor
+nano .env # or use your favorite editor
 ```
 
 ### 2. Essential Environment Variables
@@ -166,8 +166,8 @@ uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
 You should see:
 
 ```
-INFO:     Uvicorn running on http://0.0.0.0:8000
-INFO:     Application startup complete.
+INFO: Uvicorn running on http://0.0.0.0:8000
+INFO: Application startup complete.
 ```
 
 ### 3. Verify Health
@@ -178,9 +178,9 @@ You should see:
 
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2026-01-08T22:30:00",
-  "version": "1.0.0"
+"status": "healthy",
+"timestamp": "2026-01-08T22:30:00",
+"version": "1.0.0"
 }
 ```
 
@@ -199,19 +199,19 @@ You'll see the interactive Swagger UI with all available endpoints!
 ```bash
 # Simple chat query
 curl -X POST "http://localhost:8000/api/v1/chat" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "message": "What is machine learning?",
-    "session_id": "test-session-1"
-  }'
+-H "Content-Type: application/json" \
+-d '{
+"message": "What is machine learning?",
+"session_id": "test-session-1"
+}'
 ```
 
 **Response:**
 ```json
 {
-  "response": "Machine learning is a subset of artificial intelligence...",
-  "session_id": "test-session-1",
-  "tokens_used": 45
+"response": "Machine learning is a subset of artificial intelligence...",
+"session_id": "test-session-1",
+"tokens_used": 45
 }
 ```
 
@@ -222,11 +222,11 @@ import requests
 
 # Query the chat endpoint
 response = requests.post(
-    "http://localhost:8000/api/v1/chat",
-    json={
-        "message": "What is Python?",
-        "session_id": "test-session-2"
-    }
+"http://localhost:8000/api/v1/chat",
+json={
+"message": "What is Python?",
+"session_id": "test-session-2"
+}
 )
 
 print(response.json()["response"])
@@ -254,26 +254,26 @@ echo "AgentHub is a production-grade LLM application framework. It supports mult
 
 # Upload it
 curl -X POST "http://localhost:8000/api/v1/documents/ingest" \
-  -F "file=@test-doc.txt" \
-  -F "collection_name=test-collection"
+-F "file=@test-doc.txt" \
+-F "collection_name=test-collection"
 ```
 
 ### 2. Query Your Document
 
 ```bash
 curl -X POST "http://localhost:8000/api/v1/documents/query" \
-  -H "Content-Type: application/json" \
-  -d '{
-    "question": "What is AgentHub?",
-    "collection_name": "test-collection"
-  }'
+-H "Content-Type: application/json" \
+-d '{
+"question": "What is AgentHub?",
+"collection_name": "test-collection"
+}'
 ```
 
 **Response:**
 ```json
 {
-  "answer": "AgentHub is a production-grade LLM application framework that supports multiple providers including OpenAI, Anthropic, and Google.",
-  "sources": ["test-doc.txt"]
+"answer": "AgentHub is a production-grade LLM application framework that supports multiple providers including OpenAI, Anthropic, and Google.",
+"sources": ["test-doc.txt"]
 }
 ```
 
@@ -288,7 +288,7 @@ curl -X POST "http://localhost:8000/api/v1/documents/query" \
 **Solution**:
 ```bash
 # Ensure you're in the project root
-pwd  # Should show: .../agenthub-be
+pwd # Should show: .../agenthub-be
 
 # Set PYTHONPATH
 export PYTHONPATH="${PYTHONPATH}:$(pwd)/src"
@@ -348,25 +348,25 @@ kill -9 <PID>
 
 ## Next Steps
 
-### 🎓 Learn the Basics
+### Learn the Basics
 
 - **[LLM Basics](../core-concepts/llm-basics.md)** - Understand how LLMs work
 - **[RAG Pipeline](../core-concepts/rag-pipeline.md)** - Learn about document retrieval
 - **[Architecture Overview](../architecture/overview.md)** - See how AgentHub is built
 
-### 🛠️ Configuration
+### Configuration
 
 - **[LLM Providers](../guides/llm-providers/README.md)** - Configure different LLM providers
 - **[Configuration System](../architecture/configuration-system.md)** - Master YAML configs
 - **[Environment Variables](../deployment/environment-variables.md)** - All available settings
 
-### 📚 Tutorials
+### Tutorials
 
 - **[Build a RAG Chatbot](../tutorials/rag-chatbot.md)** - Step-by-step RAG tutorial
 - **[Multi-LLM Routing](../tutorials/multi-llm-routing.md)** - Use multiple providers
 - **[Custom Tools](../tutorials/custom-tools.md)** - Extend agent capabilities
 
-### 🚀 Production
+### Production
 
 - **[Deployment Guide](../deployment/overview.md)** - Deploy to production
 - **[Docker Setup](../deployment/docker.md)** - Containerize your app
@@ -429,7 +429,7 @@ flake8 src/
 mypy src/
 
 # Run all checks
-make lint  # If Makefile is configured
+make lint # If Makefile is configured
 ```
 
 ---
@@ -448,7 +448,7 @@ docker-compose exec mongodb mongosh agenthub
 # Access Redis CLI
 docker-compose exec redis redis-cli
 
-# Reset databases (⚠️ deletes all data!)
+# Reset databases (deletes all data!)
 docker-compose down -v
 docker-compose up -d
 ```
@@ -553,16 +553,16 @@ Visit: **http://localhost:8000/api/v1/system/status**
 
 ```json
 {
-  "application": "healthy",
-  "databases": {
-    "postgres": "connected",
-    "mongodb": "connected",
-    "redis": "connected"
-  },
-  "llm_providers": {
-    "openai": "available"
-  },
-  "uptime": "00:15:32"
+"application": "healthy",
+"databases": {
+"postgres": "connected",
+"mongodb": "connected",
+"redis": "connected"
+},
+"llm_providers": {
+"openai": "available"
+},
+"uptime": "00:15:32"
 }
 ```
 
@@ -586,24 +586,24 @@ Visit: **http://localhost:8000/api/v1/system/status**
 
 | What | Where |
 |------|-------|
-| 📖 **Docs** | `docs/` directory |
-| 🐛 **Issues** | GitHub Issues |
-| 💡 **Code Examples** | Embedded in documentation |
-| 🧪 **Tests** | `tests/` directory |
-| ⚙️ **Config** | `resources/` directory |
+| **Docs** | `docs/` directory |
+| **Issues** | GitHub Issues |
+| **Code Examples** | Embedded in documentation |
+| **Tests** | `tests/` directory |
+| **Config** | `resources/` directory |
 
 ---
 
 ## What You've Learned
 
-✅ Installed AgentHub and its dependencies  
-✅ Configured LLM providers and databases  
-✅ Started the application  
-✅ Made your first chat query  
-✅ Tested RAG document retrieval  
-✅ Know where to find help  
+Installed AgentHub and its dependencies 
+Configured LLM providers and databases 
+Started the application 
+Made your first chat query 
+Tested RAG document retrieval 
+Know where to find help 
 
-### You're Ready! 🎉
+### You're Ready! 
 
 You now have AgentHub running locally. Time to build something amazing!
 
@@ -611,6 +611,6 @@ You now have AgentHub running locally. Time to build something amazing!
 
 ---
 
-**Last Updated**: January 8, 2026  
-**Version**: 1.0.0  
+**Last Updated**: January 8, 2026 
+**Version**: 1.0.0 
 **Tested On**: macOS, Linux, Windows (WSL2)

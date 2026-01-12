@@ -1,6 +1,6 @@
 # Authentication API
 
-> 🔐 **User registration, login, and token management**
+> **User registration, login, and token management**
 
 ## Overview
 
@@ -433,13 +433,13 @@ response = requests.post(
 
 ### Password Requirements
 
-✅ **Required**:
+**Required**:
 - Minimum 8 characters
 - At least one uppercase letter
 - At least one lowercase letter
 - At least one number
 
-⚠️ **Recommended**:
+**Recommended**:
 - Use special characters
 - Avoid common passwords
 - Don't reuse passwords
@@ -448,33 +448,33 @@ response = requests.post(
 
 **Frontend (Browser)**:
 ```javascript
-// ✅ GOOD - Secure HTTP-only cookie (set by backend)
+// GOOD - Secure HTTP-only cookie (set by backend)
 // Access token in memory
 let accessToken = null;
 
-// ❌ BAD - localStorage (vulnerable to XSS)
+// BAD - localStorage (vulnerable to XSS)
 localStorage.setItem('token', token);
 
-// ❌ BAD - sessionStorage (vulnerable to XSS)
+// BAD - sessionStorage (vulnerable to XSS)
 sessionStorage.setItem('token', token);
 ```
 
 **Mobile/Desktop App**:
 ```python
-# ✅ GOOD - Encrypted secure storage
+# GOOD - Encrypted secure storage
 from keyring import set_password, get_password
 
 set_password("agenthub", "access_token", token)
 token = get_password("agenthub", "access_token")
 
-# ❌ BAD - Plain text file
+# BAD - Plain text file
 with open('tokens.txt', 'w') as f:
     f.write(token)
 ```
 
 ### HTTPS Required
 
-⚠️ **Always use HTTPS in production** to prevent token interception.
+**Always use HTTPS in production** to prevent token interception.
 
 ```python
 # Production
