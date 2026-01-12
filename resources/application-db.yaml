@@ -39,6 +39,11 @@ redis:
   max_connections: 10
   socket_timeout: 30
 
+# Cache configuration
+cache:
+  provider: "${CACHE_PROVIDER:redis}"  # Options: redis, in_memory, memcached, elasticache
+  default_ttl: 900  # Default TTL in seconds (15 minutes)
+
 # Elasticsearch configuration (optional)
 elasticsearch:
   host: "${ELASTICSEARCH_HOST:localhost}"

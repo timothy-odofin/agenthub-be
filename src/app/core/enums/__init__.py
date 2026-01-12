@@ -14,23 +14,11 @@ from app.core.core_enums import (
     AgentCapability,
     AgentType,
     AgentFramework,
-    AgentStatus
+    AgentStatus,
+    CacheType
 )
 
 # Re-export for easy access
-__all__ = [
-    "DataSourceType",
-    "ModelProvider",
-    "VectorDBType", 
-    "DatabaseType",
-    "ExternalServiceType",
-    "ConnectionType",
-    "AgentCapability",
-    "AgentType",
-    "AgentFramework",
-    "AgentStatus"
-]
-
 __all__ = [
     'DataSourceType',
     'ModelProvider', 
@@ -42,5 +30,6 @@ __all__ = [
     'AgentType',
     'AgentFramework',
     'AgentStatus',
+    'CacheType',
     'LLMCapability'
 ]

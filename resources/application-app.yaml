@@ -51,6 +51,18 @@ session:
   max_history_length: 100             # Maximum messages per session
   session_timeout: 3600               # Session timeout in seconds (1 hour)
   cleanup_interval: 86400             # Cleanup interval in seconds (24 hours)
+  
+  # Auto title generation (ChatGPT-style)
+  auto_title:
+    enabled: true                     # Enable automatic title generation
+    trigger_message_count: 3          # Generate title after N user messages
+    max_messages_for_context: 6       # Use first N messages for title generation
+    max_title_length: 50              # Maximum characters in generated title
+    min_title_words: 3                # Minimum words in title
+    max_title_words: 7                # Maximum words in title
+    temperature: 0.3                  # LLM temperature for title generation
+    default_title: "New Chat"         # Default title before auto-generation
+    fallback_title: "Untitled Conversation"  # Fallback if generation fails
 
 # Performance settings
 performance:
@@ -58,6 +70,21 @@ performance:
   batch_processing_size: 100          # Default batch size for bulk operations
   max_concurrent_requests: 10         # Maximum concurrent API requests
   request_rate_limit: 100             # Requests per minute limit
+
+# Resilience configuration (retry and circuit breaker)
+resilience:
+  retry:
+    max_attempts: 3                   # Maximum retry attempts
+    base_delay: 1.0                   # Base delay in seconds
+    max_delay: 10.0                   # Maximum delay in seconds
+    strategy: "EXPONENTIAL"           # Retry strategy (EXPONENTIAL, LINEAR, FIXED)
+    jitter: true                      # Add randomness to retry delays
+  
+  circuit_breaker:
+    failure_threshold: 5              # Number of failures before opening circuit
+    failure_window: 60.0              # Time window for counting failures (seconds)
+    recovery_timeout: 30.0            # Time to wait before attempting recovery (seconds)
+    success_threshold: 2              # Number of successes needed to close circuit
 
 # Logging configuration
 logging:

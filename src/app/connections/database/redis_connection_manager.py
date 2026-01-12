@@ -215,6 +215,26 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         await self.ensure_connected()
         return await self._redis_client.smembers(name)
     
+    async def srem(self, name: str, *values: Any) -> int:
+        """Remove values from set."""
+        await self.ensure_connected()
+        return await self._redis_client.srem(name, *values)
+    
+    async def ttl(self, key: str) -> int:
+        """Get time-to-live for key in seconds."""
+        await self.ensure_connected()
+        return await self._redis_client.ttl(key)
+    
+    async def incr(self, key: str, amount: int = 1) -> int:
+        """Increment key by amount."""
+        await self.ensure_connected()
+        return await self._redis_client.incrby(key, amount)
+    
+    async def scan(self, cursor: int = 0, match: Optional[str] = None, count: int = 10) -> tuple:
+        """Scan keys matching pattern."""
+        await self.ensure_connected()
+        return await self._redis_client.scan(cursor=cursor, match=match, count=count)
+    
     def get_connection_stats(self) -> dict:
         """Get Redis connection statistics."""
         if not self._connection_pool:

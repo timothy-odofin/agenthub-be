@@ -7,16 +7,19 @@ This service abstracts the agent system and handles:
 - Response formatting for different protocols (REST/WebSocket)
 - Error handling and logging
 - Performance monitoring
+- Automatic session title generation
 """
 
 from datetime import datetime
 from typing import Dict, Any, Optional, List
+import asyncio
 
 from app.core.utils.logger import get_logger
 from app.core.utils.single_ton import SingletonMeta
 from app.agent import AgentFactory, AgentContext
 from app.core.constants import AgentType, AgentFramework
 from app.sessions.repositories.session_repository_factory import SessionRepositoryFactory
+from app.services.session_title_service import SessionTitleService
 
 logger = get_logger(__name__)
 
@@ -28,6 +31,7 @@ class ChatService(metaclass=SingletonMeta):
             return
 
         self.agent_verbose = False
+        self.title_service = SessionTitleService()
         self._agent = None
         self._agent_type = AgentType.REACT
         
@@ -98,6 +102,11 @@ class ChatService(metaclass=SingletonMeta):
             
             response = await agent.execute(message, context)
             
+            # Trigger auto title generation in background (non-blocking)
+            asyncio.create_task(
+                self._maybe_generate_title(user_id, response.session_id)
+            )
+            
             # Convert to legacy format for backward compatibility
             legacy_response = {
                 "success": response.success,
@@ -152,7 +161,8 @@ class ChatService(metaclass=SingletonMeta):
 
     def create_session(self, user_id: str, title: Optional[str] = None) -> str:
         try:
-            session_title = title or f"Chat session {datetime.now().strftime('%Y-%m-%d %H:%M')}"
+            # Use new default title instead of timestamp
+            session_title = title or self.title_service.get_default_title()
             session_repo = SessionRepositoryFactory.get_default_repository()
             session_id = session_repo.create_session(
                 user_id=user_id,
@@ -266,6 +276,86 @@ class ChatService(metaclass=SingletonMeta):
         except Exception as e:
             logger.error(f"Failed to get available tools: {e}")
             return []
+    
+    async def _maybe_generate_title(self, user_id: str, session_id: str):
+        """
+        Background task to auto-generate session title if conditions are met.
+        
+        This is called after each message and checks if title should be generated.
+        Non-blocking - runs in background without affecting chat response time.
+        
+        Args:
+            user_id: User identifier
+            session_id: Session identifier
+        """
+        try:
+            session_repo = SessionRepositoryFactory.get_default_repository()
+            
+            # Get current session info
+            session = session_repo.get_session(user_id, session_id)
+            if not session:
+                return
+            
+            # Count user messages in session
+            messages = session_repo.get_session_messages(
+                user_id=user_id,
+                session_id=session_id,
+                limit=100  # Get more to count accurately
+            )
+            
+            user_message_count = sum(1 for msg in messages if msg.role == "user")
+            
+            # Check if we should generate title
+            if self.title_service.should_generate_title(user_message_count, session.title):
+                logger.info(
+                    f"Triggering auto title generation for session {session_id}",
+                    extra={"user_message_count": user_message_count}
+                )
+                
+                await self.title_service.auto_generate_and_update_title(
+                    session_id=session_id,
+                    user_id=user_id,
+                    session_repository=session_repo
+                )
+        
+        except Exception as e:
+            # Don't let title generation errors affect the chat
+            logger.error(
+                f"Background title generation failed for session {session_id}: {e}",
+                exc_info=True
+            )
+    
+    async def update_session_title(
+        self,
+        user_id: str,
+        session_id: str,
+        title: str
+    ) -> bool:
+        """
+        Manually update session title.
+        
+        Args:
+            user_id: User identifier
+            session_id: Session identifier
+            title: New title
+            
+        Returns:
+            True if successful, False otherwise
+        """
+        try:
+            session_repo = SessionRepositoryFactory.get_default_repository()
+            session_repo.update_session(
+                user_id=user_id,
+                session_id=session_id,
+                data={"title": title}
+            )
+            
+            logger.info(f"Manually updated title for session {session_id} to '{title}'")
+            return True
+            
+        except Exception as e:
+            logger.error(f"Failed to update session title: {e}")
+            return False
 
     async def health_check(self) -> Dict[str, Any]:
         try:

@@ -7,7 +7,7 @@ tools:
   # Jira Integration Tools
   jira:
     enabled: true
-    # Only tools that are currently implemented
+    # All 8 currently implemented Jira tools
     available_tools:
       issues:
         search_jira_issues:
@@ -18,14 +18,37 @@ tools:
           enabled: true
           description: "Create a new JIRA issue with specified details"
           category: "management"
+          requires_confirmation: true
+          risk_level: "medium"
+          confirmation_reason: "Creates a new Jira issue which affects team workflows and notifications"
         get_jira_issue:
           enabled: true
           description: "Get detailed information about a specific JIRA issue"
           category: "retrieval"
+        add_jira_comment:
+          enabled: true
+          description: "Add a comment to an existing JIRA issue (supports plain text and ADF format)"
+          category: "collaboration"
+          requires_confirmation: true
+          risk_level: "low"
+          confirmation_reason: "Adds a public comment that notifies team members"
       projects:
         get_jira_projects:
           enabled: true
           description: "List all accessible JIRA projects"
+          category: "discovery"
+      users:
+        search_jira_users:
+          enabled: true
+          description: "Search for JIRA users by username, email, or display name (useful for mentions)"
+          category: "discovery"
+        get_all_jira_users:
+          enabled: true
+          description: "Get a list of all JIRA users with pagination"
+          category: "discovery"
+        get_jira_project_users:
+          enabled: true
+          description: "Get users who have access to a specific JIRA project"
           category: "discovery"
 
   # Confluence Integration Tools
@@ -75,21 +98,46 @@ tools:
       # Issues Management
       "Get Issues": true
       "Get Issue": true  
-      "Comment on Issue": true
+      "Comment on Issue": 
+        enabled: true
+        requires_confirmation: true
+        risk_level: "low"
+        confirmation_reason: "Adds a public comment to a GitHub issue"
+      "Create Issue":
+        enabled: true
+        requires_confirmation: true
+        risk_level: "medium"
+        confirmation_reason: "Creates a new GitHub issue that notifies repository watchers"
       
       # Pull Requests
       "List open pull requests (PRs)": true
       "Get Pull Request": true
-      "Create Pull Request": true
+      "Create Pull Request": 
+        enabled: true
+        requires_confirmation: true
+        risk_level: "high"
+        confirmation_reason: "Creates a new pull request which may trigger CI/CD pipelines and notify reviewers"
       "Create review request": true
       "Overview of files included in PR": true
       "List Pull Requests' Files": true
       
       # File Operations
       "Read File": true
-      "Update File": true
-      "Create File": false  # Disabled for safety
-      "Delete File": false  # Disabled for safety
+      "Update File": 
+        enabled: true
+        requires_confirmation: true
+        risk_level: "high"
+        confirmation_reason: "Modifies file content in the repository which may affect functionality"
+      "Create File": 
+        enabled: false  # Disabled for safety
+        requires_confirmation: true
+        risk_level: "high"
+        confirmation_reason: "Creates a new file in the repository"
+      "Delete File": 
+        enabled: false  # Disabled for safety
+        requires_confirmation: true
+        risk_level: "high"
+        confirmation_reason: "Permanently deletes a file from the repository"
       
       # Repository Navigation
       "Overview of existing files in Main branch": true
@@ -102,8 +150,16 @@ tools:
       
       # Branch Management
       "List branches in this repository": true
-      "Create a new branch": true
-      "Set active branch": true
+      "Create a new branch": 
+        enabled: true
+        requires_confirmation: true
+        risk_level: "medium"
+        confirmation_reason: "Creates a new branch in the repository"
+      "Set active branch": 
+        enabled: true
+        requires_confirmation: true
+        risk_level: "medium"
+        confirmation_reason: "Changes the active working branch for subsequent operations"
 
   # Datadog Monitoring and Observability Tools
   datadog:

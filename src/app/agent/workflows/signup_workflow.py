@@ -27,10 +27,10 @@ import re
 from typing import TypedDict, Optional, Dict, Any, List
 from langgraph.graph import StateGraph, END
 
-from src.app.core.utils.logger import get_logger
-from src.app.core.security import password_manager
-from src.app.db.repositories import user_repository
-from src.app.core.config import settings
+from app.core.utils.logger import get_logger
+from app.core.security import password_manager
+from app.db.repositories import user_repository
+from app.core.config import settings
 
 logger = get_logger(__name__)
 

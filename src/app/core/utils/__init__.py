@@ -2,7 +2,7 @@
 Core utility modules for the application.
 
 Provides centralized utilities for environment variable management,
-property placeholder resolution, and other common functionality.
+property placeholder resolution, user context extraction, and other common functionality.
 """
 
 from .env_utils import EnvironmentManager, env, initialize_environment
@@ -20,6 +20,14 @@ from .file_utils import (
     get_file_info,
     FileReadError
 )
+from .user_context import (
+    extract_user_from_token,
+    extract_user_display_name,
+    extract_user_email,
+    extract_user_id,
+    format_on_behalf_of_context,
+    create_audit_context
+)
 
 __all__ = [
     'EnvironmentManager',
@@ -35,5 +43,11 @@ __all__ = [
     'read_private_key_file', 
     'file_exists',
     'get_file_info',
-    'FileReadError'
+    'FileReadError',
+    'extract_user_from_token',
+    'extract_user_display_name',
+    'extract_user_email',
+    'extract_user_id',
+    'format_on_behalf_of_context',
+    'create_audit_context'
 ]
