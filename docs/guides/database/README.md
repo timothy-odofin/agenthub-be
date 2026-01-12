@@ -1,6 +1,6 @@
 # Database Layer Architecture
 
-> 🗄️ **Multi-database architecture** with MongoDB for document storage, Redis for sessions/caching, PostgreSQL for relational data, and vector databases for embeddings
+> **Multi-database architecture** with MongoDB for document storage, Redis for sessions/caching, PostgreSQL for relational data, and vector databases for embeddings
 
 ## Table of Contents
 
@@ -111,11 +111,11 @@ MongoDB is used for **user data** and **document storage** with flexible schemas
 **Purpose**: CRUD operations for user authentication and management
 
 **Key Features**:
-- ✅ Automatic connection management via ConnectionFactory
-- ✅ Unique indexes on email and username
-- ✅ Field normalization (lowercase emails/usernames)
-- ✅ Singleton-ready pattern
-- ✅ Comprehensive error handling
+- Automatic connection management via ConnectionFactory
+- Unique indexes on email and username
+- Field normalization (lowercase emails/usernames)
+- Singleton-ready pattern
+- Comprehensive error handling
 
 #### Usage
 
@@ -301,11 +301,11 @@ Redis is used for **temporary session storage** and **caching** with automatic T
 **Purpose**: Server-side state management for conversational signup flow
 
 **Key Features**:
-- ✅ Server-side state (prevents client tampering)
-- ✅ Automatic expiration (5 minute TTL)
-- ✅ Password hashing on storage
-- ✅ Validation tracking
-- ✅ Uses existing RedisConnectionManager
+- Server-side state (prevents client tampering)
+- Automatic expiration (5 minute TTL)
+- Password hashing on storage
+- Validation tracking
+- Uses existing RedisConnectionManager
 
 #### Session Data Structure
 
@@ -570,12 +570,12 @@ vector_store._close_connection()
 
 #### Features
 
-- ✅ Uses QdrantConnectionManager for connections
-- ✅ Auto-creates collection if not exists
-- ✅ LangChain integration via `langchain_qdrant`
-- ✅ Metadata filtering support
-- ✅ Multiple distance metrics (Cosine, Euclid, Dot)
-- ✅ As retriever support
+- Uses QdrantConnectionManager for connections
+- Auto-creates collection if not exists
+- LangChain integration via `langchain_qdrant`
+- Metadata filtering support
+- Multiple distance metrics (Cosine, Euclid, Dot)
+- As retriever support
 
 ---
 
@@ -665,11 +665,11 @@ WITH (lists = 100);
 
 #### Features
 
-- ✅ Leverages PostgreSQL infrastructure
-- ✅ ACID transactions for vectors
-- ✅ IVFFlat indexing for performance
-- ✅ JSONB metadata storage
-- ✅ LangChain PGVector integration
+- Leverages PostgreSQL infrastructure
+- ACID transactions for vectors
+- IVFFlat indexing for performance
+- JSONB metadata storage
+- LangChain PGVector integration
 
 ---
 
@@ -681,11 +681,11 @@ WITH (lists = 100);
 
 #### Features
 
-- ✅ Embedded and client-server modes
-- ✅ Automatic persistence
-- ✅ Multiple embedding functions
-- ✅ Simple API
-- ✅ No external dependencies for embedded mode
+- Embedded and client-server modes
+- Automatic persistence
+- Multiple embedding functions
+- Simple API
+- No external dependencies for embedded mode
 
 **Status**: Implementation follows same pattern as Qdrant
 
@@ -1071,11 +1071,11 @@ products = await repo.list_products(category="Electronics", limit=50)
 ### 1. Use Auto-Connection
 
 ```python
-# ✅ GOOD - Auto-connects if needed
+# GOOD - Auto-connects if needed
 repo = UserRepository()
 user = await repo.get_user_by_email("john@example.com")
 
-# ❌ BAD - Unnecessary manual connection management
+# BAD - Unnecessary manual connection management
 manager = ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)
 manager.connect()
 db = manager.get_database()
@@ -1085,13 +1085,13 @@ repo = UserRepository(db=db)
 ### 2. Handle Duplicates Gracefully
 
 ```python
-# ✅ GOOD - Check before insert
+# GOOD - Check before insert
 if await repo.check_email_exists(email):
     raise ValueError("Email already exists")
 
 user = await repo.create_user(...)
 
-# ❌ BAD - Rely on exception
+# BAD - Rely on exception
 try:
     user = await repo.create_user(...)
 except DuplicateKeyError:
@@ -1101,11 +1101,11 @@ except DuplicateKeyError:
 ### 3. Use Type Hints
 
 ```python
-# ✅ GOOD
+# GOOD
 async def get_user_by_email(self, email: str) -> Optional[UserInDB]:
     pass
 
-# ❌ BAD
+# BAD
 async def get_user_by_email(self, email):
     pass
 ```
@@ -1113,24 +1113,24 @@ async def get_user_by_email(self, email):
 ### 4. Log Important Operations
 
 ```python
-# ✅ GOOD
+# GOOD
 logger.info(f"Creating user with email: {email}")
 result = await repo.create_user(...)
 logger.info(f"User created with ID: {result._id}")
 
-# ❌ BAD - Silent operations
+# BAD - Silent operations
 result = await repo.create_user(...)
 ```
 
 ### 5. Validate Before Storage
 
 ```python
-# ✅ GOOD - Validate in Pydantic model
+# GOOD - Validate in Pydantic model
 class User(BaseModel):
     email: EmailStr  # Automatic validation
     username: str = Field(..., min_length=3, max_length=30)
 
-# ❌ BAD - No validation
+# BAD - No validation
 user_dict = {"email": email, "username": username}
 collection.insert_one(user_dict)
 ```
@@ -1398,4 +1398,4 @@ Contributions to improve the database layer are welcome!
 
 ---
 
-Thank you for using AgentHub's database layer! 🗄️
+Thank you for using AgentHub's database layer! 

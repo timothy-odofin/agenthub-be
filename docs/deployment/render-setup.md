@@ -82,12 +82,12 @@ DATADOG_APP_KEY=<copy from your .env>
 
 ## Important Notes
 
-### ✅ Safe to Commit to GitHub:
+### Safe to Commit to GitHub:
 - `render.yaml` - only has variable names, not values
 - `.env.production.example` - template with placeholders
 - `DEPLOYMENT_QUICKSTART.md`, `docs/DEPLOYMENT.md` - documentation
 
-### ❌ NEVER Commit to GitHub:
+### NEVER Commit to GitHub:
 - `.env` - contains real secrets (already in .gitignore)
 - `.env.production` - if you create one with real values
 - Any file with actual API keys or passwords
@@ -127,11 +127,11 @@ Then copy-paste the entire output (including `-----BEGIN RSA PRIVATE KEY-----` a
 
 ## Security Best Practices
 
-1. ✅ Never commit `.env` to git
-2. ✅ Use different secrets for production vs development
-3. ✅ Rotate API keys regularly
-4. ✅ Only give team members access to Render dashboard (not .env file)
-5. ✅ Use Render's environment groups for shared configs
+1. Never commit `.env` to git
+2. Use different secrets for production vs development
+3. Rotate API keys regularly
+4. Only give team members access to Render dashboard (not .env file)
+5. Use Render's environment groups for shared configs
 
 ## Need Help?
 

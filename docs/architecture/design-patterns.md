@@ -165,10 +165,10 @@ result = await tool(
 ```
 
 ### Benefits
-- ✅ **Extensibility**: Add tools without modifying core code
-- ✅ **Discovery**: Tools automatically available to agents
-- ✅ **Metadata**: Rich information for LLM tool selection
-- ✅ **Type Safety**: Validates parameters at registration
+- **Extensibility**: Add tools without modifying core code
+- **Discovery**: Tools automatically available to agents
+- **Metadata**: Rich information for LLM tool selection
+- **Type Safety**: Validates parameters at registration
 
 ---
 
@@ -394,10 +394,10 @@ LLMFactory.register_provider("custom", CustomLLM)
 ```
 
 ### Benefits
-- ✅ **Provider Agnostic**: Same code works with any LLM
-- ✅ **Configuration-Driven**: Change providers via config
-- ✅ **Extensible**: Easy to add new providers
-- ✅ **Testable**: Mock providers in tests
+- **Provider Agnostic**: Same code works with any LLM
+- **Configuration-Driven**: Change providers via config
+- **Extensible**: Easy to add new providers
+- **Testable**: Mock providers in tests
 
 ---
 
@@ -556,10 +556,10 @@ async with pool1.acquire() as conn:
 ```
 
 ### Benefits
-- ✅ **Single Instance**: Prevents multiple configuration loads
-- ✅ **Thread-Safe**: Safe in concurrent environments
-- ✅ **Memory Efficient**: Reuses resources
-- ✅ **Lazy Initialization**: Created only when needed
+- **Single Instance**: Prevents multiple configuration loads
+- **Thread-Safe**: Safe in concurrent environments
+- **Memory Efficient**: Reuses resources
+- **Lazy Initialization**: Created only when needed
 
 ---
 
@@ -815,10 +815,10 @@ context = ChunkingContext(strategy)
 ```
 
 ### Benefits
-- ✅ **Flexible**: Change algorithms at runtime
-- ✅ **Testable**: Test each strategy independently
-- ✅ **Extensible**: Add new strategies easily
-- ✅ **Configuration-Driven**: Select via config
+- **Flexible**: Change algorithms at runtime
+- **Testable**: Test each strategy independently
+- **Extensible**: Add new strategies easily
+- **Configuration-Driven**: Select via config
 
 ---
 
@@ -1113,10 +1113,10 @@ async def fetch_external_api(url: str):
 ```
 
 ### Benefits
-- ✅ **Composable**: Stack multiple decorators
-- ✅ **Non-Invasive**: No changes to original code
-- ✅ **Reusable**: Apply to any LLM or function
-- ✅ **Separation of Concerns**: Each decorator has single responsibility
+- **Composable**: Stack multiple decorators
+- **Non-Invasive**: No changes to original code
+- **Reusable**: Apply to any LLM or function
+- **Separation of Concerns**: Each decorator has single responsibility
 
 ---
 
@@ -1429,10 +1429,10 @@ print(response.output)
 ```
 
 ### Benefits
-- ✅ **Consistent Flow**: All agents follow same steps
-- ✅ **Flexible**: Override only what's needed
-- ✅ **Maintainable**: Changes to flow affect all agents
-- ✅ **Testable**: Test flow and steps independently
+- **Consistent Flow**: All agents follow same steps
+- **Flexible**: Override only what's needed
+- **Maintainable**: Changes to flow affect all agents
+- **Testable**: Test flow and steps independently
 
 ---
 
@@ -1670,10 +1670,10 @@ class InstrumentedAgent:
 ```
 
 ### Benefits
-- ✅ **Decoupled**: Publishers don't know about subscribers
-- ✅ **Extensible**: Add new listeners without changing publishers
-- ✅ **Async**: Non-blocking event processing
-- ✅ **Centralized**: Single event bus for entire system
+- **Decoupled**: Publishers don't know about subscribers
+- **Extensible**: Add new listeners without changing publishers
+- **Async**: Non-blocking event processing
+- **Centralized**: Single event bus for entire system
 
 ---
 
@@ -1842,10 +1842,10 @@ def test_create_ticket():
 ```
 
 ### Benefits
-- ✅ **Testability**: Easy to mock dependencies
-- ✅ **Flexibility**: Swap implementations
-- ✅ **Decoupling**: Components don't create dependencies
-- ✅ **Lifecycle Management**: Control singleton vs factory
+- **Testability**: Easy to mock dependencies
+- **Flexibility**: Swap implementations
+- **Decoupling**: Components don't create dependencies
+- **Lifecycle Management**: Control singleton vs factory
 
 ---
 
@@ -1959,4 +1959,4 @@ response = await service.generate("Explain RAG")
 
 **Last Updated**: January 8, 2026  
 **Maintainer**: AgentHub Team  
-**Status**: ✅ Production patterns
+**Status**: Production patterns

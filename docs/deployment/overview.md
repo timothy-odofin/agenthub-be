@@ -76,13 +76,13 @@ AgentHub consists of multiple components that need to be deployed:
 Before deploying, ensure you have:
 
 ### Required:
-- ✅ Python 3.11+ application tested locally
-- ✅ Environment variables configured (see `.env.example`)
-- ✅ API keys for LLM providers (OpenAI, Groq, etc.)
-- ✅ MongoDB connection string (Atlas or self-hosted)
-- ✅ Qdrant cluster (cloud or self-hosted)
-- ✅ Domain name (for production)
-- ✅ SSL certificate (Let's Encrypt or cloud provider)
+- Python 3.11+ application tested locally
+- Environment variables configured (see `.env.example`)
+- API keys for LLM providers (OpenAI, Groq, etc.)
+- MongoDB connection string (Atlas or self-hosted)
+- Qdrant cluster (cloud or self-hosted)
+- Domain name (for production)
+- SSL certificate (Let's Encrypt or cloud provider)
 
 ### Optional:
 - Jira/Confluence credentials (if using integrations)
@@ -850,47 +850,47 @@ logger.info("User logged in", extra={"user_id": user_id})
 
 ### 1. Secrets Management:
 
-❌ **Don't**:
+**Don't**:
 - Commit `.env` files to Git
 - Hardcode API keys in code
 - Use same keys for dev/prod
 
-✅ **Do**:
+**Do**:
 - Use cloud secret managers (AWS Secrets Manager, GCP Secret Manager, Azure Key Vault)
 - Rotate keys regularly
 - Use different keys per environment
 
 ### 2. Network Security:
 
-- ✅ Use HTTPS only (SSL/TLS certificates)
-- ✅ Enable CORS with specific origins
-- ✅ Use VPC/Private networks for databases
-- ✅ Configure security groups/firewalls
-- ✅ Enable DDoS protection (CloudFlare, AWS Shield)
+- Use HTTPS only (SSL/TLS certificates)
+- Enable CORS with specific origins
+- Use VPC/Private networks for databases
+- Configure security groups/firewalls
+- Enable DDoS protection (CloudFlare, AWS Shield)
 
 ### 3. Authentication:
 
-- ✅ JWT tokens with short expiration
-- ✅ Refresh token rotation
-- ✅ Rate limiting on auth endpoints
-- ✅ Password complexity requirements
-- ✅ Consider OAuth2/OpenID Connect
+- JWT tokens with short expiration
+- Refresh token rotation
+- Rate limiting on auth endpoints
+- Password complexity requirements
+- Consider OAuth2/OpenID Connect
 
 ### 4. Database Security:
 
-- ✅ Use SSL connections
-- ✅ Restrict IP whitelist
-- ✅ Regular backups (automated)
-- ✅ Encrypted at rest
-- ✅ Principle of least privilege (users/roles)
+- Use SSL connections
+- Restrict IP whitelist
+- Regular backups (automated)
+- Encrypted at rest
+- Principle of least privilege (users/roles)
 
 ### 5. Application Security:
 
-- ✅ Input validation (Pydantic models)
-- ✅ SQL injection protection (parameterized queries)
-- ✅ XSS protection (FastAPI handles this)
-- ✅ CSRF tokens (for cookie-based auth)
-- ✅ Security headers (Helmet.js equivalent)
+- Input validation (Pydantic models)
+- SQL injection protection (parameterized queries)
+- XSS protection (FastAPI handles this)
+- CSRF tokens (for cookie-based auth)
+- Security headers (Helmet.js equivalent)
 
 ### 6. Compliance:
 

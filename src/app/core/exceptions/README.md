@@ -277,20 +277,20 @@ raise EmbeddingError(
 ### 1. Choose the Right Exception Type
 
 ```python
-# ❌ BAD: Generic exception
+# BAD: Generic exception
 raise Exception("Something went wrong")
 
-# ✅ GOOD: Specific exception
+# GOOD: Specific exception
 raise ValidationError("Invalid email format", field="email")
 ```
 
 ### 2. Provide Context (But Sanitize!)
 
 ```python
-# ❌ BAD: Exposing sensitive data
+# BAD: Exposing sensitive data
 raise DatabaseError(f"Connection failed: postgres://admin:password@localhost:5432/db")
 
-# ✅ GOOD: Sanitized message, sensitive data in internal_details
+# GOOD: Sanitized message, sensitive data in internal_details
 raise DatabaseError(
     "Database connection failed",
     database="agenthub",
@@ -301,7 +301,7 @@ raise DatabaseError(
 ### 3. Use Details for Client-Safe Info
 
 ```python
-# ✅ GOOD: Client can see safe context
+# GOOD: Client can see safe context
 raise NotFoundError(
     "User not found",
     resource_type="user",  # Goes to details (safe)
@@ -425,7 +425,7 @@ All exceptions return a consistent JSON format:
 
 After implementing this exception hierarchy:
 
-1. ✅ **Exception hierarchy created** (Step 1 - Done!)
+1. **Exception hierarchy created** (Step 1 - Done!)
 2. ⏭️ **Implement global exception handlers** in `main.py`
 3. ⏭️ **Add exception middleware** for request ID tracking
 4. ⏭️ **Migrate existing code** to use new exceptions
