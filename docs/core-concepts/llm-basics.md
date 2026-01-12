@@ -1,6 +1,6 @@
 # LLM Basics: Understanding Large Language Models
 
-> 🎓 **Beginner-Friendly Guide**: This document explains LLMs in simple terms. No prior AI/ML knowledge required!
+> **Beginner-Friendly Guide**: This document explains LLMs in simple terms. No prior AI/ML knowledge required!
 
 ## Table of Contents
 - [What is an LLM?](#what-is-an-llm)
@@ -110,12 +110,12 @@ Context Window = Input Tokens + Output Tokens
 # Example: GPT-4 (8K context window)
 Input:  5,000 tokens (your question + conversation history)
 Output: 3,000 tokens (maximum response length)
-Total:  8,000 tokens (fits within limit ✅)
+Total:  8,000 tokens (fits within limit )
 
 # If you exceed the limit:
 Input:  7,500 tokens
 Output: 2,000 tokens
-Total:  9,500 tokens (exceeds 8K limit ❌)
+Total:  9,500 tokens (exceeds 8K limit )
 ```
 
 **Common Context Windows:**
@@ -311,11 +311,11 @@ async def stream(
 ```
 
 **When to Use Streaming:**
-- ✅ Better user experience (feels faster)
-- ✅ Long responses (articles, code)
-- ✅ Interactive applications
-- ❌ Need complete response before processing
-- ❌ Parsing structured data
+- Better user experience (feels faster)
+- Long responses (articles, code)
+- Interactive applications
+- Need complete response before processing
+- Parsing structured data
 
 ---
 
@@ -615,12 +615,12 @@ Now that you understand LLM basics, explore:
 
 ---
 
-**📚 Additional Resources:**
+**Additional Resources:**
 - [OpenAI Documentation](https://platform.openai.com/docs)
 - [Anthropic Claude Guide](https://docs.anthropic.com)
 - [LangChain Concepts](https://python.langchain.com/docs/get_started/introduction)
 
-**💬 Need Help?**
+**Need Help?**
 - Check our [Tutorials](../tutorials/README.md)
 - See [Architecture Docs](../architecture/overview.md) for more code examples
 - Ask in [Discussions](https://github.com/timothy-odofin/agenthub-be/discussions)

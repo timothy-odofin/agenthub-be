@@ -214,7 +214,7 @@ Sources:
 
 ## When to Use Vector Store
 
-### ✅ Best For:
+### Best For:
 
 **Cross-Source Semantic Search**
 - Searching across Confluence, files, and other sources simultaneously
@@ -231,7 +231,7 @@ Sources:
 - For fast local searches without API calls
 - When semantic similarity is more important than freshness
 
-### ❌ Not Ideal For:
+### Not Ideal For:
 
 **Real-Time Data**
 - Latest Confluence pages (use Confluence tools instead)

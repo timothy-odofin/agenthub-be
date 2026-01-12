@@ -1,6 +1,6 @@
 # Configuration System Guide
 
-> 🔧 **Comprehensive guide** to AgentHub's flexible, YAML-based configuration system with automatic discovery and multiple access patterns
+> **Comprehensive guide** to AgentHub's flexible, YAML-based configuration system with automatic discovery and multiple access patterns
 
 ## Table of Contents
 
@@ -745,15 +745,15 @@ AgentHub provides two primary patterns for accessing configuration.
 **Use Case**: Small to medium projects, rapid development, consistent access
 
 **Advantages**:
-- ✅ Simple and consistent
-- ✅ One import everywhere
-- ✅ Automatic discovery
-- ✅ Zero boilerplate
+- Simple and consistent
+- One import everywhere
+- Automatic discovery
+- Zero boilerplate
 
 **Disadvantages**:
-- ❌ Global state
-- ❌ Less explicit dependencies
-- ❌ Runtime type checking only
+- Global state
+- Less explicit dependencies
+- Runtime type checking only
 
 **Example**:
 
@@ -785,16 +785,16 @@ def connect_database():
 **Use Case**: Large projects, strong typing, explicit dependencies
 
 **Advantages**:
-- ✅ Strong typing
-- ✅ IDE autocompletion
-- ✅ Explicit dependencies
-- ✅ Easier testing (inject configs)
-- ✅ Domain-specific methods
+- Strong typing
+- IDE autocompletion
+- Explicit dependencies
+- Easier testing (inject configs)
+- Domain-specific methods
 
 **Disadvantages**:
-- ❌ More boilerplate
-- ❌ Need to update config classes
-- ❌ Two layers (Settings → Config classes)
+- More boilerplate
+- Need to update config classes
+- Two layers (Settings → Config classes)
 
 **Example**:
 
@@ -1119,12 +1119,12 @@ postgres_config = config_source.get_connection_config('postgres')
 ### 1. Use Environment Variables for Secrets
 
 ```yaml
-# ✅ GOOD
+# GOOD
 database:
   password: "${POSTGRES_PASSWORD}"
   api_key: "${API_KEY}"
 
-# ❌ BAD
+# BAD
 database:
   password: "hardcoded-password"
 ```
@@ -1132,12 +1132,12 @@ database:
 ### 2. Provide Sensible Defaults
 
 ```yaml
-# ✅ GOOD
+# GOOD
 app:
   port: "${API_PORT:8000}"
   timeout: "${TIMEOUT:30}"
 
-# ❌ BAD (will fail if env var not set)
+# BAD (will fail if env var not set)
 app:
   port: "${API_PORT}"
 ```
@@ -1145,7 +1145,7 @@ app:
 ### 3. Group Related Settings
 
 ```yaml
-# ✅ GOOD
+# GOOD
 llm:
   default:
     provider: "openai"
@@ -1154,7 +1154,7 @@ llm:
     openai:
       api_key: "${OPENAI_API_KEY}"
 
-# ❌ BAD (flat structure)
+# BAD (flat structure)
 llm_provider: "openai"
 llm_temperature: 0.1
 openai_api_key: "${OPENAI_API_KEY}"
@@ -1163,7 +1163,7 @@ openai_api_key: "${OPENAI_API_KEY}"
 ### 4. Document Configuration
 
 ```yaml
-# ✅ GOOD - Add comments
+# GOOD - Add comments
 llm:
   # Default LLM provider (openai, anthropic, groq, ollama)
   default_provider: "openai"
@@ -1386,10 +1386,10 @@ export OPENAI_API_KEY="your-key"
 **Solution**: Import Settings locally in functions
 
 ```python
-# ❌ BAD (module level)
+# BAD (module level)
 from app.core.config.framework.settings import settings
 
-# ✅ GOOD (local import)
+# GOOD (local import)
 class MyClass:
     def __init__(self):
         from app.core.config.framework.settings import settings

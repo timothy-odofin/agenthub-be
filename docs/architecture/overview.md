@@ -17,31 +17,31 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 
 ```
 ┌─────────────────────────────────────────────────────────────────┐
-│                         API Layer (FastAPI)                      │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐    │
-│  │   REST APIs  │  │  WebSockets  │  │  Health Endpoints  │    │
-│  └──────────────┘  └──────────────┘  └────────────────────┘    │
+│ API Layer (FastAPI) │
+│ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
+│ │ REST APIs │ │ WebSockets │ │ Health Endpoints │ │
+│ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-                                │
+│
 ┌─────────────────────────────────────────────────────────────────┐
-│                        Service Layer                             │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐    │
-│  │ Agent Service│  │ Session Mgmt │  │  External Services │    │
-│  └──────────────┘  └──────────────┘  └────────────────────┘    │
+│ Service Layer │
+│ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
+│ │ Agent Service│ │ Session Mgmt │ │ External Services │ │
+│ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-                                │
+│
 ┌─────────────────────────────────────────────────────────────────┐
-│                     Core Components Layer                        │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐    │
-│  │  LLM Factory │  │  Tool System │  │  Agent Framework   │    │
-│  └──────────────┘  └──────────────┘  └────────────────────┘    │
+│ Core Components Layer │
+│ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
+│ │ LLM Factory │ │ Tool System │ │ Agent Framework │ │
+│ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
-                                │
+│
 ┌─────────────────────────────────────────────────────────────────┐
-│                   Infrastructure Layer                           │
-│  ┌──────────────┐  ┌──────────────┐  ┌────────────────────┐    │
-│  │  PostgreSQL  │  │   MongoDB    │  │      Redis         │    │
-│  └──────────────┘  └──────────────┘  └────────────────────┘    │
+│ Infrastructure Layer │
+│ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
+│ │ PostgreSQL │ │ MongoDB │ │ Redis │ │
+│ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -51,7 +51,7 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 
 AgentHub provides detailed visual diagrams to help you understand the system architecture and request flows. All diagrams are available in the `diagrams/` directory in both PlantUML source format (`.puml`) and rendered SVG format.
 
-### 📊 Available Diagrams
+### Available Diagrams
 
 #### 1. [System Architecture](diagrams/AgentHub%20System%20Architecture.svg)
 
@@ -103,7 +103,7 @@ AgentHub provides detailed visual diagrams to help you understand the system arc
 **Real example flow:**
 ```
 User: "Show me open bugs in PROJ-123"
-  ↓
+↓
 1. Validate request, authenticate user
 2. Load session history
 3. Create ReAct agent with [Jira, Datadog, Vector] tools
@@ -131,41 +131,41 @@ User: "Show me open bugs in PROJ-123"
 **What it shows - 6 Scenarios:**
 
 1. **Request Validation Error (422)**
-   - Invalid request format
-   - Missing required fields
-   - Early rejection at API layer
-   - Detailed field-level errors
+- Invalid request format
+- Missing required fields
+- Early rejection at API layer
+- Detailed field-level errors
 
 2. **Authentication Error (401)**
-   - Invalid JWT token
-   - Expired token
-   - User not found
-   - Clear user guidance
+- Invalid JWT token
+- Expired token
+- User not found
+- Clear user guidance
 
 3. **LLM Provider Error with Retry**
-   - Rate limit exceeded
-   - Retry with exponential backoff (2s, 4s, 8s)
-   - Circuit breaker monitoring
-   - Transparent to user
+- Rate limit exceeded
+- Retry with exponential backoff (2s, 4s, 8s)
+- Circuit breaker monitoring
+- Transparent to user
 
 4. **Tool Execution Error**
-   - Jira API unavailable
-   - LLM-generated fallback response
-   - Graceful degradation
-   - User informed clearly
+- Jira API unavailable
+- LLM-generated fallback response
+- Graceful degradation
+- User informed clearly
 
 5. **Circuit Breaker Protection**
-   - Provider blocked after 5 failures
-   - Automatic failover to backup provider
-   - User doesn't experience failure
-   - Groq → OpenAI fallback example
+- Provider blocked after 5 failures
+- Automatic failover to backup provider
+- User doesn't experience failure
+- Groq → OpenAI fallback example
 
 6. **Unhandled Exception (500)**
-   - Programming bugs
-   - Sanitized error responses (no stack traces)
-   - Unique error IDs for tracking
-   - Full logging for debugging
-   - Monitoring alerts
+- Programming bugs
+- Sanitized error responses (no stack traces)
+- Unique error IDs for tracking
+- Full logging for debugging
+- Monitoring alerts
 
 **Use this diagram to:**
 - Understand error handling strategy
@@ -177,7 +177,7 @@ User: "Show me open bugs in PROJ-123"
 
 ---
 
-### 🖼️ Viewing the Diagrams
+### ️ Viewing the Diagrams
 
 #### Option 1: VS Code Extension (Recommended)
 
@@ -203,7 +203,7 @@ Simply open the SVG files in the `diagrams/` directory:
 
 ```bash
 # Install PlantUML
-brew install plantuml  # macOS
+brew install plantuml # macOS
 
 # Generate PNG
 plantuml docs/architecture/diagrams/system-architecture.puml
@@ -220,16 +220,16 @@ plantuml docs/architecture/diagrams/*.puml
 ```bash
 # Generate all diagrams as PNG
 docker run --rm -v $(pwd):/data plantuml/plantuml:latest \
-  docs/architecture/diagrams/*.puml
+docs/architecture/diagrams/*.puml
 
 # Generate as SVG
 docker run --rm -v $(pwd):/data plantuml/plantuml:latest \
-  -tsvg docs/architecture/diagrams/*.puml
+-tsvg docs/architecture/diagrams/*.puml
 ```
 
 ---
 
-### 📝 When to Update Diagrams
+### When to Update Diagrams
 
 Update these diagrams when:
 - Adding new components (services, agents, tools)
@@ -240,7 +240,7 @@ Update these diagrams when:
 
 ---
 
-### 💡 Tips for Using Diagrams
+### Tips for Using Diagrams
 
 **System Architecture:**
 - Start from top (User) and follow arrows down
@@ -263,7 +263,7 @@ Update these diagrams when:
 
 ---
 
-### 🔍 Real-World Scenario Examples
+### Real-World Scenario Examples
 
 **Scenario 1: Adding a New Tool** (e.g., GitHub tool)
 1. Update **System Architecture**: Add new tool component to "Tools" section
@@ -298,15 +298,15 @@ The heart of AgentHub's flexibility is its **YAML-based configuration system** w
 **Configuration Files:**
 ```
 resources/
-├── application-app.yaml           # Application settings
-├── application-context.yaml       # Context window configuration
-├── application-data-sources.yaml  # Database connections
-├── application-db.yaml            # Database settings
-├── application-embeddings.yaml    # Embedding configuration
-├── application-external.yaml      # External services (Jira, Confluence)
-├── application-llm.yaml           # LLM provider configuration
-├── application-prompt.yaml        # Prompt templates
-└── application-vector.yaml        # Vector store settings
+├── application-app.yaml # Application settings
+├── application-context.yaml # Context window configuration
+├── application-data-sources.yaml # Database connections
+├── application-db.yaml # Database settings
+├── application-embeddings.yaml # Embedding configuration
+├── application-external.yaml # External services (Jira, Confluence)
+├── application-llm.yaml # LLM provider configuration
+├── application-prompt.yaml # Prompt templates
+└── application-vector.yaml # Vector store settings
 ```
 
 **Example:**
@@ -314,7 +314,7 @@ resources/
 from src.app.core.config import get_settings
 
 settings = get_settings()
-print(settings.llm.openai.api_key)  # Type-safe access
+print(settings.llm.openai.api_key) # Type-safe access
 ```
 
 ### 2. **LLM Factory Pattern**
@@ -341,9 +341,9 @@ from src.app.llm.factory import LLMFactory
 
 # Get LLM instance for any provider
 llm = LLMFactory.create_llm(
-    provider="openai",
-    model="gpt-4",
-    temperature=0.7
+provider="openai",
+model="gpt-4",
+temperature=0.7
 )
 
 response = await llm.generate("Explain RAG")
@@ -388,8 +388,8 @@ from src.app.agent.tools import tool_registry
 
 @tool_registry.register("custom_tool")
 async def my_custom_tool(param: str) -> str:
-    """Tool description for LLM."""
-    return f"Result: {param}"
+"""Tool description for LLM."""
+return f"Result: {param}"
 ```
 
 ### 5. **Session Management**
@@ -505,27 +505,27 @@ Code is written for humans:
 
 ```
 1. Client Request
-   ↓
+↓
 2. API Layer (FastAPI endpoint)
-   ↓
+↓
 3. Request Validation (Pydantic)
-   ↓
+↓
 4. Service Layer (AgentService)
-   ↓
+↓
 5. Session Manager (load conversation history)
-   ↓
+↓
 6. LLM Factory (get configured LLM)
-   ↓
+↓
 7. Agent Framework (process with tools)
-   ↓
+↓
 8. Tool Execution (if needed - Jira, Datadog, etc.)
-   ↓
+↓
 9. LLM Generation (call provider API)
-   ↓
+↓
 10. Response Processing (format, validate)
-    ↓
+↓
 11. Session Update (save history)
-    ↓
+↓
 12. Client Response (WebSocket or REST)
 ```
 
@@ -533,23 +533,23 @@ Code is written for humans:
 
 ```
 1. User Query
-   ↓
+↓
 2. Query Analysis (intent detection)
-   ↓
+↓
 3. Embedding Generation (text → vector)
-   ↓
+↓
 4. Vector Search (find relevant docs)
-   ↓
+↓
 5. Context Retrieval (fetch document chunks)
-   ↓
+↓
 6. Context Window Management (fit within token limit)
-   ↓
+↓
 7. Prompt Construction (query + context)
-   ↓
+↓
 8. LLM Generation (answer synthesis)
-   ↓
+↓
 9. Citation Addition (link to sources)
-   ↓
+↓
 10. Response Delivery
 ```
 
@@ -561,53 +561,53 @@ Code is written for humans:
 
 ```
 ┌──────────────┐
-│   Client     │
+│ Client │
 └──────┬───────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  FastAPI Endpoint                    │
-│  - Authenticate                      │
-│  - Validate request                  │
+│ FastAPI Endpoint │
+│ - Authenticate │
+│ - Validate request │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  Session Manager                     │
-│  - Load session                      │
-│  - Check context window              │
+│ Session Manager │
+│ - Load session │
+│ - Check context window │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  MongoDB/Redis                       │
-│  - Retrieve conversation history     │
-│  - Get user preferences              │
+│ MongoDB/Redis │
+│ - Retrieve conversation history │
+│ - Get user preferences │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  Agent Service                       │
-│  - Process with context              │
-│  - Execute tools if needed           │
+│ Agent Service │
+│ - Process with context │
+│ - Execute tools if needed │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  LLM Provider                        │
-│  - Generate response                 │
+│ LLM Provider │
+│ - Generate response │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────────────────────────────┐
-│  Session Manager                     │
-│  - Update conversation history       │
-│  - Save to storage                   │
+│ Session Manager │
+│ - Update conversation history │
+│ - Save to storage │
 └──────┬───────────────────────────────┘
-       │
-       ↓
+│
+↓
 ┌──────────────┐
-│   Client     │
+│ Client │
 └──────────────┘
 ```
 
@@ -656,9 +656,9 @@ AgentHub leverages multiple design patterns for maintainability and extensibilit
 **Multi-Layer Caching:**
 ```
 Redis (hot cache)
-    ↓
+↓
 MongoDB (warm cache)
-    ↓
+↓
 PostgreSQL (cold storage)
 ```
 
@@ -728,17 +728,17 @@ PostgreSQL (cold storage)
 ```yaml
 # application-app.yaml
 app:
-  name: "agenthub"
-  version: "1.0.0"
-  environment: "${APP_ENV:dev}"  # dev, test, prod
-  
-  profiles:
-    dev:
-      debug: true
-      reload: true
-    prod:
-      debug: false
-      workers: 4
+name: "agenthub"
+version: "1.0.0"
+environment: "${APP_ENV:dev}" # dev, test, prod
+
+profiles:
+dev:
+debug: true
+reload: true
+prod:
+debug: false
+workers: 4
 ```
 
 ### Secret Management
@@ -763,13 +763,13 @@ DATABASE_URL=postgresql://user:pass@localhost/db
 ### Test Pyramid
 
 ```
-           ┌────────────┐
-          /    E2E       \      (10%)
-         ├────────────────┤
-        /   Integration    \    (30%)
-       ├────────────────────┤
-      /      Unit Tests      \  (60%)
-     └────────────────────────┘
+┌────────────┐
+/ E2E \ (10%)
+├────────────────┤
+/ Integration \ (30%)
+├────────────────────┤
+/ Unit Tests \ (60%)
+└────────────────────────┘
 ```
 
 **Test Coverage:**
@@ -780,9 +780,9 @@ DATABASE_URL=postgresql://user:pass@localhost/db
 **Test Organization:**
 ```
 tests/
-├── unit/           # Fast, isolated tests
-├── integration/    # Database, API tests
-└── e2e/           # Full system tests
+├── unit/ # Fast, isolated tests
+├── integration/ # Database, API tests
+└── e2e/ # Full system tests
 ```
 
 ---
@@ -874,6 +874,6 @@ Kubernetes Cluster
 
 ---
 
-**Last Updated**: January 8, 2026  
-**Maintainer**: AgentHub Team  
-**Status**: ✅ Production-ready
+**Last Updated**: January 8, 2026 
+**Maintainer**: AgentHub Team 
+**Status**: Production-ready

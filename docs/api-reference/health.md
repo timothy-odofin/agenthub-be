@@ -1,12 +1,12 @@
 # Health API
 
-> 🏥 **System health checks and monitoring** for production readiness
+> **System health checks and monitoring** for production readiness
 
 ## Overview
 
 The Health API provides endpoints to monitor system status, check component health, and verify worker processes.
 
-**Base Path**: `/api/v1/health/`  
+**Base Path**: `/api/v1/health/` 
 **Authentication**: Not required (public endpoints)
 
 ---
@@ -27,16 +27,16 @@ curl http://localhost:8000/api/v1/health/test-celery
 **Success Response** (200 OK):
 ```json
 {
-  "task_id": "a4f3c2e1-5d6a-4b8c-9e2f-1a3b5c7d9e1f",
-  "message": "Task sent to Celery"
+"task_id": "a4f3c2e1-5d6a-4b8c-9e2f-1a3b5c7d9e1f",
+"message": "Task sent to Celery"
 }
 ```
 
 **What It Tests**:
-- ✅ Celery worker is running
-- ✅ Redis broker is accessible
-- ✅ Task can be queued
-- ✅ Background processing is operational
+- Celery worker is running
+- Redis broker is accessible
+- Task can be queued
+- Background processing is operational
 
 **Example Usage**:
 
@@ -46,10 +46,10 @@ import requests
 response = requests.get("http://localhost:8000/api/v1/health/test-celery")
 
 if response.status_code == 200:
-    data = response.json()
-    print(f"✓ Celery is working! Task ID: {data['task_id']}")
+data = response.json()
+print(f"Celery is working! Task ID: {data['task_id']}")
 else:
-    print("✗ Celery is down!")
+print(" Celery is down!")
 ```
 
 ---
@@ -61,48 +61,48 @@ else:
 **Planned Response**:
 ```json
 {
-  "status": "healthy",
-  "timestamp": "2026-01-10T14:30:00Z",
-  "version": "1.0.0",
-  "components": {
-    "api": {
-      "status": "up",
-      "response_time_ms": 5.2
-    },
-    "database": {
-      "status": "up",
-      "response_time_ms": 12.8,
-      "connections": {
-        "active": 5,
-        "idle": 15,
-        "max": 20
-      }
-    },
-    "redis": {
-      "status": "up",
-      "response_time_ms": 2.1,
-      "memory_used_mb": 45.3
-    },
-    "celery": {
-      "status": "up",
-      "workers": 4,
-      "active_tasks": 2,
-      "pending_tasks": 0
-    },
-    "vector_db": {
-      "status": "up",
-      "response_time_ms": 25.4,
-      "collections": 3
-    },
-    "llm": {
-      "status": "up",
-      "provider": "openai",
-      "model": "gpt-4",
-      "response_time_ms": 450.2
-    }
-  },
-  "uptime_seconds": 3600,
-  "environment": "production"
+"status": "healthy",
+"timestamp": "2026-01-10T14:30:00Z",
+"version": "1.0.0",
+"components": {
+"api": {
+"status": "up",
+"response_time_ms": 5.2
+},
+"database": {
+"status": "up",
+"response_time_ms": 12.8,
+"connections": {
+"active": 5,
+"idle": 15,
+"max": 20
+}
+},
+"redis": {
+"status": "up",
+"response_time_ms": 2.1,
+"memory_used_mb": 45.3
+},
+"celery": {
+"status": "up",
+"workers": 4,
+"active_tasks": 2,
+"pending_tasks": 0
+},
+"vector_db": {
+"status": "up",
+"response_time_ms": 25.4,
+"collections": 3
+},
+"llm": {
+"status": "up",
+"provider": "openai",
+"model": "gpt-4",
+"response_time_ms": 450.2
+}
+},
+"uptime_seconds": 3600,
+"environment": "production"
 }
 ```
 
@@ -116,20 +116,20 @@ else:
 import requests
 
 def check_health():
-    """Simple health check."""
-    try:
-        response = requests.get(
-            "http://localhost:8000/api/v1/health/test-celery",
-            timeout=5
-        )
-        return response.status_code == 200
-    except:
-        return False
+"""Simple health check."""
+try:
+response = requests.get(
+"http://localhost:8000/api/v1/health/test-celery",
+timeout=5
+)
+return response.status_code == 200
+except:
+return False
 
 if check_health():
-    print("✓ System is healthy")
+print("System is healthy")
 else:
-    print("✗ System is down")
+print(" System is down")
 ```
 
 ---
@@ -138,41 +138,41 @@ else:
 
 ```python
 def check_components():
-    """Check individual components."""
-    checks = {
-        "celery": check_celery(),
-        "database": check_database(),
-        "redis": check_redis(),
-    }
-    
-    all_healthy = all(checks.values())
-    
-    for component, status in checks.items():
-        icon = "✓" if status else "✗"
-        print(f"{icon} {component}: {'UP' if status else 'DOWN'}")
-    
-    return all_healthy
+"""Check individual components."""
+checks = {
+"celery": check_celery(),
+"database": check_database(),
+"redis": check_redis(),
+}
+
+all_healthy = all(checks.values())
+
+for component, status in checks.items():
+icon = "" if status else ""
+print(f"{icon} {component}: {'UP' if status else 'DOWN'}")
+
+return all_healthy
 
 def check_celery():
-    """Check Celery workers."""
-    try:
-        response = requests.get(
-            "http://localhost:8000/api/v1/health/test-celery",
-            timeout=5
-        )
-        return response.status_code == 200
-    except:
-        return False
+"""Check Celery workers."""
+try:
+response = requests.get(
+"http://localhost:8000/api/v1/health/test-celery",
+timeout=5
+)
+return response.status_code == 200
+except:
+return False
 
 def check_database():
-    """Check database connection."""
-    # Your database check logic
-    pass
+"""Check database connection."""
+# Your database check logic
+pass
 
 def check_redis():
-    """Check Redis connection."""
-    # Your Redis check logic
-    pass
+"""Check Redis connection."""
+# Your Redis check logic
+pass
 ```
 
 ---
@@ -184,22 +184,22 @@ import time
 from datetime import datetime
 
 def monitor_health(interval=60):
-    """Continuously monitor health."""
-    while True:
-        timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
-        healthy = check_health()
-        
-        status = "✓ HEALTHY" if healthy else "✗ UNHEALTHY"
-        print(f"[{timestamp}] {status}")
-        
-        if not healthy:
-            # Alert logic here
-            send_alert("System health check failed!")
-        
-        time.sleep(interval)
+"""Continuously monitor health."""
+while True:
+timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+healthy = check_health()
+
+status = "HEALTHY" if healthy else " UNHEALTHY"
+print(f"[{timestamp}] {status}")
+
+if not healthy:
+# Alert logic here
+send_alert("System health check failed!")
+
+time.sleep(interval)
 
 # Run monitoring
-monitor_health(interval=60)  # Check every minute
+monitor_health(interval=60) # Check every minute
 ```
 
 ---
@@ -212,13 +212,13 @@ Check if application is running:
 
 ```yaml
 livenessProbe:
-  httpGet:
-    path: /api/v1/health/test-celery
-    port: 8000
-  initialDelaySeconds: 30
-  periodSeconds: 10
-  timeoutSeconds: 5
-  failureThreshold: 3
+httpGet:
+path: /api/v1/health/test-celery
+port: 8000
+initialDelaySeconds: 30
+periodSeconds: 10
+timeoutSeconds: 5
+failureThreshold: 3
 ```
 
 ### Readiness Probe
@@ -227,13 +227,13 @@ Check if application is ready to serve traffic:
 
 ```yaml
 readinessProbe:
-  httpGet:
-    path: /api/v1/health/test-celery
-    port: 8000
-  initialDelaySeconds: 10
-  periodSeconds: 5
-  timeoutSeconds: 3
-  failureThreshold: 3
+httpGet:
+path: /api/v1/health/test-celery
+port: 8000
+initialDelaySeconds: 10
+periodSeconds: 5
+timeoutSeconds: 3
+failureThreshold: 3
 ```
 
 ---
@@ -246,7 +246,7 @@ FROM python:3.11
 # ... your Dockerfile content ...
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=30s --retries=3 \
-  CMD curl -f http://localhost:8000/api/v1/health/test-celery || exit 1
+CMD curl -f http://localhost:8000/api/v1/health/test-celery || exit 1
 ```
 
 ---
@@ -263,11 +263,11 @@ URL="http://localhost:8000/api/v1/health/test-celery"
 RESPONSE=$(curl -s -o /dev/null -w "%{http_code}" $URL)
 
 if [ "$RESPONSE" -eq 200 ]; then
-    echo "OK - AgentHub is healthy"
-    exit 0
+echo "OK - AgentHub is healthy"
+exit 0
 else
-    echo "CRITICAL - AgentHub is down (HTTP $RESPONSE)"
-    exit 2
+echo "CRITICAL - AgentHub is down (HTTP $RESPONSE)"
+exit 2
 fi
 ```
 
@@ -310,15 +310,15 @@ agenthub_response_time_seconds_bucket{le="0.5"} 1200
 
 ```json
 {
-  "status": "healthy",
-  "components": {
-    "api": "up",
-    "database": "up",
-    "redis": "up",
-    "celery": "up",
-    "vector_db": "up",
-    "llm": "up"
-  }
+"status": "healthy",
+"components": {
+"api": "up",
+"database": "up",
+"redis": "up",
+"celery": "up",
+"vector_db": "up",
+"llm": "up"
+}
 }
 ```
 
@@ -326,18 +326,18 @@ agenthub_response_time_seconds_bucket{le="0.5"} 1200
 
 ```json
 {
-  "status": "degraded",
-  "components": {
-    "api": "up",
-    "database": "up",
-    "redis": "up",
-    "celery": "up",
-    "vector_db": "degraded",  // Slow responses
-    "llm": "up"
-  },
-  "warnings": [
-    "Vector DB response time > 1s"
-  ]
+"status": "degraded",
+"components": {
+"api": "up",
+"database": "up",
+"redis": "up",
+"celery": "up",
+"vector_db": "degraded", // Slow responses
+"llm": "up"
+},
+"warnings": [
+"Vector DB response time > 1s"
+]
 }
 ```
 
@@ -345,19 +345,19 @@ agenthub_response_time_seconds_bucket{le="0.5"} 1200
 
 ```json
 {
-  "status": "unhealthy",
-  "components": {
-    "api": "up",
-    "database": "down",  // Critical failure
-    "redis": "up",
-    "celery": "down",  // Workers offline
-    "vector_db": "up",
-    "llm": "up"
-  },
-  "errors": [
-    "MongoDB connection refused",
-    "No Celery workers available"
-  ]
+"status": "unhealthy",
+"components": {
+"api": "up",
+"database": "down", // Critical failure
+"redis": "up",
+"celery": "down", // Workers offline
+"vector_db": "up",
+"llm": "up"
+},
+"errors": [
+"MongoDB connection refused",
+"No Celery workers available"
+]
 }
 ```
 
@@ -368,43 +368,43 @@ agenthub_response_time_seconds_bucket{le="0.5"} 1200
 ### 1. Regular Health Checks
 
 ```python
-# ✅ GOOD - Check health regularly
+# GOOD - Check health regularly
 import schedule
 
 def job():
-    if not check_health():
-        alert_ops_team()
+if not check_health():
+alert_ops_team()
 
 schedule.every(1).minutes.do(job)
 
 while True:
-    schedule.run_pending()
-    time.sleep(1)
+schedule.run_pending()
+time.sleep(1)
 ```
 
 ### 2. Timeout Configuration
 
 ```python
-# ✅ GOOD - Set reasonable timeouts
+# GOOD - Set reasonable timeouts
 response = requests.get(
-    health_url,
-    timeout=5  # Don't wait forever
+health_url,
+timeout=5 # Don't wait forever
 )
 
-# ❌ BAD - No timeout
+# BAD - No timeout
 response = requests.get(health_url)
 ```
 
 ### 3. Graceful Degradation
 
 ```python
-# ✅ GOOD - Continue with degraded service
+# GOOD - Continue with degraded service
 if not celery_healthy():
-    # Use synchronous processing
-    process_sync(data)
+# Use synchronous processing
+process_sync(data)
 else:
-    # Use async background processing
-    process_async.delay(data)
+# Use async background processing
+process_async.delay(data)
 ```
 
 ---
@@ -478,7 +478,7 @@ pg_isready -h localhost -p 5432
 
 ---
 
-**Last Updated**: January 10, 2026  
+**Last Updated**: January 10, 2026 
 **Status**: Production Ready
 
 ---

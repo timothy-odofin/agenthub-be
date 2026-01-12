@@ -1,6 +1,6 @@
 # Resources Directory: Flexible Configuration Management
 
-> 📂 **YAML-based configuration system** that provides flexible, environment-specific settings accessible via `settings.profile_name`
+> **YAML-based configuration system** that provides flexible, environment-specific settings accessible via `settings.profile_name`
 
 ## Table of Contents
 - [What is the Resources Directory?](#what-is-the-resources-directory)
@@ -27,12 +27,12 @@
 
 The `resources/` directory contains **YAML configuration files** that define all application settings. This provides:
 
-- ✅ **Centralized Configuration** - All settings in one place
-- ✅ **Environment Profiles** - Different configs for dev/staging/prod
-- ✅ **Type Safety** - Validated configuration with Pydantic
-- ✅ **Flexible Access** - Get entire profiles as dictionaries
-- ✅ **Easy Override** - Environment variables can override any setting
-- ✅ **Version Control** - Track configuration changes in git
+- **Centralized Configuration** - All settings in one place
+- **Environment Profiles** - Different configs for dev/staging/prod
+- **Type Safety** - Validated configuration with Pydantic
+- **Flexible Access** - Get entire profiles as dictionaries
+- **Easy Override** - Environment variables can override any setting
+- **Version Control** - Track configuration changes in git
 
 ---
 
@@ -298,7 +298,7 @@ from app.core.config import Settings
 
 settings = Settings.instance()
 
-# Access with dot notation ✨
+# Access with dot notation 
 provider = settings.llm.default_provider       # 'openai'
 temperature = settings.llm.temperature         # 0.1
 api_key = settings.llm.providers.openai.api_key
@@ -572,7 +572,7 @@ port = api['port']
 
 ## Configuration Files
 
-### Automatic Environment Variable Detection ⚡
+### Automatic Environment Variable Detection 
 
 **AgentHub automatically detects and resolves environment variables** anywhere in your YAML configuration files using the `${VARIABLE_NAME}` syntax!
 
@@ -611,11 +611,11 @@ Step 3: Value automatically injected
 
 #### Features
 
-✅ **Works Everywhere**: Use in any YAML file, any key, any nesting level  
-✅ **Automatic Detection**: No special code needed  
-✅ **Type Preservation**: Strings stay strings, numbers stay numbers  
-✅ **Default Values**: Optional fallback with `:default` syntax  
-✅ **Error Handling**: Clear error if required variable missing  
+**Works Everywhere**: Use in any YAML file, any key, any nesting level  
+**Automatic Detection**: No special code needed  
+**Type Preservation**: Strings stay strings, numbers stay numbers  
+**Default Values**: Optional fallback with `:default` syntax  
+**Error Handling**: Clear error if required variable missing  
 
 #### Syntax Options
 
@@ -656,7 +656,7 @@ print(llm_config['temperature'])
 # Output: 0.7  (actual value, not "${OPENAI_TEMPERATURE:0.7}")
 ```
 
-**💡 Key Point**: By the time you access `settings.profile_name`, all `${VARIABLE_NAME}` patterns have been automatically replaced with actual values from your environment!
+**Key Point**: By the time you access `settings.profile_name`, all `${VARIABLE_NAME}` patterns have been automatically replaced with actual values from your environment!
 
 ---
 
@@ -911,11 +911,11 @@ cache_ttl = custom_config['api']['cache_ttl']
 ### 1. Use Environment Variables for Secrets
 
 ```yaml
-# ✅ GOOD: Use environment variables for sensitive data
+# GOOD: Use environment variables for sensitive data
 database:
   password: "${POSTGRES_PASSWORD}"
 
-# ❌ BAD: Don't hardcode secrets
+# BAD: Don't hardcode secrets
 database:
   password: "my_secret_password"  # Never do this!
 ```
@@ -923,12 +923,12 @@ database:
 ### 2. Provide Sensible Defaults
 
 ```yaml
-# ✅ GOOD: Provide defaults for non-sensitive settings
+# GOOD: Provide defaults for non-sensitive settings
 llm:
   temperature: "${TEMPERATURE:0.7}"   # Default to 0.7
   max_tokens: "${MAX_TOKENS:1000}"    # Default to 1000
 
-# ❌ BAD: No defaults means it will fail if env var missing
+# BAD: No defaults means it will fail if env var missing
 llm:
   temperature: "${TEMPERATURE}"       # Will error if not set
 ```
@@ -936,7 +936,7 @@ llm:
 ### 3. Group Related Settings
 
 ```yaml
-# ✅ GOOD: Logical grouping
+# GOOD: Logical grouping
 llm:
   providers:
     openai:
@@ -949,7 +949,7 @@ llm:
       model: "..."
       temperature: 0.1
 
-# ❌ BAD: Flat structure
+# BAD: Flat structure
 openai_api_key: "..."
 openai_model: "..."
 anthropic_api_key: "..."
@@ -959,7 +959,7 @@ anthropic_model: "..."
 ### 4. Document Your Configuration
 
 ```yaml
-# ✅ GOOD: Add comments
+# GOOD: Add comments
 llm:
   # Default LLM provider (openai, anthropic, groq, etc.)
   default_provider: "openai"
@@ -1047,16 +1047,16 @@ def create_llm():
 ```
 
 **Pros:**
-- ✅ Simple and consistent
-- ✅ One import pattern everywhere
-- ✅ Easy to test (mock Settings.instance())
-- ✅ Automatic discovery of new configuration files
-- ✅ No need to maintain separate config classes
+- Simple and consistent
+- One import pattern everywhere
+- Easy to test (mock Settings.instance())
+- Automatic discovery of new configuration files
+- No need to maintain separate config classes
 
 **Cons:**
-- ❌ Global state (can make testing more complex)
-- ❌ Less explicit dependencies
-- ❌ Everything loads at startup (even unused configs)
+- Global state (can make testing more complex)
+- Less explicit dependencies
+- Everything loads at startup (even unused configs)
 
 ### Approach 2: Domain-Specific Config Classes
 
@@ -1145,16 +1145,16 @@ temperature = llm_config.temperature
 ```
 
 **Pros:**
-- ✅ Strong typing and IDE support
-- ✅ Explicit dependencies (easier to test)
-- ✅ Domain-specific validation and methods
-- ✅ Better for large teams
-- ✅ Encapsulates configuration logic
+- Strong typing and IDE support
+- Explicit dependencies (easier to test)
+- Domain-specific validation and methods
+- Better for large teams
+- Encapsulates configuration logic
 
 **Cons:**
-- ❌ More boilerplate code
-- ❌ Need to create/update config classes
-- ❌ Two layers (YAML → Settings → Config classes)
+- More boilerplate code
+- Need to create/update config classes
+- Two layers (YAML → Settings → Config classes)
 
 ### Comparison Table
 
@@ -1278,8 +1278,8 @@ response = await llm.generate(
 echo $OPENAI_API_KEY
 
 # Check 2: Syntax is correct
-api_key: "${OPENAI_API_KEY}"  # ✅ Correct
-api_key: "$OPENAI_API_KEY"    # ❌ Wrong (missing braces)
+api_key: "${OPENAI_API_KEY}"  # Correct
+api_key: "$OPENAI_API_KEY"    # Wrong (missing braces)
 ```
 
 ### Issue 3: KeyError When Accessing Nested Config

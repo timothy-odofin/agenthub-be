@@ -12,7 +12,7 @@ AgentHub provides AI agents with access to various external tools and services t
 
 ## Safety & Confirmation
 
-### **[Confirmation Workflow](./confirmation-workflow.md)** 🔒
+### **[Confirmation Workflow](./confirmation-workflow.md)** 
 Two-phase confirmation protocol for mutating actions.
 
 **Key Features:**
@@ -34,7 +34,7 @@ Two-phase confirmation protocol for mutating actions.
 - Creating GitHub PRs with confirmation
 - Any operation that modifies external systems
 
-**⚠️ REQUIRED** for all mutating operations:
+**REQUIRED** for all mutating operations:
 - Creating/updating/deleting resources
 - Adding comments or mentions
 - Triggering workflows or notifications
@@ -45,7 +45,7 @@ Two-phase confirmation protocol for mutating actions.
 
 ### Atlassian Tools
 
-#### **[Confluence Tools](./confluence-tools.md)** 📄
+#### **[Confluence Tools](./confluence-tools.md)** 
 Real-time access to Confluence spaces, pages, and content.
 
 **Key Features:**
@@ -69,7 +69,7 @@ Real-time access to Confluence spaces, pages, and content.
 
 ---
 
-#### **[Jira Tools](./jira-tools.md)** 🎫
+#### **[Jira Tools](./jira-tools.md)** 
 Issue tracking and project management with Jira.
 
 **Key Features:**
@@ -94,7 +94,7 @@ Issue tracking and project management with Jira.
 
 ### Monitoring & Observability
 
-#### **[Datadog Tools](./datadog-tools.md)** 📊
+#### **[Datadog Tools](./datadog-tools.md)** 
 System monitoring and performance metrics from Datadog.
 
 **Key Features:**
@@ -113,7 +113,7 @@ System monitoring and performance metrics from Datadog.
 
 ### Version Control
 
-#### **GitHub Tools** 🐙
+#### **GitHub Tools** 
 *(Documentation to be added)*
 
 Access to GitHub repositories, issues, and pull requests.
@@ -128,7 +128,7 @@ Access to GitHub repositories, issues, and pull requests.
 
 ### Knowledge Management
 
-#### **[Vector Store Tools](./vector-store-tools.md)** 🔍
+#### **[Vector Store Tools](./vector-store-tools.md)** 
 Semantic search across your embedded knowledge base.
 
 **Key Features:**
@@ -153,7 +153,7 @@ Semantic search across your embedded knowledge base.
 
 ### When to Use Real-Time Tools (Confluence, Jira, GitHub, Datadog)
 
-✅ **Preferred** when:
+**Preferred** when:
 - Need **latest/current/up-to-date** information
 - Querying specific service (e.g., "search Confluence", "check Datadog metrics")
 - Listing/discovering resources (spaces, projects, repos)
@@ -168,7 +168,7 @@ Semantic search across your embedded knowledge base.
 
 ### When to Use Vector Store
 
-✅ **Use** when:
+**Use** when:
 - User explicitly requests "search knowledge base" or "search all documents"
 - Need **cross-source semantic search** (Confluence + files + URLs)
 - Semantic similarity more important than real-time accuracy
@@ -188,30 +188,30 @@ All tools are configured in `resources/application-tools.yaml`:
 
 ```yaml
 tools:
-  confluence:
-    enabled: true
-    available_tools:
-      # Tool configuration...
-  
-  jira:
-    enabled: true
-    available_tools:
-      # Tool configuration...
-  
-  github:
-    enabled: true
-    available_tools:
-      # Tool configuration...
-  
-  datadog:
-    enabled: true
-    available_tools:
-      # Tool configuration...
-  
-  vector:
-    enabled: true
-    available_tools:
-      # Tool configuration...
+confluence:
+enabled: true
+available_tools:
+# Tool configuration...
+
+jira:
+enabled: true
+available_tools:
+# Tool configuration...
+
+github:
+enabled: true
+available_tools:
+# Tool configuration...
+
+datadog:
+enabled: true
+available_tools:
+# Tool configuration...
+
+vector:
+enabled: true
+available_tools:
+# Tool configuration...
 ```
 
 ### LLM Guidance
@@ -232,28 +232,28 @@ All tool integrations follow a consistent pattern:
 ```python
 @ToolRegistry.register("tool_name", "category")
 class ToolProvider:
-    def get_tools(self) -> List[StructuredTool]:
-        return [tool1, tool2, tool3]
+def get_tools(self) -> List[StructuredTool]:
+return [tool1, tool2, tool3]
 ```
 
 ### 2. Lazy Service Loading
 ```python
 @property
 def service(self):
-    if self._service is None:
-        from app.services.external.service import Service
-        self._service = Service()
-    return self._service
+if self._service is None:
+from app.services.external.service import Service
+self._service = Service()
+return self._service
 ```
 
 ### 3. Service Availability Check
 ```python
 def tool_function(param: str) -> str:
-    service = self.service
-    if not service:
-        return json.dumps({"status": "error", "error": "Service not available"})
-    
-    # Tool implementation...
+service = self.service
+if not service:
+return json.dumps({"status": "error", "error": "Service not available"})
+
+# Tool implementation...
 ```
 
 ### 4. Structured Tool Definition
@@ -261,13 +261,13 @@ def tool_function(param: str) -> str:
 from langchain.pydantic_v1 import BaseModel, Field
 
 class ToolInput(BaseModel):
-    param: str = Field(..., description="Parameter description")
+param: str = Field(..., description="Parameter description")
 
 tool = StructuredTool.from_function(
-    func=tool_function,
-    name="tool_name",
-    description="Tool description",
-    args_schema=ToolInput
+func=tool_function,
+name="tool_name",
+description="Tool description",
+args_schema=ToolInput
 )
 ```
 
@@ -278,34 +278,34 @@ tool = StructuredTool.from_function(
 To add a new tool integration:
 
 1. **Implement Service** (if needed):
-   - Create in `src/app/services/external/`
-   - Follow singleton or factory pattern
-   - Add credentials to `resources/application-external.yaml`
+- Create in `src/app/services/external/`
+- Follow singleton or factory pattern
+- Add credentials to `resources/application-external.yaml`
 
 2. **Create Tool Provider**:
-   - Create in `src/app/agent/tools/<category>/`
-   - Use `@ToolRegistry.register()` decorator
-   - Implement `get_tools()` method
-   - Follow lazy loading pattern
+- Create in `src/app/agent/tools/<category>/`
+- Use `@ToolRegistry.register()` decorator
+- Implement `get_tools()` method
+- Follow lazy loading pattern
 
 3. **Configure Tools**:
-   - Add to `resources/application-tools.yaml`
-   - Define enabled state and categories
+- Add to `resources/application-tools.yaml`
+- Define enabled state and categories
 
 4. **Update Prompts**:
-   - Add to `resources/application-prompt.yaml`
-   - Provide LLM guidance on when to use
-   - Add examples
+- Add to `resources/application-prompt.yaml`
+- Provide LLM guidance on when to use
+- Add examples
 
 5. **Write Tests**:
-   - Create unit tests in `tests/unit/agent/tools/`
-   - Mock external services
-   - Test all scenarios (success, errors, unavailable)
+- Create unit tests in `tests/unit/agent/tools/`
+- Mock external services
+- Test all scenarios (success, errors, unavailable)
 
 6. **Document**:
-   - Create guide in `docs/guides/tools/`
-   - Follow existing pattern (see confluence-tools.md, datadog-tools.md)
-   - Update this README
+- Create guide in `docs/guides/tools/`
+- Follow existing pattern (see confluence-tools.md, datadog-tools.md)
+- Update this README
 
 ---
 
@@ -325,12 +325,12 @@ pytest tests/unit/agent/tools/ --cov=src/app/agent/tools --cov-report=html
 ```
 
 **Testing Best Practices:**
-- ✅ Mock all external service calls
-- ✅ Test success scenarios
-- ✅ Test error scenarios
-- ✅ Test service unavailable scenarios
-- ✅ Test parameter validation
-- ✅ Use PropertyMock for property mocking
+- Mock all external service calls
+- Test success scenarios
+- Test error scenarios
+- Test service unavailable scenarios
+- Test parameter validation
+- Use PropertyMock for property mocking
 
 ---
 
@@ -347,22 +347,22 @@ pytest tests/unit/agent/tools/ --cov=src/app/agent/tools --cov-report=html
 
 | Tool | Real-Time | Cost | Latency | Use Case |
 |------|-----------|------|---------|----------|
-| **Confluence** | ✅ Yes | API calls | ~500ms | Latest documentation |
-| **Jira** | ✅ Yes | API calls | ~500ms | Current issue status |
-| **GitHub** | ✅ Yes | API calls | ~500ms | Repository data |
-| **Datadog** | ✅ Yes | API calls | ~500ms | System metrics |
-| **Vector Store** | ❌ Embedded | Embedding | ~100ms | Cross-source search |
+| **Confluence** | Yes | API calls | ~500ms | Latest documentation |
+| **Jira** | Yes | API calls | ~500ms | Current issue status |
+| **GitHub** | Yes | API calls | ~500ms | Repository data |
+| **Datadog** | Yes | API calls | ~500ms | System metrics |
+| **Vector Store** | Embedded | Embedding | ~100ms | Cross-source search |
 
 ---
 
 ## Summary
 
 AgentHub's tool system provides:
-- ✅ **Real-time access** to external services
-- ✅ **Configuration-driven** enabling/disabling
-- ✅ **LLM-guided** intelligent tool selection
-- ✅ **Comprehensive documentation** for each integration
-- ✅ **Consistent patterns** across all tools
-- ✅ **Production-ready** error handling
+- **Real-time access** to external services
+- **Configuration-driven** enabling/disabling
+- **LLM-guided** intelligent tool selection
+- **Comprehensive documentation** for each integration
+- **Consistent patterns** across all tools
+- **Production-ready** error handling
 
 Each tool integration is documented with examples, use cases, configuration, and best practices. Start with the specific tool guide that matches your needs.
