@@ -8,9 +8,9 @@ from typing import Optional, Dict, Any
 from fastapi import Depends, Request, status
 from fastapi.security import HTTPBearer, HTTPAuthorizationCredentials
 
-from src.app.core.security.token_manager import token_manager
-from src.app.db.repositories.user_repository import user_repository
-from src.app.db.models.user import UserInDB
+from app.core.security.token_manager import token_manager
+from app.db.repositories.user_repository import user_repository
+from app.db.models.user import UserInDB
 from app.core.exceptions import AuthenticationError
 
 

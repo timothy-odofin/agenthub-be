@@ -11,8 +11,8 @@ from pymongo.database import Database
 from pymongo.errors import DuplicateKeyError, PyMongoError
 from bson import ObjectId
 
-from src.app.db.models.user import User, UserInDB
-from src.app.core.utils.logger import get_logger
+from app.db.models.user import User, UserInDB
+from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
@@ -43,7 +43,7 @@ class UserRepository:
     def db(self) -> Database:
         """Get database instance, connecting if necessary."""
         if self._db is None:
-            from src.app.connections import ConnectionFactory, ConnectionType
+            from app.connections import ConnectionFactory, ConnectionType
             connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)
             connection_manager.connect()
             self._db = connection_manager.get_database()

@@ -10,6 +10,37 @@ AgentHub provides AI agents with access to various external tools and services t
 - **Well-documented**: Clear parameters and examples
 - **Production-ready**: Error handling and service availability checks
 
+## Safety & Confirmation
+
+### **[Confirmation Workflow](./confirmation-workflow.md)** 🔒
+Two-phase confirmation protocol for mutating actions.
+
+**Key Features:**
+- Prepare-confirm pattern for all mutating operations
+- User review and approval before execution
+- Action preview with detailed descriptions
+- Automatic expiration (5 minutes)
+- Risk level classification
+
+**Available Tools:**
+- `prepare_action` - Prepare action for user review
+- `confirm_action` - Execute after user approval
+- `cancel_action` - Cancel pending action
+- `list_pending_actions` - View all pending confirmations
+
+**Use Cases:**
+- Creating Jira issues with user approval
+- Adding comments/mentions after review
+- Creating GitHub PRs with confirmation
+- Any operation that modifies external systems
+
+**⚠️ REQUIRED** for all mutating operations:
+- Creating/updating/deleting resources
+- Adding comments or mentions
+- Triggering workflows or notifications
+
+---
+
 ## Available Tool Integrations
 
 ### Atlassian Tools

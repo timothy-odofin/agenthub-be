@@ -140,6 +140,126 @@ class MongoSessionRepository(BaseSessionRepository):
         with concurrent.futures.ThreadPoolExecutor() as executor:
             await asyncio.get_event_loop().run_in_executor(executor, insert_session)
     
+    def get_session(self, user_id: str, session_id: str) -> ChatSession:
+        """
+        Retrieve a single session by ID for the given user.
+        
+        Returns:
+            ChatSession object if found, None otherwise
+        """
+        try:
+            # Check if we're in an async context
+            asyncio.get_running_loop()
+            # We're in an async context - delegate to thread pool
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self._run_get_session_sync, user_id, session_id)
+                return future.result()
+        except RuntimeError:
+            # No running event loop - safe to run directly
+            return asyncio.run(self._get_session_async(user_id, session_id))
+    
+    def _run_get_session_sync(self, user_id: str, session_id: str) -> ChatSession:
+        """Helper method to run async session retrieval in a new event loop."""
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(self._get_session_async(user_id, session_id))
+        finally:
+            loop.close()
+    
+    @async_retry(MONGODB_RETRY_CONFIG)
+    async def _get_session_async(self, user_id: str, session_id: str) -> ChatSession:
+        """Async implementation of get_session."""
+        await self._ensure_connection()
+        
+        def find_session():
+            session_doc = self._sessions_collection.find_one({
+                "session_id": session_id,
+                "user_id": user_id
+            })
+            
+            if not session_doc:
+                return None
+            
+            return ChatSession(
+                session_id=session_doc['session_id'],
+                title=session_doc['title'],
+                user_id=session_doc['user_id'],
+                created_at=session_doc['created_at'],
+                updated_at=session_doc['updated_at'],
+                metadata=session_doc.get('metadata', {})
+            )
+        
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            return await asyncio.get_event_loop().run_in_executor(executor, find_session)
+    
+    def get_session_messages(self, user_id: str, session_id: str, limit: int = 100) -> List[ChatMessage]:
+        """
+        Retrieve messages for a session with optional limit.
+        
+        Args:
+            user_id: User identifier
+            session_id: Session identifier
+            limit: Maximum number of messages to retrieve (default 100)
+        
+        Returns:
+            List of ChatMessage objects, ordered by timestamp
+        """
+        try:
+            # Check if we're in an async context
+            asyncio.get_running_loop()
+            # We're in an async context - delegate to thread pool
+            with concurrent.futures.ThreadPoolExecutor(max_workers=1) as executor:
+                future = executor.submit(self._run_get_session_messages_sync, user_id, session_id, limit)
+                return future.result()
+        except RuntimeError:
+            # No running event loop - safe to run directly
+            return asyncio.run(self._get_session_messages_async(user_id, session_id, limit))
+    
+    def _run_get_session_messages_sync(self, user_id: str, session_id: str, limit: int) -> List[ChatMessage]:
+        """Helper method to run async message retrieval in a new event loop."""
+        loop = asyncio.new_event_loop()
+        try:
+            return loop.run_until_complete(self._get_session_messages_async(user_id, session_id, limit))
+        finally:
+            loop.close()
+    
+    @async_retry(MONGODB_RETRY_CONFIG)
+    async def _get_session_messages_async(self, user_id: str, session_id: str, limit: int) -> List[ChatMessage]:
+        """Async implementation of get_session_messages."""
+        await self._ensure_connection()
+        
+        def find_messages():
+            # Verify session belongs to user
+            session = self._sessions_collection.find_one({
+                "session_id": session_id,
+                "user_id": user_id
+            })
+            
+            if not session:
+                return []
+            
+            # Get messages with limit
+            cursor = self._messages_collection.find({
+                "session_id": session_id
+            }).sort("timestamp", 1).limit(limit)
+            
+            messages = []
+            for msg in cursor:
+                messages.append(ChatMessage(
+                    message_id=msg['message_id'],
+                    session_id=msg['session_id'],
+                    role=msg['role'],
+                    content=msg['content'],
+                    timestamp=msg['timestamp']
+                ))
+            
+            return messages
+        
+        import concurrent.futures
+        with concurrent.futures.ThreadPoolExecutor() as executor:
+            return await asyncio.get_event_loop().run_in_executor(executor, find_messages)
+    
     @async_retry(MONGODB_RETRY_CONFIG)
     async def get_session_history(self, user_id: str, session_id: str) -> List[ChatMessage]:
         """Retrieve the chat history for a given session ID"""

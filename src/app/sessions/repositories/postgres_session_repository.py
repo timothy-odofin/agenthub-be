@@ -76,6 +76,88 @@ class PostgresSessionRepository(BaseSessionRepository):
         session_data.get('metadata', {})
         )
     
+    def get_session(self, user_id: str, session_id: str) -> ChatSession:
+        """
+        Retrieve a single session by ID for the given user.
+        
+        Returns:
+            ChatSession object if found, None otherwise
+        """
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self._get_session_async(user_id, session_id))
+    
+    async def _get_session_async(self, user_id: str, session_id: str) -> ChatSession:
+        """Async implementation of get_session."""
+        await self._ensure_connection()
+        
+        session = await self._connection.fetchrow("""
+            SELECT session_id, title, user_id, created_at, updated_at, metadata
+            FROM chat_sessions
+            WHERE session_id = $1 AND user_id = $2
+        """, uuid.UUID(session_id), user_id)
+        
+        if not session:
+            return None
+        
+        return ChatSession(
+            session_id=str(session['session_id']),
+            title=session['title'],
+            user_id=session['user_id'],
+            created_at=session['created_at'],
+            updated_at=session['updated_at'],
+            metadata=session['metadata']
+        )
+    
+    def get_session_messages(self, user_id: str, session_id: str, limit: int = 100) -> List[ChatMessage]:
+        """
+        Retrieve messages for a session with optional limit.
+        
+        Args:
+            user_id: User identifier
+            session_id: Session identifier
+            limit: Maximum number of messages to retrieve (default 100)
+        
+        Returns:
+            List of ChatMessage objects, ordered by timestamp
+        """
+        import asyncio
+        loop = asyncio.get_event_loop()
+        return loop.run_until_complete(self._get_session_messages_async(user_id, session_id, limit))
+    
+    async def _get_session_messages_async(self, user_id: str, session_id: str, limit: int) -> List[ChatMessage]:
+        """Async implementation of get_session_messages."""
+        await self._ensure_connection()
+        
+        # Verify session belongs to user
+        session_check = await self._connection.fetchrow("""
+            SELECT session_id FROM chat_sessions 
+            WHERE session_id = $1 AND user_id = $2
+        """, uuid.UUID(session_id), user_id)
+        
+        if not session_check:
+            return []
+        
+        # Get messages with limit
+        messages = await self._connection.fetch("""
+            SELECT message_id, session_id, role, content, timestamp
+            FROM chat_messages
+            WHERE session_id = $1
+            ORDER BY timestamp ASC
+            LIMIT $2
+        """, uuid.UUID(session_id), limit)
+        
+        return [
+            ChatMessage(
+                message_id=str(msg['message_id']),
+                session_id=str(msg['session_id']),
+                role=msg['role'],
+                content=msg['content'],
+                timestamp=msg['timestamp']
+            )
+            for msg in messages
+        ]
+    
     async def get_session_history(self, user_id: str, session_id: str) -> List[ChatMessage]:
         """Retrieve the chat history for a given session ID"""
         await self._ensure_connection()

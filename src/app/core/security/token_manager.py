@@ -21,8 +21,8 @@ from datetime import datetime, timedelta, timezone
 from typing import Optional, Dict, Any
 from jose import JWTError, jwt
 
-from src.app.core.utils.logger import get_logger
-from src.app.core.config import settings
+from app.core.utils.logger import get_logger
+from app.core.config import settings
 
 logger = get_logger(__name__)
 
