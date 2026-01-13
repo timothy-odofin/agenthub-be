@@ -18,7 +18,7 @@ from . import database
 from . import atlassian
 from . import github
 from . import datadog
-# from . import web  # Commented out until web tools are implemented
+from . import web
 
 # Export the main registry for use by agents
 __all__ = [
@@ -26,5 +26,6 @@ __all__ = [
     'database',
     'atlassian',
     'github',
-    'datadog'
+    'datadog',
+    'web'
 ]
