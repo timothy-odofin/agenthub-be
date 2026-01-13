@@ -7,6 +7,16 @@ tools:
   # Jira Integration Tools
   jira:
     enabled: true
+    display:
+      title: "Jira Integration"
+      description: "Search, create, and manage Jira issues and projects"
+      icon: "jira"
+      tags: ["project-management", "issue-tracking", "collaboration"]
+      example_prompts:
+        - "Search for open bugs in project ABC"
+        - "Create a new task for implementing feature X"
+        - "What are my assigned issues?"
+        - "Add a comment to issue KEY-123"
     # All 8 currently implemented Jira tools
     available_tools:
       issues:
@@ -54,6 +64,16 @@ tools:
   # Confluence Integration Tools
   confluence:
     enabled: true
+    display:
+      title: "Confluence Wiki"
+      description: "Search and retrieve company documentation from Confluence"
+      icon: "confluence"
+      tags: ["documentation", "knowledge-base", "wiki"]
+      example_prompts:
+        - "Find documentation about API authentication"
+        - "Search for deployment procedures"
+        - "What does the wiki say about feature flags?"
+        - "Show me pages in the Engineering space"
     available_tools:
       spaces:
         list_confluence_spaces:
@@ -81,6 +101,15 @@ tools:
   # Vector Store Tools (includes embedded confluence pages)
   vector:
     enabled: true
+    display:
+      title: "Knowledge Base Search"
+      description: "Search embedded knowledge base using AI-powered semantic search"
+      icon: "database"
+      tags: ["search", "knowledge-base", "semantic-search"]
+      example_prompts:
+        - "Find information about user authentication"
+        - "What do we know about the payment system?"
+        - "Search for troubleshooting guides"
     # Only the one tool that is currently implemented
     available_tools:
       search:
@@ -92,6 +121,16 @@ tools:
   # GitHub Integration Tools
   github:
     enabled: true
+    display:
+      title: "GitHub Integration"
+      description: "Search code, issues, pull requests, and repositories"
+      icon: "github"
+      tags: ["code", "version-control", "collaboration"]
+      example_prompts:
+        - "Find the implementation of user authentication"
+        - "Search for open issues related to performance"
+        - "Show me recent pull requests"
+        - "What repositories do we have?"
     # Simplified GitHub tools configuration - direct tool name to boolean mapping
     # Tool names match exactly with LangChain GitHubToolkit tool names
     available_tools:
@@ -164,6 +203,16 @@ tools:
   # Datadog Monitoring and Observability Tools
   datadog:
     enabled: true
+    display:
+      title: "Datadog Monitoring"
+      description: "Query logs, metrics, and monitors for system observability"
+      icon: "datadog"
+      tags: ["monitoring", "observability", "logs", "metrics"]
+      example_prompts:
+        - "Search logs for errors in the last hour"
+        - "What's the CPU usage for service X?"
+        - "Show me active alerts"
+        - "Query response time metrics"
     available_tools:
       logs:
         datadog_search_logs:
@@ -180,3 +229,71 @@ tools:
           enabled: true
           description: "List and check status of Datadog monitors"
           category: "observability"
+
+  # Web Content Reading Tools
+  web:
+    enabled: true
+    display:
+      title: "Web Documentation Reader"
+      description: "Read and search external web documentation and resources"
+      icon: "globe"
+      tags: ["documentation", "web", "external-resources"]
+      example_prompts:
+        - "What does the Python docs say about asyncio?"
+        - "Search FastAPI documentation for dependency injection"
+        - "Read LangChain docs about agents"
+        - "Find information on Real Python about decorators"
+    cache_ttl: 3600  # Cache web content for 1 hour (in seconds)
+    
+    # Content chunking configuration
+    chunking:
+      chunk_size: 1000      # Maximum characters per chunk
+      chunk_overlap: 200    # Overlap between chunks to maintain context
+    
+    available_tools:
+      # Static URL tools for frequently accessed documentation
+      documentation:
+        read_python_docs:
+          enabled: true
+          url: "https://docs.python.org/3/"
+          description: "Search official Python documentation for language features, standard library APIs, and Python programming concepts"
+          category: "documentation"
+          max_content_length: 50000
+        
+        read_fastapi_docs:
+          enabled: true
+          url: "https://fastapi.tiangolo.com/"
+          description: "Search FastAPI documentation for web framework patterns, API development, and async request handling"
+          category: "documentation"
+          max_content_length: 50000
+        
+        read_langchain_docs:
+          enabled: true
+          url: "https://python.langchain.com/docs/"
+          description: "Search LangChain documentation for LLM integration patterns, chains, agents, and RAG implementations"
+          category: "documentation"
+          max_content_length: 50000
+      
+      # Generic URL reader with domain whitelisting
+      generic:
+        read_web_url:
+          enabled: true
+          description: "Read and search content from any whitelisted web URL. Useful for accessing external documentation, blogs, and resources not covered by static tools."
+          category: "research"
+          allowed_domains:
+            # Include static tool domains for fallback
+            - "docs.python.org"
+            - "fastapi.tiangolo.com"
+            - "python.langchain.com"
+            
+            # Additional allowed domains
+            - "realpython.com"
+            - "stackoverflow.com"
+            - "github.com"
+            - "docs.github.com"
+            
+            # Wildcard patterns for organizational domains
+            # - "*.company.com"
+            # - "*.internal"
+          
+          max_content_length: 50000  # Maximum 50KB per page

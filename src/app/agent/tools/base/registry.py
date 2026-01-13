@@ -87,6 +87,10 @@ class ToolRegistry:
             # Get name for logging (handle both functions and classes)
             tool_name = getattr(tool_class, '__name__', getattr(tool_class, 'name', str(tool_class)))
             logger.info(f"Registered tool: {category} -> {tool_name}")
+            
+            # Register capability with SystemCapabilities
+            cls._register_capability(category, package or category, tool_class)
+            
             return tool_class
         return decorator
     
@@ -202,9 +206,107 @@ class ToolRegistry:
         return tools
     
     @classmethod
+    def _register_capability(cls, category: str, name: str, tool_class) -> None:
+        """
+        Register capability metadata for a tool with SystemCapabilities.
+        
+        Extracts tool configuration and display metadata, then registers
+        it with the SystemCapabilities singleton. This happens during tool
+        registration to avoid double-iteration.
+        
+        Args:
+            category: Tool category
+            name: Tool name
+            tool_class: Tool provider class
+        """
+        try:
+            # Import here to avoid circular dependency
+            from app.core.capabilities import SystemCapabilities
+            
+            # Get tool configuration from settings
+            tool_config = cls._get_tool_config(category, name)
+            
+            if not tool_config:
+                logger.debug(f"No configuration found for {category}.{name}, skipping capability")
+                return
+            
+            # Extract configuration
+            enabled = getattr(tool_config, 'enabled', False)
+            display_config = {}
+            
+            # Try to get display metadata from config
+            if hasattr(tool_config, 'display'):
+                display = tool_config.display
+                display_config = {
+                    'title': getattr(display, 'title', ''),
+                    'description': getattr(display, 'description', ''),
+                    'icon': getattr(display, 'icon', 'tool'),
+                    'example_prompts': list(getattr(display, 'example_prompts', [])),
+                    'tags': list(getattr(display, 'tags', [])),
+                }
+                
+                if hasattr(display, 'color'):
+                    display_config['color'] = display.color
+            
+            # Register with SystemCapabilities
+            SystemCapabilities().add_capability(
+                category=category,
+                name=name,
+                enabled=enabled,
+                display_config=display_config,
+                tool_class=tool_class
+            )
+            
+        except Exception as e:
+            logger.error(f"Failed to register capability for {category}.{name}: {e}")
+    
+    @classmethod
+    def _get_tool_config(cls, category: str, name: str):
+        """
+        Get tool configuration from settings.
+        
+        Args:
+            category: Tool category
+            name: Tool name
+            
+        Returns:
+            Tool configuration object or None
+        """
+        try:
+            if not hasattr(settings, 'tools') or not hasattr(settings.tools, 'tools'):
+                return None
+            
+            # Get category config (e.g., settings.tools.tools.confluence)
+            category_config = getattr(settings.tools.tools, category, None)
+            
+            if not category_config:
+                return None
+            
+            # Check if it's enabled at category level
+            if hasattr(category_config, 'enabled'):
+                return category_config
+            
+            # Otherwise try to get nested tool config
+            # (for categories with multiple tools)
+            tool_config = getattr(category_config, name, None)
+            return tool_config
+            
+        except Exception as e:
+            logger.debug(f"Could not get config for {category}.{name}: {e}")
+            return None
+    
+    @classmethod
     def clear(cls):
         """Clear all registrations (useful for testing)."""
         logger.warning("CLEARING ALL TOOL REGISTRATIONS!")
         _tools.clear()
         _packages.clear()
-        logger.info("Cleared all tool registrations")
+        
+        # Also clear capabilities
+        try:
+            from app.core.capabilities import SystemCapabilities
+            SystemCapabilities().clear()
+        except Exception as e:
+            logger.debug(f"Could not clear capabilities: {e}")
+        
+        logger.info("Cleared all tool registrations and capabilities")
