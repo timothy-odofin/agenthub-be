@@ -35,6 +35,7 @@ async def send_message(
     
     - **message**: The user's message/question
     - **session_id**: Optional session ID. If not provided, creates a new session
+    - **metadata**: Optional metadata for context (e.g., capability selection)
     
     Returns the agent's response with metadata.
     """
@@ -42,7 +43,8 @@ async def send_message(
         message=req.message,
         user_id=str(current_user.id),
         session_id=req.session_id,
-        protocol="rest"
+        protocol="rest",
+        metadata=req.metadata
     )
     
     return ChatResponse(

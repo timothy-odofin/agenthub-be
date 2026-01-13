@@ -257,17 +257,29 @@ class SessionTitleService:
             True if title should be generated
         """
         if not self.config.enabled:
+            logger.debug(f"Title generation disabled in config")
             return False
         
         # Don't regenerate if title was manually set (not default/fallback)
         if current_title and current_title not in [
             self.config.default_title,
             self.config.fallback_title
-        ] and not current_title.startswith("Chat session"):
+        ] and not current_title.startswith("Chat session") and not current_title.startswith("New Chat"):
+            logger.debug(
+                f"Title already set ('{current_title}'), skipping auto-generation"
+            )
             return False
         
         # Generate after configured message count
-        return message_count == self.config.trigger_message_count
+        should_generate = message_count == self.config.trigger_message_count
+        
+        logger.debug(
+            f"should_generate_title: message_count={message_count}, "
+            f"trigger_count={self.config.trigger_message_count}, "
+            f"current_title='{current_title}', result={should_generate}"
+        )
+        
+        return should_generate
     
     async def generate_title_from_messages(
         self,
