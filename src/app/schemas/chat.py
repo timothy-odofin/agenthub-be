@@ -5,6 +5,7 @@ from datetime import datetime
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    metadata: Optional[Dict[str, Any]] = None  # For capability selection and other context
 
 class ChatResponse(BaseModel):
     success: bool
@@ -64,3 +65,9 @@ class SessionListResponse(BaseModel):
     limit: int
     has_more: bool
     errors: List[str] = []
+
+class DeleteSessionResponse(BaseModel):
+    success: bool
+    session_id: str
+    message: str
+    deleted_at: str

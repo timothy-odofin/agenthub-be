@@ -9,6 +9,7 @@ from app.schemas.chat import (
     CreateSessionResponse,
     UpdateSessionTitleRequest,
     UpdateSessionTitleResponse,
+    DeleteSessionResponse,
     SessionHistoryResponse,
     SessionListResponse,
     SessionMessage,
@@ -35,6 +36,7 @@ async def send_message(
     
     - **message**: The user's message/question
     - **session_id**: Optional session ID. If not provided, creates a new session
+    - **metadata**: Optional metadata for context (e.g., capability selection)
     
     Returns the agent's response with metadata.
     """
@@ -42,7 +44,8 @@ async def send_message(
         message=req.message,
         user_id=str(current_user.id),
         session_id=req.session_id,
-        protocol="rest"
+        protocol="rest",
+        metadata=req.metadata
     )
     
     return ChatResponse(
@@ -120,6 +123,42 @@ async def update_session_title(
             session_id=session_id,
             title=req.title,
             message="Failed to update session title"
+        )
+
+
+@router.delete("/sessions/{session_id}", response_model=DeleteSessionResponse)
+async def delete_session(
+    session_id: str,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """
+    Delete a chat session and all its messages.
+    
+    Requires authentication via JWT Bearer token.
+    
+    - **session_id**: ID of the session to delete
+    
+    Returns confirmation of deletion with timestamp.
+    Note: This action cannot be undone.
+    """
+    success = chat_service.delete_session(
+        user_id=str(current_user.id),
+        session_id=session_id
+    )
+    
+    if success:
+        return DeleteSessionResponse(
+            success=True,
+            session_id=session_id,
+            message="Session and all associated messages deleted successfully",
+            deleted_at=datetime.now().isoformat()
+        )
+    else:
+        return DeleteSessionResponse(
+            success=False,
+            session_id=session_id,
+            message="Session not found or you don't have permission to delete it",
+            deleted_at=datetime.now().isoformat()
         )
 
 
@@ -236,5 +275,42 @@ async def health_check():
     except Exception as e:
         raise InternalError(
             message="Health check failed",
+            internal_details={"error": str(e), "type": type(e).__name__}
+        )
+
+
+@router.get("/capabilities")
+async def get_capabilities(
+    category: Optional[str] = Query(None, description="Filter by capability category")
+):
+    """
+    Get agent capabilities based on enabled tools.
+    
+    Returns a list of capabilities that the agent can perform,
+    derived from currently enabled and configured tools.
+    
+    This endpoint is public (no authentication required) so clients
+    can display capabilities before login.
+    
+    - **category**: Optional filter to get capabilities for specific category only
+    
+    Returns:
+        List of capability objects with display metadata
+    """
+    from app.core.capabilities import SystemCapabilities
+    
+    try:
+        capabilities = SystemCapabilities().get_capabilities(category=category)
+        
+        return {
+            "success": True,
+            "total": len(capabilities),
+            "categories": SystemCapabilities().get_categories(),
+            "capabilities": capabilities
+        }
+        
+    except Exception as e:
+        raise InternalError(
+            message="Failed to retrieve capabilities",
             internal_details={"error": str(e), "type": type(e).__name__}
         )

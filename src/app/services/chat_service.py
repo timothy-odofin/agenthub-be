@@ -79,7 +79,8 @@ class ChatService(metaclass=SingletonMeta):
             message: str,
             user_id: str,
             session_id: Optional[str] = None,
-            protocol: str = "rest"
+            protocol: str = "rest",
+            metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
         import uuid
         
@@ -92,15 +93,21 @@ class ChatService(metaclass=SingletonMeta):
                 
             logger.info(f"Processing chat message for user {user_id}, session {session_id}")
 
+            # Check if this is a capability selection
+            enhanced_message = message
+            if metadata and metadata.get("is_capability_selection"):
+                enhanced_message = self._enhance_capability_message(message, metadata)
+                logger.info(f"Enhanced message with capability context: {metadata.get('capability_id')}")
+
             agent = await self.agent
             
             context = AgentContext(
                 user_id=user_id,
                 session_id=session_id,
-                metadata={"protocol": protocol}
+                metadata={"protocol": protocol, **(metadata or {})}
             )
             
-            response = await agent.execute(message, context)
+            response = await agent.execute(enhanced_message, context)
             
             # Trigger auto title generation in background (non-blocking)
             asyncio.create_task(
@@ -277,6 +284,82 @@ class ChatService(metaclass=SingletonMeta):
             logger.error(f"Failed to get available tools: {e}")
             return []
     
+    def _enhance_capability_message(self, message: str, metadata: Dict[str, Any]) -> str:
+        """
+        Enhance user message with capability context when they select a capability.
+        
+        This helps the agent provide a more guided, conversational response by:
+        1. Recognizing that the user selected a specific capability
+        2. Providing context about what that capability can do
+        3. Instructing the agent to offer specific options and examples
+        
+        Args:
+            message: Original user message
+            metadata: Request metadata containing capability information
+            
+        Returns:
+            Enhanced message with capability context
+        """
+        try:
+            from app.core.capabilities import SystemCapabilities
+            
+            capability_id = metadata.get("capability_id")
+            if not capability_id:
+                return message
+            
+            # Get full capability details
+            capability = SystemCapabilities().get_capability_by_id(capability_id)
+            if not capability:
+                logger.warning(f"Capability not found: {capability_id}")
+                return message
+            
+            # Build enhanced message with capability context
+            enhanced_parts = [
+                "## Capability Selection Context",
+                f"The user has selected the **{capability['title']}** capability.",
+                "",
+                f"**Capability Description:** {capability['description']}",
+                ""
+            ]
+            
+            # Add example prompts if available
+            if capability.get('example_prompts'):
+                enhanced_parts.append("**Available Actions:**")
+                for prompt in capability['example_prompts']:
+                    enhanced_parts.append(f"- {prompt}")
+                enhanced_parts.append("")
+            
+            # Add tags for context
+            if capability.get('tags'):
+                enhanced_parts.append(f"**Related Topics:** {', '.join(capability['tags'])}")
+                enhanced_parts.append("")
+            
+            # Add the original message
+            enhanced_parts.extend([
+                f"**User's Message:** {message}",
+                "",
+                "## Your Task",
+                "The user has selected this capability but may not have specified exactly what they want to do yet.",
+                "",
+                "**Respond by:**",
+                "1. Acknowledging their selection warmly",
+                "2. Briefly explaining what you can help them with (use the capability description)",
+                "3. Offering 3-4 **specific, actionable examples** from the available actions above",
+                "4. Asking them what they'd like to do or inviting them to provide more details",
+                "",
+                "Keep your response conversational, helpful, and focused on guiding them to their goal.",
+                "Use the example prompts above as suggestions to help them get started."
+            ])
+            
+            enhanced_message = "\n".join(enhanced_parts)
+            
+            logger.debug(f"Enhanced capability message for: {capability_id}")
+            return enhanced_message
+            
+        except Exception as e:
+            logger.error(f"Failed to enhance capability message: {e}", exc_info=True)
+            return message
+    
     async def _maybe_generate_title(self, user_id: str, session_id: str):
         """
         Background task to auto-generate session title if conditions are met.
@@ -289,12 +372,17 @@ class ChatService(metaclass=SingletonMeta):
             session_id: Session identifier
         """
         try:
+            logger.debug(f"_maybe_generate_title called for session {session_id}")
+            
             session_repo = SessionRepositoryFactory.get_default_repository()
             
             # Get current session info
             session = session_repo.get_session(user_id, session_id)
             if not session:
+                logger.warning(f"Session not found for title generation: {session_id}")
                 return
+            
+            logger.debug(f"Session found with title: '{session.title}'")
             
             # Count user messages in session
             messages = session_repo.get_session_messages(
@@ -305,8 +393,21 @@ class ChatService(metaclass=SingletonMeta):
             
             user_message_count = sum(1 for msg in messages if msg.role == "user")
             
+            logger.info(
+                f"Title generation check: session={session_id}, user_messages={user_message_count}, "
+                f"current_title='{session.title}', enabled={self.title_service.config.enabled}, "
+                f"trigger_count={self.title_service.config.trigger_message_count}"
+            )
+            
             # Check if we should generate title
-            if self.title_service.should_generate_title(user_message_count, session.title):
+            should_generate = self.title_service.should_generate_title(user_message_count, session.title)
+            
+            logger.info(
+                f"Should generate title: {should_generate} for session {session_id} "
+                f"(user_messages={user_message_count}, current_title='{session.title}')"
+            )
+            
+            if should_generate:
                 logger.info(
                     f"Triggering auto title generation for session {session_id}",
                     extra={"user_message_count": user_message_count}
@@ -355,6 +456,37 @@ class ChatService(metaclass=SingletonMeta):
             
         except Exception as e:
             logger.error(f"Failed to update session title: {e}")
+            return False
+
+    def delete_session(self, user_id: str, session_id: str) -> bool:
+        """
+        Delete a session and all its messages.
+        
+        Args:
+            user_id: The user ID who owns the session
+            session_id: The session ID to delete
+            
+        Returns:
+            True if session was deleted successfully, False otherwise
+        """
+        try:
+            session_repo = SessionRepositoryFactory.get_default_repository()
+            
+            # Delete session and its messages (repository handles cascade)
+            success = session_repo.delete_session(
+                user_id=user_id,
+                session_id=session_id
+            )
+            
+            if success:
+                logger.info(f"Successfully deleted session {session_id} for user {user_id}")
+            else:
+                logger.warning(f"Session {session_id} not found or unauthorized for user {user_id}")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Failed to delete session {session_id}: {e}")
             return False
 
     async def health_check(self) -> Dict[str, Any]:

@@ -55,8 +55,9 @@ class LLMTitleGenerationStrategy(TitleGenerationStrategy):
             if not messages:
                 return self.config.default_title
             
-            # Get LLM instance
-            llm = LLMFactory.get_llm(self.llm_provider)
+            # Get LLM instance - use configured default provider if not specified
+            provider = self.llm_provider if self.llm_provider else settings.llm.default.provider
+            llm = LLMFactory.get_llm(provider)
             await llm._ensure_initialized()
             
             # Build conversation context
@@ -107,19 +108,33 @@ class LLMTitleGenerationStrategy(TitleGenerationStrategy):
         min_words = self.config.min_title_words
         max_words = self.config.max_title_words
         
-        return f"""Generate a concise, descriptive title for this conversation.
+        return f"""Analyze this conversation and generate a concise, descriptive title that captures the MAIN TOPIC or PURPOSE.
 
-Requirements:
+Rules:
+- Generate a TOPIC-BASED title, not a question
 - {min_words}-{max_words} words maximum
-- Capture the main topic or intent
-- No quotes or punctuation at the end
-- Clear and professional
-- In English
+- Focus on what the conversation is ABOUT (the subject matter)
+- Use clear, professional language
+- No quotes, no punctuation at the end
+- Do NOT use the user's exact words
+
+Examples:
+User: "Can you help me debug this error?"
+Good title: "Debugging Application Error"
+Bad title: "Can you help me debug this error"
+
+User: "Show me the logs from yesterday"
+Good title: "Log Analysis from Yesterday"
+Bad title: "Show me the logs from yesterday"
+
+User: "Create a Jira ticket for the bug"
+Good title: "Jira Bug Ticket Creation"
+Bad title: "Create a Jira ticket for the bug"
 
 Conversation:
 {conversation_text}
 
-Generate only the title (no explanations, no quotes):"""
+Generate ONLY the title (a short topic phrase, no explanations, no quotes):"""
     
     def _clean_title(self, raw_title: str) -> str:
         """Clean and validate generated title."""
@@ -257,17 +272,44 @@ class SessionTitleService:
             True if title should be generated
         """
         if not self.config.enabled:
+            logger.debug(f"Title generation disabled in config")
             return False
         
-        # Don't regenerate if title was manually set (not default/fallback)
-        if current_title and current_title not in [
-            self.config.default_title,
-            self.config.fallback_title
-        ] and not current_title.startswith("Chat session"):
+        # List of default/generic titles that should be replaced
+        default_titles = [
+            self.config.default_title.lower(),      # "new chat"
+            self.config.fallback_title.lower(),     # "untitled conversation"
+            "chat session",
+            "new session",
+            "untitled session",
+            "chat",
+            "session"
+        ]
+        
+        # Check if current title is a default one (case-insensitive)
+        current_title_lower = current_title.lower() if current_title else ""
+        is_default_title = (
+            not current_title or 
+            current_title_lower in default_titles or
+            any(current_title_lower.startswith(dt) for dt in default_titles)
+        )
+        
+        if not is_default_title:
+            logger.debug(
+                f"Title already set ('{current_title}'), skipping auto-generation"
+            )
             return False
         
         # Generate after configured message count
-        return message_count == self.config.trigger_message_count
+        should_generate = message_count == self.config.trigger_message_count
+        
+        logger.info(
+            f"Should generate title: {should_generate} for session (user_messages={message_count}, "
+            f"trigger_count={self.config.trigger_message_count}, current_title='{current_title}', "
+            f"is_default={is_default_title})"
+        )
+        
+        return should_generate
     
     async def generate_title_from_messages(
         self,
