@@ -35,7 +35,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.v1 import chat, health, ingest_data as ingest, auth, conversational_auth, resilience
+from app.api.v1 import chat, health, ingest_data as ingest, auth, conversational_auth, resilience, llm
 from app.core.middleware import RequestContextMiddleware
 from app.core.handlers import (
     base_app_exception_handler,
@@ -103,6 +103,7 @@ app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(ingest.router, prefix="/api/v1/data", tags=["ingest"])
 app.include_router(resilience.router, prefix="/api/v1", tags=["resilience"])
+app.include_router(llm.router, prefix="/api/v1/llm", tags=["llm-providers"])
 
 
 @app.get("/")
