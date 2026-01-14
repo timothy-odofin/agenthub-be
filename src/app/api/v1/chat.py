@@ -36,15 +36,21 @@ async def send_message(
     
     - **message**: The user's message/question
     - **session_id**: Optional session ID. If not provided, creates a new session
+    - **provider**: Optional LLM provider (e.g., 'openai', 'anthropic'). Falls back to system default if not provided.
+    - **model**: Optional specific model (e.g., 'gpt-4', 'claude-sonnet-4-5'). Falls back to provider's default if not provided.
     - **metadata**: Optional metadata for context (e.g., capability selection)
     
     Returns the agent's response with metadata.
+    
+    Note: Provider/model parameters are reserved for future use. Currently uses system defaults.
     """
     response = await chat_service.chat(
         message=req.message,
         user_id=str(current_user.id),
         session_id=req.session_id,
         protocol="rest",
+        provider=req.provider,
+        model=req.model,
         metadata=req.metadata
     )
     
