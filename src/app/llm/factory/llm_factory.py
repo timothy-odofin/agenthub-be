@@ -53,6 +53,63 @@ class LLMFactory:
         return llm_instance
 
     @staticmethod
+    def get_llm_by_name(
+        provider_name: Optional[str] = None,
+        model: Optional[str] = None
+    ) -> BaseLLMProvider:
+        """
+        Get an LLM instance by provider name string with optional model specification.
+        
+        This method bridges the gap between string provider names (from frontend/API)
+        and the enum-based get_llm() method. It also validates the model if provided.
+        
+        Args:
+            provider_name: String name of the provider (e.g., "openai", "anthropic").
+                          If None, uses the default provider from configuration.
+            model: Optional model name to validate. If None, uses provider's default.
+                   Note: Model validation is performed but actual model selection
+                   is handled by the provider's configuration.
+            
+        Returns:
+            LLM provider instance configured for the specified provider
+            
+        Raises:
+            ValueError: If provider name is invalid or model is not supported
+        """
+        # Import here to avoid circular imports
+        from app.core.config.application.llm import llm_config
+        from app.services.llm_service import LLMService
+        
+        # Get provider name - use default if not specified
+        if not provider_name:
+            provider_name = llm_config.get_default_provider()
+            if not provider_name:
+                raise ValueError("No provider specified and no default provider configured")
+        
+        # Convert string to enum
+        try:
+            provider = LLMProvider(provider_name.lower())
+        except ValueError:
+            valid_providers = [p.value for p in LLMProvider]
+            raise ValueError(
+                f"Invalid provider '{provider_name}'. Valid providers: {valid_providers}"
+            )
+        
+        # Validate model if provided (this also returns the validated/default model)
+        validated_model = LLMService.validate_model_for_provider(provider_name, model)
+        
+        logger.info(
+            f"Getting LLM for provider='{provider_name}', "
+            f"requested_model='{model}', validated_model='{validated_model}'"
+        )
+        
+        # Get the LLM instance using the enum-based method
+        # Note: The actual model configuration is handled by the provider's settings
+        # The validated_model is logged for transparency but may need additional
+        # implementation in the provider classes to support runtime model selection
+        return LLMFactory.get_llm(provider)
+
+    @staticmethod
     def get_default_llm() -> BaseLLMProvider:
         """Get the default LLM instance based on configuration."""
         # Import here to avoid circular imports

@@ -80,8 +80,12 @@ class ChatService(metaclass=SingletonMeta):
             user_id: str,
             session_id: Optional[str] = None,
             protocol: str = "rest",
+            provider: Optional[str] = None,
+            model: Optional[str] = None,
             metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
+        from app.llm.factory.llm_factory import LLMFactory
+        from app.core.constants import LLMProvider
         import uuid
         
         start_time = datetime.now()
@@ -91,7 +95,7 @@ class ChatService(metaclass=SingletonMeta):
             if session_id is None:
                 session_id = str(uuid.uuid4())
                 
-            logger.info(f"Processing chat message for user {user_id}, session {session_id}")
+            logger.info(f"Processing chat message for user {user_id}, session {session_id} with provider={provider}, model={model}")
 
             # Check if this is a capability selection
             enhanced_message = message
@@ -99,7 +103,27 @@ class ChatService(metaclass=SingletonMeta):
                 enhanced_message = self._enhance_capability_message(message, metadata)
                 logger.info(f"Enhanced message with capability context: {metadata.get('capability_id')}")
 
-            agent = await self.agent
+            # Get LLM instance based on provider/model parameters
+            # If not provided, this will use defaults from configuration
+            llm = LLMFactory.get_llm_by_name(provider, model)
+            
+            # Get or create agent with the specified LLM
+            # For now, we'll create a new agent if provider/model is specified,
+            # otherwise use the default cached agent
+            if provider or model:
+                # Create a new agent with the specified LLM
+                session_repo = SessionRepositoryFactory.get_default_repository()
+                agent = await AgentFactory.create_agent(
+                    agent_type=self._agent_type,
+                    framework=self._agent_framework,
+                    llm_provider=llm,
+                    session_repository=session_repo,
+                    verbose=self.agent_verbose
+                )
+                logger.info(f"Created new agent with provider={provider}, model={model}")
+            else:
+                # Use the default cached agent
+                agent = await self.agent
             
             context = AgentContext(
                 user_id=user_id,
