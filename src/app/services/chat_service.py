@@ -458,6 +458,37 @@ class ChatService(metaclass=SingletonMeta):
             logger.error(f"Failed to update session title: {e}")
             return False
 
+    def delete_session(self, user_id: str, session_id: str) -> bool:
+        """
+        Delete a session and all its messages.
+        
+        Args:
+            user_id: The user ID who owns the session
+            session_id: The session ID to delete
+            
+        Returns:
+            True if session was deleted successfully, False otherwise
+        """
+        try:
+            session_repo = SessionRepositoryFactory.get_default_repository()
+            
+            # Delete session and its messages (repository handles cascade)
+            success = session_repo.delete_session(
+                user_id=user_id,
+                session_id=session_id
+            )
+            
+            if success:
+                logger.info(f"Successfully deleted session {session_id} for user {user_id}")
+            else:
+                logger.warning(f"Session {session_id} not found or unauthorized for user {user_id}")
+            
+            return success
+            
+        except Exception as e:
+            logger.error(f"Failed to delete session {session_id}: {e}")
+            return False
+
     async def health_check(self) -> Dict[str, Any]:
         try:
             from app.agent.tools.base.registry import ToolRegistry

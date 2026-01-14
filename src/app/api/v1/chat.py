@@ -9,6 +9,7 @@ from app.schemas.chat import (
     CreateSessionResponse,
     UpdateSessionTitleRequest,
     UpdateSessionTitleResponse,
+    DeleteSessionResponse,
     SessionHistoryResponse,
     SessionListResponse,
     SessionMessage,
@@ -122,6 +123,42 @@ async def update_session_title(
             session_id=session_id,
             title=req.title,
             message="Failed to update session title"
+        )
+
+
+@router.delete("/sessions/{session_id}", response_model=DeleteSessionResponse)
+async def delete_session(
+    session_id: str,
+    current_user: UserInDB = Depends(get_current_user)
+):
+    """
+    Delete a chat session and all its messages.
+    
+    Requires authentication via JWT Bearer token.
+    
+    - **session_id**: ID of the session to delete
+    
+    Returns confirmation of deletion with timestamp.
+    Note: This action cannot be undone.
+    """
+    success = chat_service.delete_session(
+        user_id=str(current_user.id),
+        session_id=session_id
+    )
+    
+    if success:
+        return DeleteSessionResponse(
+            success=True,
+            session_id=session_id,
+            message="Session and all associated messages deleted successfully",
+            deleted_at=datetime.now().isoformat()
+        )
+    else:
+        return DeleteSessionResponse(
+            success=False,
+            session_id=session_id,
+            message="Session not found or you don't have permission to delete it",
+            deleted_at=datetime.now().isoformat()
         )
 
 
