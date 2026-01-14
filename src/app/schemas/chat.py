@@ -1,10 +1,18 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import Optional, List, Any, Dict
 from datetime import datetime
 
 class ChatRequest(BaseModel):
     message: str
     session_id: Optional[str] = None
+    provider: Optional[str] = Field(
+        None,
+        description="LLM provider to use (e.g., 'openai', 'anthropic'). Falls back to system default if not provided."
+    )
+    model: Optional[str] = Field(
+        None, 
+        description="Specific model to use (e.g., 'gpt-4', 'claude-sonnet-4-5'). Falls back to provider's default if not provided."
+    )
     metadata: Optional[Dict[str, Any]] = None  # For capability selection and other context
 
 class ChatResponse(BaseModel):
