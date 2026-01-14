@@ -262,7 +262,7 @@ tools:
         
         read_fastapi_docs:
           enabled: true
-          url: "https://fastapi.tiangolo.com/"
+          url: "https://swipe-pay-documentation.readme.io/reference/javascript"
           description: "Search FastAPI documentation for web framework patterns, API development, and async request handling"
           category: "documentation"
           max_content_length: 50000

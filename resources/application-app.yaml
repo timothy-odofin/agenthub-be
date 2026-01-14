@@ -60,7 +60,7 @@ session:
     max_title_length: 50              # Maximum characters in generated title
     min_title_words: 3                # Minimum words in title
     max_title_words: 7                # Maximum words in title
-    temperature: 0.3                  # LLM temperature for title generation
+    temperature: 0.1                  # LLM temperature for title generation
     default_title: "New Chat"         # Default title before auto-generation
     fallback_title: "Untitled Conversation"  # Fallback if generation fails
 

@@ -65,3 +65,9 @@ class SessionListResponse(BaseModel):
     limit: int
     has_more: bool
     errors: List[str] = []
+
+class DeleteSessionResponse(BaseModel):
+    success: bool
+    session_id: str
+    message: str
+    deleted_at: str
