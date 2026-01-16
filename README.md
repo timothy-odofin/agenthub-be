@@ -1,3 +1,13 @@
+---
+title: AgentHub Backend API
+emoji: 🤖
+colorFrom: blue
+colorTo: green
+sdk: docker
+pinned: false
+app_port: 7860
+---
+
 # AgentHub 
 
 > **Learn, Build, and Deploy Production LLM Applications** 
