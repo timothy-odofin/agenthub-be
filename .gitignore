@@ -85,3 +85,4 @@ scripts/*
 
 # Private keys and certificates
 *.pem
+docs/presentation/
