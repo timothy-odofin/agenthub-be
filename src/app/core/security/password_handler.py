@@ -15,7 +15,7 @@ import re
 import bcrypt
 from typing import Optional, Tuple
 
-from src.app.core.utils.logger import get_logger
+from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
 
