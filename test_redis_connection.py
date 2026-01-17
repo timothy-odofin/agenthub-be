@@ -1,17 +1,26 @@
 #!/usr/bin/env python3
 """
-Test Redis connection locally to diagnose issues.
+Test Redis connection using the actual RedisConnectionManager class.
 """
 
 import asyncio
 import os
+import sys
+from pathlib import Path
 from dotenv import load_dotenv
+
+# Add src to path
+sys.path.insert(0, str(Path(__file__).parent / 'src'))
 
 # Load environment variables
 load_dotenv()
 
 async def test_redis_connection():
-    """Test Redis connection with different configurations."""
+    """Test Redis connection using RedisConnectionManager."""
+    
+    print("=" * 70)
+    print("🔧 Redis Connection Test (Using RedisConnectionManager)")
+    print("=" * 70)
     
     # Get config from environment
     host = os.getenv('REDIS_HOST', 'localhost').strip('"')
@@ -20,9 +29,6 @@ async def test_redis_connection():
     db = int(os.getenv('REDIS_DB', '0'))
     ssl_enabled = os.getenv('REDIS_SSL', 'false').lower() in ('true', '1', 'yes')
     
-    print("=" * 70)
-    print("🔧 Redis Connection Test")
-    print("=" * 70)
     print(f"Host: {host}")
     print(f"Port: {port}")
     print(f"DB: {db}")
@@ -31,138 +37,82 @@ async def test_redis_connection():
     print("=" * 70)
     print()
     
-    # Test 1: Basic connection with SSL
-    print("📡 Test 1: Connecting with SSL/TLS...")
     try:
-        import redis.asyncio as redis
-        from redis.asyncio.connection import SSLConnection
+        # Import the actual RedisConnectionManager
+        from app.connections.database.redis_connection_manager import RedisConnectionManager
+        from app.connections.base import ConnectionType
         
-        if ssl_enabled:
-            pool = redis.ConnectionPool(
-                host=host,
-                port=port,
-                password=password if password else None,
-                db=db,
-                connection_class=SSLConnection,
-                decode_responses=True,
-                socket_timeout=10,
-                socket_connect_timeout=10,
-                retry_on_timeout=True,
-                health_check_interval=30
-            )
-        else:
-            pool = redis.ConnectionPool(
-                host=host,
-                port=port,
-                password=password if password else None,
-                db=db,
-                decode_responses=True,
-                socket_timeout=10,
-                socket_connect_timeout=10,
-                retry_on_timeout=True
-            )
+        print("📡 Test 1: Creating RedisConnectionManager instance...")
+        manager = RedisConnectionManager()
         
-        client = redis.Redis(connection_pool=pool)
+        print("✅ RedisConnectionManager instance created")
         
-        # Test ping
+        print("\n📡 Test 2: Validating configuration...")
+        manager.validate_config()
+        print("✅ Configuration validated")
+        
+        print("\n📡 Test 3: Connecting to Redis...")
+        client = await manager.connect()
+        print("✅ Connection established")
+        
+        print("\n📡 Test 4: Testing PING...")
         response = await client.ping()
         print(f"✅ PING successful! Response: {response}")
         
-        # Test set/get
-        test_key = "test:connection"
-        test_value = "Hello from AgentHub!"
-        
-        await client.set(test_key, test_value, ex=60)
+        print("\n📡 Test 5: Testing SET operation...")
+        test_key = "test:connection:manager"
+        test_value = "Hello from RedisConnectionManager!"
+        await manager.set(test_key, test_value, ex=60)
         print(f"✅ SET successful! Key: {test_key}")
         
-        retrieved = await client.get(test_key)
+        print("\n📡 Test 6: Testing GET operation...")
+        retrieved = await manager.get(test_key)
         print(f"✅ GET successful! Value: {retrieved}")
         
-        # Clean up
-        await client.delete(test_key)
-        print(f"✅ DELETE successful!")
+        print("\n📡 Test 7: Testing EXISTS operation...")
+        exists = await manager.exists(test_key)
+        print(f"✅ EXISTS successful! Result: {exists}")
         
-        # Get server info
-        info = await client.info('server')
-        print(f"\n📊 Server Info:")
-        print(f"   Redis Version: {info.get('redis_version', 'N/A')}")
-        print(f"   OS: {info.get('os', 'N/A')}")
-        print(f"   Uptime: {info.get('uptime_in_seconds', 0)} seconds")
+        print("\n� Test 8: Testing TTL operation...")
+        ttl = await manager.ttl(test_key)
+        print(f"✅ TTL successful! Remaining: {ttl} seconds")
         
-        await client.close()
+        print("\n📡 Test 9: Testing DELETE operation...")
+        deleted = await manager.delete(test_key)
+        print(f"✅ DELETE successful! Keys deleted: {deleted}")
+        
+        print("\n📡 Test 10: Testing health check...")
+        is_healthy = await manager.async_is_healthy()
+        print(f"✅ Health check successful! Status: {is_healthy}")
+        
+        print("\n📊 Connection Stats:")
+        stats = manager.get_connection_stats()
+        for key, value in stats.items():
+            print(f"   {key}: {value}")
+        
+        print("\n📡 Test 11: Disconnecting...")
+        await manager.disconnect()
+        print("✅ Disconnected successfully")
         
         print("\n" + "=" * 70)
-        print("🎉 All tests PASSED! Redis connection is working.")
+        print("🎉 All tests PASSED! RedisConnectionManager is working correctly.")
         print("=" * 70)
         return True
         
-    except redis.AuthenticationError as e:
-        print(f"❌ Authentication Failed: {e}")
-        print("\n💡 Possible fixes:")
-        print("   1. Check REDIS_PASSWORD is correct")
-        print("   2. Verify password in Upstash dashboard")
-        return False
-        
-    except redis.ConnectionError as e:
-        print(f"❌ Connection Failed: {e}")
-        print("\n💡 Possible fixes:")
-        print("   1. Check REDIS_HOST and REDIS_PORT are correct")
-        print("   2. Verify SSL is enabled (REDIS_SSL=true for Upstash)")
-        print("   3. Check firewall/network settings")
-        print("   4. Verify Upstash database is active")
-        return False
-        
     except Exception as e:
-        print(f"❌ Unexpected Error: {type(e).__name__}: {e}")
+        print(f"\n❌ Test Failed: {type(e).__name__}: {e}")
         import traceback
         traceback.print_exc()
-        return False
-
-
-async def test_with_different_ports():
-    """Test connection with Upstash REST port."""
-    
-    host = os.getenv('REDIS_HOST', 'localhost').strip('"')
-    password = os.getenv('REDIS_PASSWORD', '').strip('"')
-    
-    print("\n" + "=" * 70)
-    print("🔄 Test 2: Trying alternative port (TLS port 6380)...")
-    print("=" * 70)
-    
-    try:
-        import redis.asyncio as redis
-        from redis.asyncio.connection import SSLConnection
-        
-        pool = redis.ConnectionPool(
-            host=host,
-            port=6380,  # Alternative TLS port
-            password=password if password else None,
-            db=0,
-            connection_class=SSLConnection,
-            decode_responses=True,
-            socket_timeout=10,
-            socket_connect_timeout=10
-        )
-        
-        client = redis.Redis(connection_pool=pool)
-        response = await client.ping()
-        print(f"✅ Connection successful on port 6380! Response: {response}")
-        await client.close()
-        return True
-        
-    except Exception as e:
-        print(f"❌ Port 6380 also failed: {e}")
+        print("\n" + "=" * 70)
         return False
 
 
 if __name__ == '__main__':
     print("\n🚀 Starting Redis Connection Tests...\n")
     
-    # Run main test
+    # Run test
     success = asyncio.run(test_redis_connection())
     
-    # If main test failed, try alternative port
-    if not success:
-        asyncio.run(test_with_different_ports())
-    
     print("\n✨ Testing complete!\n")
+    
+    sys.exit(0 if success else 1)

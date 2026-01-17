@@ -88,11 +88,8 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             
             if use_ssl:
                 pool_params['connection_class'] = SSLConnection
-                # Set ssl_cert_reqs to None for cloud Redis providers (Upstash, etc.)
-                pool_params['ssl_cert_reqs'] = None
+                # Don't set ssl_cert_reqs in pool_params - let it use defaults
                 # Allow custom SSL cert requirements if specified
-                if self.config.get('ssl_cert_reqs'):
-                    pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], None)
                 if self.config.get('ssl_ca_certs'):
                     pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
             
@@ -243,10 +240,20 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         if not self._connection_pool:
             return {'status': 'not_connected'}
         
-        return {
+        stats = {
             'status': 'connected',
             'max_connections': self._connection_pool.max_connections,
-            'created_connections': self._connection_pool.created_connections,
-            'available_connections': len(self._connection_pool._available_connections),
-            'in_use_connections': len(self._connection_pool._in_use_connections)
         }
+        
+        # Try to get additional stats if available (API may vary by version)
+        try:
+            if hasattr(self._connection_pool, 'created_connections'):
+                stats['created_connections'] = self._connection_pool.created_connections
+            if hasattr(self._connection_pool, '_available_connections'):
+                stats['available_connections'] = len(self._connection_pool._available_connections)
+            if hasattr(self._connection_pool, '_in_use_connections'):
+                stats['in_use_connections'] = len(self._connection_pool._in_use_connections)
+        except Exception:
+            pass
+        
+        return stats
