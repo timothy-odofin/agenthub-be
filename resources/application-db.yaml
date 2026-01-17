@@ -34,8 +34,9 @@ postgresql:
 redis:
   host: "${REDIS_HOST:localhost}"
   port: "${REDIS_PORT:6379}"
-  password: "${REDIS_PASSWORD}"  # None if not set
-  database: "${REDIS_DB:0}"
+  password: "${REDIS_PASSWORD}"
+  db: "${REDIS_DB:0}"
+  ssl: "${REDIS_SSL:true}"
   max_connections: 10
   socket_timeout: 30
 

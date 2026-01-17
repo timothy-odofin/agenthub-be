@@ -5,9 +5,11 @@ Provides connection management for Redis cache with proper
 configuration validation and health checking.
 """
 
-from typing import Any, Optional, Union
+from typing import Any, Optional
+import ssl
 import redis.asyncio as redis
 from redis.asyncio import Redis, ConnectionPool
+from redis.asyncio.connection import SSLConnection
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError
 
 from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
@@ -69,27 +71,25 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             pool_params = {
                 'host': self.config['host'],
                 'port': self.config['port'],
-                'db': self.config.get('db', 0),  # Use 'db' instead of 'database'
+                'db': self.config.get('db', 0),
                 'password': self.config.get('password'),
                 'max_connections': self.config.get('connection_pool_size', 10),
                 'socket_timeout': self.config.get('socket_timeout', 5),
                 'socket_connect_timeout': self.config.get('socket_connect_timeout', 5),
                 'health_check_interval': self.config.get('health_check_interval', 30),
                 'retry_on_timeout': True,
-                'decode_responses': True  # Automatically decode byte responses to strings
+                'decode_responses': True
             }
             
-            # Handle SSL configuration for Redis 5.x
-            # In Redis 5.x, SSL is configured via connection_class, not a boolean parameter
+            # Handle SSL configuration (simplified for Hugging Face compatibility)
             use_ssl = self.config.get('ssl', False)
+            if isinstance(use_ssl, str):
+                use_ssl = use_ssl.lower() in ('true', '1', 'yes')
+            
             if use_ssl:
-                # Import SSL connection class only if needed
-                from redis.asyncio.connection import SSLConnection
                 pool_params['connection_class'] = SSLConnection
-                # Add SSL cert requirements if specified
-                if self.config.get('ssl_cert_reqs'):
-                    import ssl
-                    pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], ssl.CERT_REQUIRED)
+                # Don't set ssl_cert_reqs in pool_params - let it use defaults
+                # Allow custom SSL cert requirements if specified
                 if self.config.get('ssl_ca_certs'):
                     pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
             
@@ -111,7 +111,7 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         except Exception as e:
             self._connection = None
             self._is_connected = False
-            logger.error(f"Failed to connect to Redis: {e}")
+            logger.error(f"Redis connection failed: {type(e).__name__}: {e}")
             raise ConnectionError(f"Redis connection failed: {e}")
     
     async def disconnect(self) -> None:
@@ -240,10 +240,20 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         if not self._connection_pool:
             return {'status': 'not_connected'}
         
-        return {
+        stats = {
             'status': 'connected',
             'max_connections': self._connection_pool.max_connections,
-            'created_connections': self._connection_pool.created_connections,
-            'available_connections': len(self._connection_pool._available_connections),
-            'in_use_connections': len(self._connection_pool._in_use_connections)
         }
+        
+        # Try to get additional stats if available (API may vary by version)
+        try:
+            if hasattr(self._connection_pool, 'created_connections'):
+                stats['created_connections'] = self._connection_pool.created_connections
+            if hasattr(self._connection_pool, '_available_connections'):
+                stats['available_connections'] = len(self._connection_pool._available_connections)
+            if hasattr(self._connection_pool, '_in_use_connections'):
+                stats['in_use_connections'] = len(self._connection_pool._in_use_connections)
+        except Exception:
+            pass
+        
+        return stats

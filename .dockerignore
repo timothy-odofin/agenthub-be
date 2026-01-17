@@ -1,0 +1,79 @@
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+*.egg-info/
+dist/
+build/
+.venv/
+venv/
+ENV/
+env/
+
+# Git
+.git/
+.gitignore
+.gitattributes
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+.DS_Store
+
+# Documentation
+docs/
+*.md
+!README_HUGGINGFACE.md
+
+# Tests
+tests/
+.pytest_cache/
+.coverage
+htmlcov/
+.tox/
+
+# Logs
+*.log
+logs/
+
+# Data and Volumes
+volumes/
+examples/
+
+# Environment files (will be set in Hugging Face Space)
+.env*
+
+# Docker
+Dockerfile
+.dockerignore
+docker-compose.yml
+
+# CI/CD
+.github/
+.gitlab-ci.yml
+
+# Deployment configs (not needed in container)
+render.yaml
+Procfile
+Makefile
+
+# Development scripts
+scripts/
+
+# Poetry (using requirements.txt instead)
+poetry.lock
+pyproject.toml
+
+# Private keys
+*.pem
+
+# Other
+.DS_Store
+*.bak
+*.tmp
+celerybeat-schedule
+celerybeat.pid

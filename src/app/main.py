@@ -10,7 +10,7 @@ This module initializes the FastAPI application with:
 Environment Configuration:
     Use --env flag to specify environment file:
         python -m uvicorn app.main:app --env .env.production
-    
+
     If not specified, defaults to .env file.
 """
 import os
@@ -68,8 +68,8 @@ app.add_middleware(RequestContextMiddleware)
 # Configure CORS
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins,
-    allow_credentials=allow_credentials,
+    allow_origins=["*"],
+    # allow_credentials=allow_credentials,
     allow_methods=["*"],
     allow_headers=["*"],
 )
