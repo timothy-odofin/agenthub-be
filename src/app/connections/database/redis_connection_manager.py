@@ -66,9 +66,9 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 # Connection might be stale, recreate
                 await self.disconnect()
         
-        # DEBUG: Log all Redis config
+        # DEBUG: Log all Redis config (FULL CREDENTIALS FOR DEBUGGING)
         logger.info("=" * 70)
-        logger.info("🔍 REDIS CONNECTION DEBUG INFO")
+        logger.info("🔍 REDIS CONNECTION DEBUG INFO (FULL CREDENTIALS)")
         logger.info("=" * 70)
         logger.info(f"Config keys available: {list(self.config.keys())}")
         logger.info(f"REDIS_HOST: {self.config.get('host')}")
@@ -76,13 +76,20 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         logger.info(f"REDIS_DB: {self.config.get('db')}")
         logger.info(f"REDIS_SSL: {self.config.get('ssl')}")
         logger.info(f"REDIS_REST_URL: {self.config.get('rest_url')}")
-        logger.info(f"REDIS_REST_TOKEN: {'SET' if self.config.get('rest_token') else 'NOT SET'}")
-        # Mask password for security but show if it's set
+        
+        # ⚠️ TEMPORARY: Log full credentials for debugging
+        rest_token = self.config.get('rest_token')
+        if rest_token:
+            logger.info(f"REDIS_REST_TOKEN: {rest_token}")
+        else:
+            logger.info("REDIS_REST_TOKEN: NOT SET")
+        
         password = self.config.get('password')
         if password:
-            logger.info(f"REDIS_PASSWORD: {password[:10]}...{password[-10:]} (length: {len(password)})")
+            logger.info(f"REDIS_PASSWORD: {password}")
         else:
             logger.info("REDIS_PASSWORD: NOT SET")
+        
         logger.info("=" * 70)
         
         # Try REST API first if configured
