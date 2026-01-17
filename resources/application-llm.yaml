@@ -4,7 +4,7 @@
 # Default provider settings
 default:
   provider: "${DEFAULT_LLM_PROVIDER:openai}"
-  model: "${DEFAULT_LLM_MODEL:gpt-4o-mini}"
+  model: "${DEFAULT_LLM_MODEL:gpt-5-mini}"
   temperature: 0.1                     # Conservative temperature for consistency
   max_tokens: 4096                     # Default token limit
   timeout: 30                          # Request timeout in seconds
@@ -14,7 +14,7 @@ default:
 openai:
   api_key: "${OPENAI_API_KEY}"       # OpenAI API key from environment
   base_url: "${OPENAI_BASE_URL:https://api.openai.com/v1}"
-  model: "${OPENAI_DEFAULT_MODEL:gpt-4o-mini}"
+  model: "${OPENAI_DEFAULT_MODEL:gpt-5-mini}"
   temperature: "${OPENAI_TEMPERATURE:0.1}"
   max_tokens: "${OPENAI_MAX_TOKENS:4096}"
   timeout: "${OPENAI_TIMEOUT:60}"

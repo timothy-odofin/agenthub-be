@@ -16,7 +16,14 @@ logger = get_logger(__name__)
 # Input schemas for tools
 class SearchLogsInput(BaseModel):
     """Input schema for searching Datadog logs."""
-    query: str = Field(description="Datadog log search query (e.g., 'service:api status:error')")
+    query: str = Field(
+        description=(
+            "Datadog log search query using Datadog syntax. "
+            "Use wildcards (*) for partial matching (e.g., 'service:*hub*' matches 'agenthub-agent', 'agenthub-api'). "
+            "Common patterns: 'status:error', 'service:*api* status:error', 'message:*timeout*', 'host:server-name'. "
+            "Combine with OR/AND: '(status:error OR status:warn) service:*hub*'"
+        )
+    )
     limit: int = Field(default=50, description="Maximum number of logs to return (default: 50, max: 200)")
     time_from: Optional[str] = Field(default=None, description="Start time in ISO format (optional)")
     time_to: Optional[str] = Field(default=None, description="End time in ISO format (optional)")
@@ -107,7 +114,10 @@ class DatadogToolsProvider:
                 description=(
                     "Search Datadog logs. Provide a Datadog query string, optionally with time bounds. "
                     "Use this to investigate errors, trace requests, or analyze application behavior. "
-                    "Examples: 'service:api status:error', 'host:web-server-1', 'env:production service:api'"
+                    "IMPORTANT: Use wildcards (*) for partial matching. Service names often contain hyphens or underscores. "
+                    "Examples: 'service:*api* status:error', 'service:*agent* status:error', 'service:agenthub-*', "
+                    "'host:web-server-1', 'env:production status:error', 'status:error message:*timeout*'. "
+                    "For general errors, use: 'status:error' or '(status:error OR status:warn)' without service filter."
                 ),
                 args_schema=SearchLogsInput,
             )
