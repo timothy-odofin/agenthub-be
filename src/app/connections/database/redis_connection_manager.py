@@ -3,10 +3,9 @@ Redis connection manager implementation.
 
 Provides connection management for Redis cache with proper
 configuration validation and health checking.
-Supports both direct Redis protocol and Upstash REST API.
 """
 
-from typing import Any, Optional, Union
+from typing import Any, Optional
 import redis.asyncio as redis
 from redis.asyncio import Redis, ConnectionPool
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError
@@ -19,13 +18,12 @@ logger = get_logger(__name__)
 
 @ConnectionRegistry.register(ConnectionType.REDIS)
 class RedisConnectionManager(AsyncBaseConnectionManager):
-    """Redis connection manager implementation with REST API fallback."""
+    """Redis connection manager implementation."""
     
     def __init__(self):
         super().__init__()
         self._connection_pool: Optional[ConnectionPool] = None
         self._redis_client: Optional[Redis] = None
-        self._use_rest_api: bool = False
     
     def get_connection_name(self) -> str:
         """Return the configuration name for Redis."""
@@ -57,7 +55,7 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         logger.info("Redis connection configuration validated successfully")
     
     async def connect(self) -> Redis:
-        """Establish Redis connection with automatic fallback to REST API."""
+        """Establish Redis connection."""
         if self._redis_client:
             try:
                 await self._redis_client.ping()
@@ -66,132 +64,54 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 # Connection might be stale, recreate
                 await self.disconnect()
         
-        # DEBUG: Log all Redis config (FULL CREDENTIALS FOR DEBUGGING)
-        logger.info("=" * 70)
-        logger.info("🔍 REDIS CONNECTION DEBUG INFO (FULL CREDENTIALS)")
-        logger.info("=" * 70)
-        logger.info(f"Config keys available: {list(self.config.keys())}")
-        logger.info(f"REDIS_HOST: {self.config.get('host')}")
-        logger.info(f"REDIS_PORT: {self.config.get('port')}")
-        logger.info(f"REDIS_DB: {self.config.get('db')}")
-        logger.info(f"REDIS_SSL: {self.config.get('ssl')}")
-        logger.info(f"REDIS_REST_URL: {self.config.get('rest_url')}")
-        
-        # ⚠️ TEMPORARY: Log full credentials for debugging
-        rest_token = self.config.get('rest_token')
-        if rest_token:
-            logger.info(f"REDIS_REST_TOKEN: {rest_token}")
-        else:
-            logger.info("REDIS_REST_TOKEN: NOT SET")
-        
-        password = self.config.get('password')
-        if password:
-            logger.info(f"REDIS_PASSWORD: {password}")
-        else:
-            logger.info("REDIS_PASSWORD: NOT SET")
-        
-        logger.info("=" * 70)
-        
-        # Try REST API first if configured
-        rest_url = self.config.get('rest_url')
-        rest_token = self.config.get('rest_token')
-        
-        if rest_url and rest_token:
-            try:
-                logger.info(f"🌐 Attempting Upstash REST API connection to {rest_url}...")
-                from .upstash_rest_client import UpstashRestClient
-                
-                self._redis_client = UpstashRestClient(
-                    rest_url=rest_url,
-                    rest_token=rest_token,
-                    timeout=self.config.get('socket_timeout', 10)
-                )
-                
-                # Test connection
-                await self._redis_client.ping()
-                
-                self._connection = self._redis_client
-                self._is_connected = True
-                self._use_rest_api = True
-                
-                logger.info(f"✅ Upstash REST API connection established to {rest_url}")
-                return self._redis_client
-                
-            except Exception as e:
-                logger.warning(f"⚠️  Upstash REST API connection failed: {e}")
-                logger.warning("Falling back to direct Redis protocol...")
-        else:
-            logger.info(f"ℹ️  REST API not configured (rest_url={bool(rest_url)}, rest_token={bool(rest_token)})")
-            logger.info("Using direct Redis protocol connection...")
-        
-        # Fall back to direct Redis protocol
         try:
-            logger.info("🔌 Attempting direct Redis protocol connection...")
-            
             # Build connection pool parameters
             pool_params = {
                 'host': self.config['host'],
                 'port': self.config['port'],
-                'db': self.config.get('db', 0),  # Use 'db' instead of 'database'
+                'db': self.config.get('db', 0),
                 'password': self.config.get('password'),
                 'max_connections': self.config.get('connection_pool_size', 10),
                 'socket_timeout': self.config.get('socket_timeout', 5),
                 'socket_connect_timeout': self.config.get('socket_connect_timeout', 5),
                 'health_check_interval': self.config.get('health_check_interval', 30),
                 'retry_on_timeout': True,
-                'decode_responses': True  # Automatically decode byte responses to strings
+                'decode_responses': True
             }
             
-            logger.info(f"Connection params: host={pool_params['host']}, port={pool_params['port']}, db={pool_params['db']}")
-            
-            # Handle SSL configuration for Redis 5.x
-            # In Redis 5.x, SSL is configured via connection_class, not a boolean parameter
-            # Convert string 'true'/'false' to boolean
+            # Handle SSL configuration
             use_ssl = self.config.get('ssl', False)
             if isinstance(use_ssl, str):
                 use_ssl = use_ssl.lower() in ('true', '1', 'yes')
             
-            logger.info(f"SSL/TLS: {use_ssl}")
-            
             if use_ssl:
-                # Import SSL connection class only if needed
                 from redis.asyncio.connection import SSLConnection
                 pool_params['connection_class'] = SSLConnection
-                # Add SSL cert requirements if specified
                 if self.config.get('ssl_cert_reqs'):
                     import ssl
                     pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], ssl.CERT_REQUIRED)
                 if self.config.get('ssl_ca_certs'):
                     pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
-                
-                logger.info("✅ Redis SSL/TLS connection class configured")
             
             # Create connection pool
-            logger.info("Creating connection pool...")
             self._connection_pool = redis.ConnectionPool(**pool_params)
             
             # Create Redis client
-            logger.info("Creating Redis client...")
             self._redis_client = redis.Redis(connection_pool=self._connection_pool)
             
             # Test connection
-            logger.info("Testing connection with PING...")
             await self._redis_client.ping()
             
             self._connection = self._redis_client
             self._is_connected = True
-            self._use_rest_api = False
             
-            logger.info(f"✅ Redis direct connection established to {self.config['host']}:{self.config['port']}")
-            logger.info("=" * 70)
+            logger.info(f"Redis connection established to {self.config['host']}:{self.config['port']}")
             return self._redis_client
             
         except Exception as e:
             self._connection = None
             self._is_connected = False
-            logger.error(f"❌ Direct Redis connection failed: {type(e).__name__}: {e}")
-            logger.error(f"Error details: {str(e)}")
-            logger.error("=" * 70)
+            logger.error(f"Redis connection failed: {type(e).__name__}: {e}")
             raise ConnectionError(f"Redis connection failed: {e}")
     
     async def disconnect(self) -> None:
