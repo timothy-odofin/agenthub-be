@@ -72,7 +72,6 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 'host': self.config['host'],
                 'port': self.config['port'],
                 'db': self.config.get('db', 0),
-                'ssl': True,
                 'password': self.config.get('password'),
                 'max_connections': self.config.get('connection_pool_size', 10),
                 'socket_timeout': self.config.get('socket_timeout', 5),
