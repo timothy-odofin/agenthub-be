@@ -36,6 +36,8 @@ redis:
   port: "${REDIS_PORT:6379}"
   password: "${REDIS_PASSWORD}"  # None if not set
   database: "${REDIS_DB:0}"
+  db: "${REDIS_DB:0}"  # Alias for database (Redis library uses 'db')
+  ssl: "${REDIS_SSL:false}"  # Enable SSL/TLS for Upstash or other cloud Redis
   max_connections: 10
   socket_timeout: 30
 

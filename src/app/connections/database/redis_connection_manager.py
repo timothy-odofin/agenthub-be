@@ -81,7 +81,11 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             
             # Handle SSL configuration for Redis 5.x
             # In Redis 5.x, SSL is configured via connection_class, not a boolean parameter
+            # Convert string 'true'/'false' to boolean
             use_ssl = self.config.get('ssl', False)
+            if isinstance(use_ssl, str):
+                use_ssl = use_ssl.lower() in ('true', '1', 'yes')
+            
             if use_ssl:
                 # Import SSL connection class only if needed
                 from redis.asyncio.connection import SSLConnection
@@ -92,6 +96,8 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                     pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], ssl.CERT_REQUIRED)
                 if self.config.get('ssl_ca_certs'):
                     pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
+                
+                logger.info("Redis SSL/TLS enabled")
             
             # Create connection pool
             self._connection_pool = redis.ConnectionPool(**pool_params)
