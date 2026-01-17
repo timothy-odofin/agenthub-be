@@ -6,8 +6,10 @@ configuration validation and health checking.
 """
 
 from typing import Any, Optional
+import ssl
 import redis.asyncio as redis
 from redis.asyncio import Redis, ConnectionPool
+from redis.asyncio.connection import SSLConnection
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError
 
 from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
@@ -70,6 +72,7 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 'host': self.config['host'],
                 'port': self.config['port'],
                 'db': self.config.get('db', 0),
+                'ssl': True,
                 'password': self.config.get('password'),
                 'max_connections': self.config.get('connection_pool_size', 10),
                 'socket_timeout': self.config.get('socket_timeout', 5),
@@ -79,17 +82,18 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 'decode_responses': True
             }
             
-            # Handle SSL configuration
+            # Handle SSL configuration (simplified for Hugging Face compatibility)
             use_ssl = self.config.get('ssl', False)
             if isinstance(use_ssl, str):
                 use_ssl = use_ssl.lower() in ('true', '1', 'yes')
             
             if use_ssl:
-                from redis.asyncio.connection import SSLConnection
                 pool_params['connection_class'] = SSLConnection
+                # Set ssl_cert_reqs to None for cloud Redis providers (Upstash, etc.)
+                pool_params['ssl_cert_reqs'] = None
+                # Allow custom SSL cert requirements if specified
                 if self.config.get('ssl_cert_reqs'):
-                    import ssl
-                    pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], ssl.CERT_REQUIRED)
+                    pool_params['ssl_cert_reqs'] = getattr(ssl, self.config['ssl_cert_reqs'], None)
                 if self.config.get('ssl_ca_certs'):
                     pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
             
