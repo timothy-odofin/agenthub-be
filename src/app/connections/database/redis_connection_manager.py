@@ -3,6 +3,7 @@ Redis connection manager implementation.
 
 Provides connection management for Redis cache with proper
 configuration validation and health checking.
+Supports both direct Redis protocol and Upstash REST API.
 """
 
 from typing import Any, Optional, Union
@@ -18,12 +19,13 @@ logger = get_logger(__name__)
 
 @ConnectionRegistry.register(ConnectionType.REDIS)
 class RedisConnectionManager(AsyncBaseConnectionManager):
-    """Redis connection manager implementation."""
+    """Redis connection manager implementation with REST API fallback."""
     
     def __init__(self):
         super().__init__()
         self._connection_pool: Optional[ConnectionPool] = None
         self._redis_client: Optional[Redis] = None
+        self._use_rest_api: bool = False
     
     def get_connection_name(self) -> str:
         """Return the configuration name for Redis."""
@@ -55,7 +57,7 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         logger.info("Redis connection configuration validated successfully")
     
     async def connect(self) -> Redis:
-        """Establish Redis connection."""
+        """Establish Redis connection with automatic fallback to REST API."""
         if self._redis_client:
             try:
                 await self._redis_client.ping()
@@ -64,6 +66,35 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 # Connection might be stale, recreate
                 await self.disconnect()
         
+        # Try REST API first if configured
+        rest_url = self.config.get('rest_url')
+        rest_token = self.config.get('rest_token')
+        
+        if rest_url and rest_token:
+            try:
+                logger.info("Attempting Upstash REST API connection...")
+                from .upstash_rest_client import UpstashRestClient
+                
+                self._redis_client = UpstashRestClient(
+                    rest_url=rest_url,
+                    rest_token=rest_token,
+                    timeout=self.config.get('socket_timeout', 10)
+                )
+                
+                # Test connection
+                await self._redis_client.ping()
+                
+                self._connection = self._redis_client
+                self._is_connected = True
+                self._use_rest_api = True
+                
+                logger.info(f"✅ Upstash REST API connection established to {rest_url}")
+                return self._redis_client
+                
+            except Exception as e:
+                logger.warning(f"Upstash REST API connection failed: {e}, falling back to direct protocol...")
+        
+        # Fall back to direct Redis protocol
         try:
             # Build connection pool parameters
             pool_params = {
@@ -110,14 +141,15 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             
             self._connection = self._redis_client
             self._is_connected = True
+            self._use_rest_api = False
             
-            logger.info(f"Redis connection established to {self.config['host']}:{self.config['port']}")
+            logger.info(f"✅ Redis direct connection established to {self.config['host']}:{self.config['port']}")
             return self._redis_client
             
         except Exception as e:
             self._connection = None
             self._is_connected = False
-            logger.error(f"Failed to connect to Redis: {e}")
+            logger.error(f"❌ All Redis connection attempts failed: {e}")
             raise ConnectionError(f"Redis connection failed: {e}")
     
     async def disconnect(self) -> None:

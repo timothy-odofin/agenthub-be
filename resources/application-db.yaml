@@ -38,6 +38,9 @@ redis:
   database: "${REDIS_DB:0}"
   db: "${REDIS_DB:0}"  # Alias for database (Redis library uses 'db')
   ssl: "${REDIS_SSL:false}"  # Enable SSL/TLS for Upstash or other cloud Redis
+  # REST API (recommended for serverless environments like Hugging Face)
+  rest_url: "${REDIS_REST_URL}"  # e.g., https://xxx.upstash.io or https://xxx.redis.cloud
+  rest_token: "${REDIS_REST_TOKEN}"  # REST API authentication token
   max_connections: 10
   socket_timeout: 30
 
