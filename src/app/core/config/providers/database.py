@@ -49,17 +49,20 @@ class DatabaseConfig(BaseConfigSource):
             
         redis = settings.db.redis
         
+        # Get database number (use 'db' field)
+        db_num = redis.db if hasattr(redis, 'db') else 0
+        
         # Build URL with or without password
         if redis.password:
-            url = f"redis://:{redis.password}@{redis.host}:{redis.port}/{redis.database}"
+            url = f"redis://:{redis.password}@{redis.host}:{redis.port}/{db_num}"
         else:
-            url = f"redis://{redis.host}:{redis.port}/{redis.database}"
+            url = f"redis://{redis.host}:{redis.port}/{db_num}"
         
         return {
             'host': redis.host,
             'port': redis.port,
             'password': redis.password,
-            'db': redis.database,
+            'db': db_num,
             'url': url
         }
     
