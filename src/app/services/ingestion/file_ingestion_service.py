@@ -1,4 +1,9 @@
+import gzip
 import os
+import shutil
+import tarfile
+import tempfile
+import zipfile
 from pathlib import Path
 from typing import List, Dict
 
@@ -162,12 +167,6 @@ class FileIngestionService(BaseIngestionService):
         Handle archive files by extracting and processing their contents.
         Directly loads extracted files without recursive archive handling.
         """
-        import tempfile
-        import zipfile
-        import tarfile
-        import gzip
-        import shutil
-
         documents = []
         with tempfile.TemporaryDirectory() as temp_dir:
             # Extract archive based on type

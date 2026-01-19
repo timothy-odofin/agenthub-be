@@ -43,15 +43,23 @@ class BaseConnectionManager(ABC):
         Uses the config source registry to automatically determine
         the correct config source based on decorator registrations.
         
+        NOTE: ConfigSourceRegistry is imported here (lazy import) to avoid
+        circular dependency. This is a standard Python pattern for breaking
+        circular dependencies in large applications:
+        - BaseConnectionManager needs ConfigSourceRegistry to get config
+        - Config classes (DatabaseConfig, VectorConfig, etc.) may need to
+          import connection-related types
+        - Lazy loading breaks the cycle and is production-ready
+        
         Args:
             connection_name: The name of the connection
             
         Returns:
             The appropriate configuration source
         """
+        # Lazy import to break circular dependency (intentional pattern)
         from app.core.config.framework.registry import ConfigSourceRegistry
         
-       
         return ConfigSourceRegistry.get_config_source(connection_name)
        
     @abstractmethod

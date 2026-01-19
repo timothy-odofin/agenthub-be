@@ -8,6 +8,8 @@ Requirements:
     - chromadb: pip install chromadb
 """
 
+import os
+from pathlib import Path
 from typing import Any, Optional, Dict, List
 from datetime import datetime
 import chromadb
@@ -42,9 +44,6 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         # Validate persist directory if provided
         persist_directory = self.config.get('persist_directory')
         if persist_directory:
-            import os
-            from pathlib import Path
-            
             persist_path = Path(persist_directory)
             # Create directory if it doesn't exist
             persist_path.mkdir(parents=True, exist_ok=True)

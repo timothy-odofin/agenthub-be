@@ -20,6 +20,7 @@ Usage:
     >>> documents = await chunker.fetch_and_chunk("https://example.com")
 """
 
+import asyncio
 import hashlib
 import json
 from datetime import datetime
@@ -381,7 +382,6 @@ class WebContentChunker:
         try:
             cache_key = self._generate_cache_key(url)
             # Note: This is sync, but we're wrapping it for consistency
-            import asyncio
             return asyncio.run(self.cache_provider.delete(cache_key))
         except Exception as e:
             logger.error(f"Failed to clear cache for {url}: {e}")

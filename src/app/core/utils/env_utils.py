@@ -4,6 +4,7 @@ Environment variable utility for centralized environment access.
 Provides a clean interface for accessing environment variables with
 type conversion, validation, and fallback support.
 """
+import logging
 import os
 from typing import Any, Optional, Union, List, Dict, Type, TypeVar
 from pathlib import Path
@@ -60,7 +61,6 @@ class EnvironmentManager:
     
     def _get_logger(self):
         """Get logger instance, avoiding import issues."""
-        import logging
         return logging.getLogger(__name__)
     
     def _find_env_file(self) -> Optional[Path]:

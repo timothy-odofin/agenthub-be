@@ -98,6 +98,10 @@ class CacheFactory:
             
         Raises:
             ValueError: If configuration is invalid or missing
+            
+        Note: Uses lazy import to avoid circular dependency:
+        app.services.cache → app.core.config.framework.settings → app.services
+        Settings are only loaded when determining cache type.
         """
         try:
             from app.core.config.framework.settings import settings

@@ -5,8 +5,9 @@ Loads multiple YAML files using the pattern: application-{profile}.yaml,
 automatically resolves environment variable placeholders with Spring Boot-style syntax,
 and provides dot notation access to configuration values.
 """
-import os
 import logging
+import os
+import traceback
 from pathlib import Path
 from typing import Optional, Dict, Any, List
 from .yaml_loader import YamlLoader
@@ -63,6 +64,7 @@ class Settings:
             return
             
         # Ensure environment variables are loaded first
+        # Import locally to avoid circular dependency: env_utils may use settings
         from ...utils.env_utils import env
         env.reload_env()  # This will load .env file if available
             
@@ -126,7 +128,6 @@ class Settings:
         except Exception as e:
             logger.error(f"Error loading profile configurations: {e}")
             # Add more detailed error information for debugging
-            import traceback
             logger.debug(f"Full traceback: {traceback.format_exc()}")
             # Initialize with empty config to prevent crashes
             self._create_dynamic_attributes({})
@@ -495,6 +496,7 @@ class Settings:
                 'with_defaults': List of variables that have defaults
             }
         """
+        # Import locally to avoid circular dependency: env_utils may use settings
         from ...utils.env_utils import env
         
         all_vars = set()

@@ -28,11 +28,6 @@ class PostgresConnectionManager(AsyncBaseConnectionManager):
         """Return the configuration name for PostgreSQL."""
         return ConnectionType.POSTGRES.value
     
-    def get_config_source(self) -> Any:
-        """Return the database configuration source."""
-        from app.core.config.providers.database import database_config
-        return database_config
-    
     def validate_config(self) -> None:
         """Validate PostgreSQL configuration."""
         required_fields = ['host', 'port', 'database', 'username', 'password']

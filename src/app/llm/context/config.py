@@ -2,6 +2,7 @@
 Configuration management for context window settings using Settings system.
 """
 
+import logging
 from typing import Dict, Any, Optional
 from dataclasses import dataclass
 
@@ -121,7 +122,6 @@ def get_context_window_config() -> ContextWindowConfig:
             
     except Exception as e:
         # Fallback to defaults on any error
-        import logging
         logger = logging.getLogger(__name__)
         logger.warning(f"Could not load context window config from Settings: {e}, using defaults")
         return ContextWindowConfig()

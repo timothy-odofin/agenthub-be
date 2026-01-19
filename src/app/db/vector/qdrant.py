@@ -6,6 +6,7 @@ from datetime import datetime
 from typing import List, Dict, Any, Optional
 from langchain.schema import Document
 from langchain_qdrant import Qdrant as LangchainQdrant
+from qdrant_client.http.models import Filter, FieldCondition, MatchValue
 
 from .providers.db_provider import VectorDBRegistry
 from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
@@ -139,8 +140,6 @@ class QdrantDB(VectorDB, ABC):
             
             # Use the Qdrant client to delete by filter
             # We'll filter by document_id in metadata
-            from qdrant_client.http.models import Filter, FieldCondition, MatchValue
-            
             delete_filter = Filter(
                 must=[
                     FieldCondition(
@@ -165,8 +164,6 @@ class QdrantDB(VectorDB, ABC):
     def get_document_metadata(self, document_id: str) -> Optional[DocumentMetadata]:
         """Get metadata for a document."""
         try:
-            from qdrant_client.http.models import Filter, FieldCondition, MatchValue
-            
             # Search for the document by ID
             search_filter = Filter(
                 must=[

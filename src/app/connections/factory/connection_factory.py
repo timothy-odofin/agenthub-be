@@ -66,14 +66,25 @@ class ConnectionFactory:
             bool: True if available and configured, False otherwise
         """
         try:
-            # Import here to avoid circular imports
-            from app.core.config.connection_config import connection_config
-            
-            # Check if registered and has valid config
+            # Check if connection type is registered
             is_registered = ConnectionRegistry.is_connection_registered(connection_type)
-            has_config = connection_config.validate_connection_config(connection_type.value)
             
-            return is_registered and has_config
+            if not is_registered:
+                return False
+            
+            # Try to get configuration via registry (lazy import to avoid circular dependency)
+            from app.core.config.framework.registry import ConfigSourceRegistry
+            
+            try:
+                config_source = ConfigSourceRegistry.get_config_source(connection_type.value)
+                config = config_source.get_connection_config(connection_type.value)
+                # Connection is available if it has valid configuration
+                has_config = bool(config and len(config) > 0)
+                return has_config
+            except ValueError:
+                # No config source registered for this connection type
+                return False
+            
         except Exception as e:
             logger.warning(f"Error checking connection availability for {connection_type}: {e}")
             return False

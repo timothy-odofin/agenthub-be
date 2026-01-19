@@ -6,7 +6,7 @@ Provides endpoints to:
 - Get detailed information about specific providers
 """
 
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter
 
 from app.schemas.llm import ProvidersResponse, ProviderDetailInfo
 from app.services.llm_service import llm_service
@@ -55,21 +55,13 @@ async def list_providers():
     }
     ```
     """
-    try:
-        providers = llm_service.get_available_providers()
-        
-        return ProvidersResponse(
-            success=True,
-            providers=providers,
-            total=len(providers)
-        )
+    providers = llm_service.get_available_providers()
     
-    except Exception as e:
-        logger.error(f"Error fetching providers: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch providers: {str(e)}"
-        )
+    return ProvidersResponse(
+        success=True,
+        providers=providers,
+        total=len(providers)
+    )
 
 
 @router.get("/providers/{provider_name}", response_model=ProviderDetailInfo)
@@ -107,18 +99,5 @@ async def get_provider(provider_name: str):
     }
     ```
     """
-    try:
-        provider_info = llm_service.get_provider_info(provider_name)
-        return ProviderDetailInfo(**provider_info)
-    
-    except ValueError as e:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail=str(e)
-        )
-    except Exception as e:
-        logger.error(f"Error fetching provider {provider_name}: {str(e)}")
-        raise HTTPException(
-            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
-            detail=f"Failed to fetch provider: {str(e)}"
-        )
+    provider_info = llm_service.get_provider_info(provider_name)
+    return ProviderDetailInfo(**provider_info)

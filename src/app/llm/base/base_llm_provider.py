@@ -7,9 +7,16 @@ from typing import Dict, Any, List, Optional, AsyncGenerator, Type, Union
 from enum import Enum
 import json
 import logging
+import time
 
 from app.core.constants import LLMCapability
 from app.schemas.llm_output import LLMOutputBase, StructuredLLMResponse
+
+try:
+    from pydantic_core import PydanticUndefined
+except ImportError:
+    # Fallback for Pydantic v1
+    PydanticUndefined = type('PydanticUndefined', (), {})()
 
 logger = logging.getLogger(__name__)
 
@@ -88,7 +95,6 @@ class LLMResponse:
             has_default = False
             if hasattr(output_schema, 'model_fields'):
                 # Pydantic v2 - check for default value
-                from pydantic_core import PydanticUndefined
                 if hasattr(field_info, 'default') and field_info.default is not PydanticUndefined:
                     has_default = True
                 elif hasattr(field_info, 'default_factory') and field_info.default_factory is not None:
@@ -164,6 +170,13 @@ class BaseLLMProvider(ABC):
     """Abstract base class for all LLM providers."""
     
     def __init__(self):
+        """
+        Initialize LLM provider with configuration.
+        
+        Note: Uses lazy import to avoid circular dependency:
+        app.llm.base → app.core.config.application.llm → app.llm.providers
+        Config is loaded during provider instantiation.
+        """
         # Use template method pattern - child defines config name, base retrieves it
         config_name = self.get_config_name()
         from app.core.config.application.llm import llm_config
@@ -238,7 +251,6 @@ class BaseLLMProvider(ABC):
         Returns:
             Structured LLM response
         """
-        import time
         start_time = time.time()
         
         # Enhance prompt for structured output

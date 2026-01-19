@@ -115,6 +115,13 @@ class ConfluenceService(metaclass=SingletonMeta):
 
 
     def __init_client(self):
+        """
+        Initialize Confluence client with configuration.
+        
+        Note: Uses lazy import to avoid circular dependency:
+        app.services.external → app.core.config → app.services
+        Config is only loaded when client is first initialized.
+        """
         if self._confluence is None:
             from app.core.config import config
             atlassian_config = config.atlassian_config

@@ -1,6 +1,7 @@
 from abc import abstractmethod, ABC
 from typing import Optional
 import asyncio
+import inspect
 
 from app.sessions.models.message import ChatMessage
 from app.sessions.models.session import ChatSession
@@ -32,7 +33,6 @@ class BaseSessionRepository(ABC):
                 self._connection = self._connection_manager.connect()
             
             # Smart hybrid: Check if table creation method is async or sync
-            import inspect
             if inspect.iscoroutinefunction(self._create_tables_if_not_exist):
                 await self._create_tables_if_not_exist()
             else:

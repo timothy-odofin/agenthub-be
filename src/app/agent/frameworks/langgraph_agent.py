@@ -1,3 +1,4 @@
+import uuid
 from abc import abstractmethod
 from typing import Set, Dict, Any, Optional
 from langgraph.graph import StateGraph
@@ -96,7 +97,6 @@ class LangGraphAgent(BaseAgent):
         if not self.enable_checkpointing:
             raise ValueError("Branching requires checkpointing to be enabled")
         
-        import uuid
         new_thread_id = f"{thread_id}_branch_{uuid.uuid4().hex[:8]}"
         
         # Create new thread with state from checkpoint

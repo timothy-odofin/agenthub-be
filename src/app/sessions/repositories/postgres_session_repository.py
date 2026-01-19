@@ -2,6 +2,7 @@
 PostgreSQL session repository implementation.
 """
 
+import asyncio
 import uuid
 from typing import List
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
@@ -56,7 +57,6 @@ class PostgresSessionRepository(BaseSessionRepository):
         session_id = str(uuid.uuid4())
         
         # This should be async in real implementation
-        import asyncio
         loop = asyncio.get_event_loop()
         loop.run_until_complete(self._create_session_async(session_id, user_id, session_data))
         
@@ -83,7 +83,6 @@ class PostgresSessionRepository(BaseSessionRepository):
         Returns:
             ChatSession object if found, None otherwise
         """
-        import asyncio
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self._get_session_async(user_id, session_id))
     
@@ -121,7 +120,6 @@ class PostgresSessionRepository(BaseSessionRepository):
         Returns:
             List of ChatMessage objects, ordered by timestamp
         """
-        import asyncio
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self._get_session_messages_async(user_id, session_id, limit))
     
@@ -192,7 +190,6 @@ class PostgresSessionRepository(BaseSessionRepository):
     
     def update_session(self, user_id: str, session_id: str, data: dict) -> bool:
         """Update session data for the given session ID"""
-        import asyncio
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self._update_session_async(user_id, session_id, data))
     
@@ -217,7 +214,6 @@ class PostgresSessionRepository(BaseSessionRepository):
     
     def list_paginated_sessions(self, user_id: str, page: int = 0, limit: int = 10) -> List[ChatSession]:
         """List sessions for the given user with pagination"""
-        import asyncio
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self._list_sessions_async(user_id, page, limit))
     
@@ -248,7 +244,6 @@ class PostgresSessionRepository(BaseSessionRepository):
     
     def delete_session(self, user_id: str, session_id: str) -> bool:
         """Delete the session with the given session ID"""
-        import asyncio
         loop = asyncio.get_event_loop()
         return loop.run_until_complete(self._delete_session_async(user_id, session_id))
     

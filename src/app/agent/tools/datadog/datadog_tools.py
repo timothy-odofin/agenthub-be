@@ -18,10 +18,12 @@ class SearchLogsInput(BaseModel):
     """Input schema for searching Datadog logs."""
     query: str = Field(
         description=(
-            "Datadog log search query using Datadog syntax. "
-            "Use wildcards (*) for partial matching (e.g., 'service:*hub*' matches 'agenthub-agent', 'agenthub-api'). "
-            "Common patterns: 'status:error', 'service:*api* status:error', 'message:*timeout*', 'host:server-name'. "
-            "Combine with OR/AND: '(status:error OR status:warn) service:*hub*'"
+            "Search query - can be simple keywords or Datadog syntax. "
+            "SIMPLE: Just use 'error', 'exception', 'failure' - tool auto-expands to search all fields. "
+            "ADVANCED: Use Datadog syntax for precision: 'service:*api* error', 'host:server-1 exception', "
+            "'env:production content:*timeout*'. Use wildcards (*) for partial matching. "
+            "The tool intelligently searches content (log messages), service, host, and status fields for error-related terms. "
+            "NOTE: Datadog uses 'content' field for log message text, not 'message'."
         )
     )
     limit: int = Field(default=50, description="Maximum number of logs to return (default: 50, max: 200)")
@@ -64,6 +66,66 @@ class DatadogToolsProvider:
             self._wrapper = DatadogAPIWrapper()
         return self._wrapper
     
+    def _expand_error_query(self, query: str) -> str:
+        """
+        Expand queries to search across multiple fields for error-related terms.
+        
+        When users search for "exception", "error", "failure", etc., we should search:
+        - content field (the actual log message - MOST IMPORTANT)
+        - service field (service names)
+        - host field (host names)
+        - status field (error level)
+        
+        Note: Datadog uses "content" field for log messages, not "message".
+        
+        Examples:
+            "status:error" -> "(status:error OR content:*error* OR content:*exception*)"
+            "exception" -> "(content:*exception* OR content:*error* OR status:error)"
+            "service:api error" -> "service:api (content:*error* OR content:*exception* OR status:error)"
+        """
+        query_lower = query.lower().strip()
+        
+        # Error-related terms that should be expanded
+        error_terms = {
+            'error', 'errors', 'exception', 'exceptions', 
+            'failure', 'failures', 'failed', 'fail',
+            'crash', 'crashed', 'critical'
+        }
+        
+        # Check if query contains any error terms as standalone words
+        has_error_term = any(term in query_lower.split() for term in error_terms)
+        
+        # If query is just "status:error" or similar, expand it
+        if query_lower in ['status:error', 'status:warn', 'status:critical']:
+            return f"(status:error OR status:warn OR content:*error* OR content:*exception* OR content:*fail*)"
+        
+        # If query contains error terms without field specifiers, expand them
+        if has_error_term and ':' not in query:
+            # Query is just "error", "exception", etc.
+            return f"(content:*{query_lower}* OR service:*{query_lower}* OR host:*{query_lower}* OR status:error OR status:warn)"
+        
+        # If query has service/host filter + error term, expand the error term
+        if has_error_term and ('service:' in query_lower or 'host:' in query_lower):
+            # Extract the base filter (service/host part)
+            parts = query.split()
+            filters = [p for p in parts if ':' in p]
+            error_words = [p for p in parts if p.lower() in error_terms]
+            
+            if error_words:
+                # Build expanded query: keep filters, expand error terms
+                filter_str = ' '.join(filters)
+                error_expansion = ' OR '.join([
+                    'status:error',
+                    'status:warn', 
+                    'content:*error*',
+                    'content:*exception*',
+                    'content:*fail*'
+                ])
+                return f"{filter_str} ({error_expansion})"
+        
+        # Default: return original query (already has proper syntax)
+        return query
+    
     def get_tools(self) -> List[StructuredTool]:
         """
         Get all Datadog tools.
@@ -83,8 +145,11 @@ class DatadogToolsProvider:
                 time_to: Optional[str] = None,
             ) -> str:
                 """Search Datadog logs with a query string and optional time bounds."""
+                # Expand query to search across multiple fields for common error terms
+                expanded_query = self._expand_error_query(query)
+                
                 logs = dd.search_logs(
-                    query=query,
+                    query=expanded_query,
                     limit=limit,
                     time_from=time_from,
                     time_to=time_to,
@@ -112,12 +177,15 @@ class DatadogToolsProvider:
                 func=search_logs_func,
                 name="datadog_search_logs",
                 description=(
-                    "Search Datadog logs. Provide a Datadog query string, optionally with time bounds. "
-                    "Use this to investigate errors, trace requests, or analyze application behavior. "
-                    "IMPORTANT: Use wildcards (*) for partial matching. Service names often contain hyphens or underscores. "
-                    "Examples: 'service:*api* status:error', 'service:*agent* status:error', 'service:agenthub-*', "
-                    "'host:web-server-1', 'env:production status:error', 'status:error message:*timeout*'. "
-                    "For general errors, use: 'status:error' or '(status:error OR status:warn)' without service filter."
+                    "Search Datadog logs for errors, exceptions, and application events. "
+                    "SMART SEARCH: When searching for 'error' or 'exception', the tool automatically searches "
+                    "across content (log message text), service, host, and status fields. You can simply use: 'error', 'exception', 'failure'. "
+                    "ADVANCED: Use Datadog syntax for specific filtering: 'service:*api* status:error', "
+                    "'host:web-server-1', 'env:production content:*timeout*'. "
+                    "Use wildcards (*) for partial matching. Service names often contain hyphens. "
+                    "Examples: 'exception' (searches everywhere), 'service:*agent* error' (errors in agent service), "
+                    "'error' (finds all errors/exceptions in content field), 'service:agenthub-* failure' (failures in agenthub services). "
+                    "NOTE: Log message text is in the 'content' field in Datadog."
                 ),
                 args_schema=SearchLogsInput,
             )
