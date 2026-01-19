@@ -25,21 +25,21 @@ app_port: 7860
 
 1. **[LLM Basics](docs/core-concepts/llm-basics.md)** - Understand how LLMs work
 2. **[RAG Pipeline](docs/core-concepts/rag-pipeline.md)** - Learn retrieval-augmented generation
-3. **[Agent Workflows](docs/core-concepts/agent-workflows.md)** - How agents make decisions
-4. **[Quickstart Tutorial](docs/getting-started/quickstart.md)** - Build your first LLM app
+3. **[Agent Frameworks](docs/guides/agent-frameworks/README.md)** - How agents make decisions
+4. **[Quickstart Tutorial](docs/getting-started/quick-start.md)** - Build your first LLM app
 
 ### For Python Developers
 
 Want to adopt these patterns? Start here:
 
 1. **[Configuration System](docs/guides/configuration/README.md)** - Type-safe YAML configs
-2. **[Resilience Patterns](docs/guides/resilience/README.md)** - Retry, circuit breakers
-3. **[Testing LLM Apps](docs/guides/testing/README.md)** - Unit, integration, E2E tests
+2. **[Resilience Patterns](src/app/core/resilience/)** - Retry, circuit breakers (see code implementation)
+3. **[Testing Patterns](tests/)** - Unit, integration, E2E test examples
 4. **[Connection Management](docs/guides/connections/README.md)** - Database connection patterns
 
 ### Documentation by Topic
 
-- **[Getting Started](docs/getting-started/quickstart.md)** - 5-minute setup
+- **[Getting Started](docs/getting-started/quick-start.md)** - 5-minute setup
 - **[API Reference](docs/api-reference/README.md)** - Complete REST API docs
 - **[Architecture](docs/architecture/overview.md)** - System design & patterns
 - **[Feature Guides](docs/guides/)** - LLM, RAG, tools, resilience, configuration
@@ -158,7 +158,7 @@ return await external_api.post("/endpoint", json=data)
 
 **Works with**: Any async Python framework (FastAPI, Sanic, Quart)
 
-**[Copy these patterns to your services →](docs/guides/resilience/overview.md)**
+**[Learn resilience patterns →](src/app/core/resilience/)**
 
 ---
 
@@ -217,7 +217,7 @@ POST /api/v1/chat/message
 - Semantic search with metadata filtering
 - Context injection and generation
 
-**[Understand the complete RAG pipeline →](docs/guides/rag/overview.md)**
+**[Understand the complete RAG pipeline →](docs/core-concepts/rag-pipeline.md)**
 
 ---
 
@@ -333,7 +333,7 @@ uvicorn src.app.main:app --env /path/to/.env.custom
 
 **[Multi-Environment Guide →](docs/guides/multi-environment.md)**
 
-**[Full installation guide →](docs/getting-started/quickstart.md)**
+**[Full installation guide →](docs/getting-started/quick-start.md)**
 
 ---
 
@@ -343,7 +343,7 @@ uvicorn src.app.main:app --env /path/to/.env.custom
 
 ### Quick Links by Topic:
 
-- **[Getting Started](docs/getting-started/quickstart.md)** - 5-minute setup
+- **[Getting Started](docs/getting-started/quick-start.md)** - 5-minute setup
 - **[API Reference](docs/api-reference/README.md)** - REST API endpoints 
 - **[Architecture](docs/architecture/overview.md)** - System design & patterns
 - **[Guides](docs/guides/)** - Feature guides (LLM, RAG, Tools, Databases)
@@ -402,12 +402,12 @@ Explore detailed system diagrams to understand AgentHub's architecture:
 Deep-dive into specific topics:
 
 - **[Configuration System](docs/guides/configuration/README.md)** ⭐ - Type-safe YAML configs (use in any Python project!)
-- **[Resilience Patterns](docs/guides/resilience/README.md)** ⭐ - Retry, circuit breakers (production-ready patterns)
+- **[Resilience Patterns](src/app/core/resilience/)** ⭐ - Retry, circuit breakers (production-ready patterns)
 - ** [Connections](docs/guides/connections/README.md)** - Database & vector store management
 - **[LLM Providers](docs/guides/llm-providers/README.md)** - OpenAI, Anthropic, Groq, Azure
 - **[Tools](docs/guides/tools/README.md)** - Jira, GitHub, Confluence integrations 
 - **[Sessions](docs/guides/sessions/README.md)** - Multi-turn conversation management
-- **[Testing](docs/guides/testing/README.md)** - How to test LLM applications
+- **[Testing Examples](tests/)** - See comprehensive test implementations
 
 **[See all 15+ guides →](docs/guides/)**
 
@@ -480,7 +480,7 @@ src/
 └── e2e/ # End-to-end tests
 ```
 
-**[Complete code structure →](docs/contributing/code-structure.md)**
+**See project structure in the codebase**
 
 ---
 
@@ -509,7 +509,7 @@ pytest tests/unit/test_resilience_patterns.py -v
 - 85%+ coverage
 - Fast unit tests (< 1s each)
 
-**[Testing guide →](docs/contributing/testing.md)**
+**[See test examples in tests/ directory →](tests/)**
 
 ---
 
@@ -596,7 +596,7 @@ We welcome all contributions - code, documentation, ideas:
 - What patterns do you wish existed?
 - What would help you learn faster?
 
-**[Full contributing guide →](CONTRIBUTING.md)**
+**[Open an issue to contribute →](https://github.com/timothy-odofin/agenthub-be/issues)**
 
 ### Current Priority Areas
 
@@ -751,7 +751,7 @@ Built with ️ using these amazing open source projects:
 
 ---
 
-**[Get Started](docs/getting-started/quickstart.md)** | **[Read the Docs](docs/)** | **[Suggest a Feature](https://github.com/timothy-odofin/agenthub-be/issues/new)** | ** [Contribute](CONTRIBUTING.md)**
+**[Get Started](docs/getting-started/quick-start.md)** | **[Read the Docs](docs/)** | **[Suggest a Feature](https://github.com/timothy-odofin/agenthub-be/issues/new)** | **[Open an Issue](https://github.com/timothy-odofin/agenthub-be/issues)**
 
 </div>
 
