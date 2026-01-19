@@ -7,6 +7,7 @@ exceptions instead of returning default values, allowing global handlers
 to provide uniform error responses.
 """
 import functools
+import time
 from typing import Any, Callable, Optional, TypeVar
 import requests
 from app.core.utils.logger import get_logger
@@ -252,7 +253,6 @@ def log_execution_time(func: Callable[..., T]) -> Callable[..., T]:
     """
     @functools.wraps(func)
     def wrapper(*args, **kwargs):
-        import time
         start_time = time.time()
         try:
             result = func(*args, **kwargs)

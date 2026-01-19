@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 from datetime import datetime
 from typing import Set, Dict, Any, Optional, TypedDict, List
 from langgraph.graph import StateGraph
@@ -12,6 +13,7 @@ from app.agent.models import AgentContext, AgentResponse
 from app.agent.base.agent_registry import AgentRegistry
 from app.agent.tools import ToolRegistry
 from app.core.config.providers.prompt import prompt_config, PromptType
+from app.llm.context import ContextWindowManager
 
 
 class GraphState(TypedDict):
@@ -119,7 +121,6 @@ class LangGraphReactAgent(LangGraphAgent):
                 )
                 
                 # Use context window manager for intelligent message truncation
-                from app.llm.context import ContextWindowManager
                 context_manager = ContextWindowManager()
                 
                 # Get the model name from LLM provider
@@ -172,7 +173,6 @@ class LangGraphReactAgent(LangGraphAgent):
                 return self.compiled_graph.invoke(graph_input)
             
             # Run in thread pool to avoid blocking
-            import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 result = await asyncio.get_event_loop().run_in_executor(
                     executor, run_graph

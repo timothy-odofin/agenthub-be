@@ -105,7 +105,6 @@ class MongoSessionRepository(BaseSessionRepository):
                 "user_id": user_id
             })
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             existing_session = await asyncio.get_event_loop().run_in_executor(executor, check_session)
         
@@ -136,7 +135,6 @@ class MongoSessionRepository(BaseSessionRepository):
         def insert_session():
             return self._sessions_collection.insert_one(session_doc)
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             await asyncio.get_event_loop().run_in_executor(executor, insert_session)
     
@@ -189,7 +187,6 @@ class MongoSessionRepository(BaseSessionRepository):
                 metadata=session_doc.get('metadata', {})
             )
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             return await asyncio.get_event_loop().run_in_executor(executor, find_session)
     
@@ -256,7 +253,6 @@ class MongoSessionRepository(BaseSessionRepository):
             
             return messages
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             return await asyncio.get_event_loop().run_in_executor(executor, find_messages)
     
@@ -293,7 +289,6 @@ class MongoSessionRepository(BaseSessionRepository):
             
             return messages
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             return await asyncio.get_event_loop().run_in_executor(executor, get_session_and_messages)
     
@@ -336,7 +331,6 @@ class MongoSessionRepository(BaseSessionRepository):
                 {"$set": update_doc}
             )
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             result = await asyncio.get_event_loop().run_in_executor(executor, update_session)
         
@@ -388,8 +382,6 @@ class MongoSessionRepository(BaseSessionRepository):
             
             return sessions
         
-        import concurrent.futures
-        with concurrent.futures.ThreadPoolExecutor() as executor:
             return await asyncio.get_event_loop().run_in_executor(executor, list_sessions)
     
     def delete_session(self, user_id: str, session_id: str) -> bool:
@@ -452,6 +444,5 @@ class MongoSessionRepository(BaseSessionRepository):
             self._messages_collection.insert_one(message_doc)
             return message_id
         
-        import concurrent.futures
         with concurrent.futures.ThreadPoolExecutor() as executor:
             return await asyncio.get_event_loop().run_in_executor(executor, insert_message)

@@ -1,4 +1,5 @@
 import asyncio
+import concurrent.futures
 from datetime import datetime
 from typing import Set, Dict, Any
 from langchain_core.prompts import ChatPromptTemplate
@@ -11,6 +12,7 @@ from app.agent.frameworks.langchain_agent import LangChainAgent
 from app.agent.models import AgentContext, AgentResponse
 from app.agent.base.agent_registry import AgentRegistry
 from app.core.config.providers.prompt import prompt_config, PromptType
+from app.llm.context import ContextWindowManager
 
 
 @AgentRegistry.register(AgentType.REACT, AgentFramework.LANGCHAIN)
@@ -127,7 +129,6 @@ class LangChainReactAgent(LangChainAgent):
                 
                 # Use context window manager for message processing and format conversion
                 # Modified to preserve full conversation history while handling format conversion
-                from app.llm.context import ContextWindowManager
                 context_manager = ContextWindowManager()
                 
                 # Get the model name from LLM provider
@@ -160,7 +161,6 @@ class LangChainReactAgent(LangChainAgent):
                     "chat_history": chat_history
                 })
             
-            import concurrent.futures
             with concurrent.futures.ThreadPoolExecutor() as executor:
                 agent_response = await asyncio.get_event_loop().run_in_executor(
                     executor, run_agent

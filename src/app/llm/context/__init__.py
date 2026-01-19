@@ -3,6 +3,7 @@ Context window management for LLM conversations.
 Handles token counting, message truncation, and context optimization.
 """
 
+import time
 import tiktoken
 from typing import List, Dict, Any, Optional, Tuple
 from abc import ABC, abstractmethod
@@ -360,8 +361,6 @@ class ContextWindowManager(metaclass=SingletonMeta):
         Returns:
             Tuple of (processed_messages, metadata)
         """
-        import time
-        
         start_time = time.time()
         
         # Get default values from settings

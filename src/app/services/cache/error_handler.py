@@ -7,6 +7,7 @@ and raise appropriate CacheError exceptions.
 """
 
 import functools
+import inspect
 from typing import Any, Callable, Optional, TypeVar
 
 from app.core.exceptions import CacheError
@@ -208,7 +209,6 @@ def handle_cache_errors(
                 )
         
         # Return async wrapper if function is async, sync wrapper otherwise
-        import inspect
         if inspect.iscoroutinefunction(func):
             return async_wrapper
         else:

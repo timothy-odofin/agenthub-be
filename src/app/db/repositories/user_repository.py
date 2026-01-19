@@ -41,7 +41,13 @@ class UserRepository:
     
     @property
     def db(self) -> Database:
-        """Get database instance, connecting if necessary."""
+        """
+        Get database instance, connecting if necessary.
+        
+        Note: Uses lazy import to avoid circular dependency:
+        app.connections.factory.connection_factory imports from app.db.vector
+        This property is only called when database access is needed.
+        """
         if self._db is None:
             from app.connections import ConnectionFactory, ConnectionType
             connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)

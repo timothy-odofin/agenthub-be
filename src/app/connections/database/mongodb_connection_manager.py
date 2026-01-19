@@ -32,11 +32,6 @@ class MongoDBConnectionManager(BaseConnectionManager):
         """Return the configuration name for MongoDB."""
         return ConnectionType.MONGODB.value
     
-    def get_config_source(self) -> Any:
-        """Return the database configuration source."""
-        from app.core.config.providers.database import database_config
-        return database_config
-    
     def validate_config(self) -> None:
         """Validate MongoDB configuration."""
         # Check if we have a connection string or individual components

@@ -1,7 +1,9 @@
 """
 Abstract base class for vector database operations.
 """
+import asyncio
 import hashlib
+import inspect
 from abc import ABC, abstractmethod
 from dataclasses import dataclass, field
 from datetime import datetime
@@ -251,9 +253,6 @@ class VectorDB(ABC):
         """Get or create database connection."""
         if self._connection is None:
             # Check if _create_connection is async or sync
-            import asyncio
-            import inspect
-            
             if inspect.iscoroutinefunction(self._create_connection):
                 # Async connection
                 self._connection = await self._create_connection()
@@ -266,9 +265,6 @@ class VectorDB(ABC):
         """Close database connection."""
         if self._connection:
             # Check if _close_connection is async or sync
-            import asyncio
-            import inspect
-            
             if inspect.iscoroutinefunction(self._close_connection):
                 # Async close
                 await self._close_connection()

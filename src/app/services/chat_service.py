@@ -10,9 +10,10 @@ This service abstracts the agent system and handles:
 - Automatic session title generation
 """
 
+import asyncio
+import uuid
 from datetime import datetime
 from typing import Dict, Any, Optional, List
-import asyncio
 
 from app.core.utils.logger import get_logger
 from app.core.utils.single_ton import SingletonMeta
@@ -25,6 +26,17 @@ logger = get_logger(__name__)
 
 
 class ChatService(metaclass=SingletonMeta):
+    """
+    Chat service that provides a clean interface for agent interactions.
+    
+    This service uses lazy imports to avoid circular dependencies:
+    - app.services.chat → app.llm.factory → app.services.llm → app.services.chat
+    - app.services.chat → app.agent.tools.registry → app.services.cache → app.services.chat
+    - app.services.chat → app.core.capabilities → app.services.chat
+    
+    Lazy imports are only loaded when specific methods are called, preventing
+    initialization issues and circular import errors.
+    """
     
     def __init__(self):
         if hasattr(self, "_initialized"):
@@ -84,9 +96,15 @@ class ChatService(metaclass=SingletonMeta):
             model: Optional[str] = None,
             metadata: Optional[Dict[str, Any]] = None
     ) -> Dict[str, Any]:
+        """
+        Process a chat message and return a response.
+        
+        Note: Uses lazy imports to avoid circular dependencies:
+        - app.services.chat → app.llm.factory → app.services.llm
+        - app.services.chat → app.agent.tools → app.services.chat
+        """
         from app.llm.factory.llm_factory import LLMFactory
         from app.core.constants import LLMProvider
-        import uuid
         
         start_time = datetime.now()
 

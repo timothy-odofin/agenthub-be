@@ -19,6 +19,7 @@ from app.services.chat_service import ChatService
 from app.core.security import get_current_user
 from app.db.models.user import UserInDB
 from app.core.exceptions import ServiceUnavailableError, InternalError
+from app.core.capabilities import SystemCapabilities
 
 router = APIRouter()
 chat_service = ChatService()
@@ -263,25 +264,15 @@ async def health_check():
         ServiceUnavailableError: If service is unhealthy
         InternalError: If health check fails
     """
-    try:
-        health_status = chat_service.health_check()
-        
-        if health_status["status"] == "healthy":
-            return health_status
-        else:
-            raise ServiceUnavailableError(
-                service_name="chat_service",
-                message="Chat service is unhealthy",
-                details=health_status
-            )
-            
-    except ServiceUnavailableError:
-        # Re-raise our custom exceptions
-        raise
-    except Exception as e:
-        raise InternalError(
-            message="Health check failed",
-            internal_details={"error": str(e), "type": type(e).__name__}
+    health_status = await chat_service.health_check()
+    
+    if health_status["status"] == "healthy":
+        return health_status
+    else:
+        raise ServiceUnavailableError(
+            service_name="chat_service",
+            message="Chat service is unhealthy",
+            details=health_status
         )
 
 
@@ -303,20 +294,11 @@ async def get_capabilities(
     Returns:
         List of capability objects with display metadata
     """
-    from app.core.capabilities import SystemCapabilities
+    capabilities = SystemCapabilities().get_capabilities(category=category)
     
-    try:
-        capabilities = SystemCapabilities().get_capabilities(category=category)
-        
-        return {
-            "success": True,
-            "total": len(capabilities),
-            "categories": SystemCapabilities().get_categories(),
-            "capabilities": capabilities
-        }
-        
-    except Exception as e:
-        raise InternalError(
-            message="Failed to retrieve capabilities",
-            internal_details={"error": str(e), "type": type(e).__name__}
-        )
+    return {
+        "success": True,
+        "total": len(capabilities),
+        "categories": SystemCapabilities().get_categories(),
+        "capabilities": capabilities
+    }
