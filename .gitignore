@@ -1,88 +1,54 @@
-### Python ###
-__pycache__/
-*.py[cod]
-*$py.class
-*.so
-.Python
+# ============================================
+# Root-level .gitignore for AgentHub Monorepo
+# ============================================
 
-# Distribution / packaging
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
+# Common OS files
+.DS_Store
+Thumbs.db
+*.swp
+*.swo
 
-# Virtual Environment
-.venv/
-venv/
-ENV/
+# Common IDE files
+.idea/
+.vscode/
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
 
-# Environment variables
+# Environment variables (global)
 .env
 .env.local
 .env.*.local
 
-# Allow example environment files for documentation
-!.env.example
-!.env.dev
-!.env.staging
-!.env.production
-
-# IDE
-.idea/
-.vscode/
-*.swp
-*.swo
-.DS_Store
-
-# Data and Volumes
-volumes/postgres/*
-volumes/redis/*
-volumes/pgadmin/*
-!volumes/postgres/.gitkeep
-!volumes/redis/.gitkeep
-!volumes/pgadmin/.gitkeep
-
-# Logs
-*.log
+# Logs (global)
 logs/
+*.log
 
-# Coverage reports
+# Temporary files
+*.tmp
+*.temp
+.cache
+
+# Build artifacts (from CI/CD)
+dist/
+build/
+
+# Coverage reports (global)
+coverage/
+*.lcov
+.nyc_output
 htmlcov/
-.tox/
 .coverage
 .coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
 
-# mypy
-.mypy_cache/
-.dmypy.json
-dmypy.json
+# Docker volumes (if you have docker-compose at root)
+volumes/
 
-# Celery
-celerybeat-schedule
-celerybeat.pid
-/examples
+# Node modules (if you have root package.json)
+node_modules/
 
-# Scripts (ignore all except deployment script)
-scripts/*
-!scripts/generate_requirements.sh
-
-# Private keys and certificates
-*.pem
-docs/presentation/
+# Python cache (if you have root Python files)
+__pycache__/
+*.py[cod]
+*$py.class
