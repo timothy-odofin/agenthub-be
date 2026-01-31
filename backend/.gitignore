@@ -1,3 +1,7 @@
 .venv/
 .logs/
 scripts/
+
+# Environment variables
+.env
+.env.local
