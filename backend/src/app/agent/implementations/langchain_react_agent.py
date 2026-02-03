@@ -12,7 +12,7 @@ from app.agent.frameworks.langchain_agent import LangChainAgent
 from app.agent.models import AgentContext, AgentResponse
 from app.agent.base.agent_registry import AgentRegistry
 from app.core.config.providers.prompt import prompt_config, PromptType
-from app.llm.context import ContextWindowManager
+from app.infrastructure.llm.context import ContextWindowManager
 
 
 @AgentRegistry.register(AgentType.REACT, AgentFramework.LANGCHAIN)

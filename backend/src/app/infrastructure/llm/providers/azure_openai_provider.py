@@ -9,8 +9,8 @@ from langchain_openai import AzureChatOpenAI
 
 from app.core.constants import LLMProvider, LLMCapability
 from app.core.utils.logger import get_logger
-from app.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
-from app.llm.base.llm_registry import LLMRegistry
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
+from app.infrastructure.llm.base.llm_registry import LLMRegistry
 
 logger = get_logger(__name__)
 

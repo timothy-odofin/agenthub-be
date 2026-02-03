@@ -22,7 +22,7 @@ from app.schemas.llm_output import (
     StructuredLLMResponse
 )
 from app.core.constants import DataSourceType
-from app.llm.base.base_llm_provider import LLMResponse
+from app.infrastructure.llm.base.base_llm_provider import LLMResponse
 
 
 class TestLLMOutputBase:
@@ -497,7 +497,7 @@ class TestBaseLLMProviderStructuredMethods:
     @pytest.fixture
     def mock_provider(self):
         """Create a mock LLM provider."""
-        from app.llm.base.base_llm_provider import BaseLLMProvider
+        from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
         
         class MockProvider(BaseLLMProvider):
             def get_config_name(self):

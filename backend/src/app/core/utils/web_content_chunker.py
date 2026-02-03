@@ -73,7 +73,7 @@ class WebContentChunker:
             cache_ttl: Cache time-to-live in seconds (default: 3600 = 1 hour)
             
         Example:
-            >>> from app.services.cache.cache_factory import CacheFactory
+            >>> from app.infrastructure.cache.cache_factory import CacheFactory
             >>> cache = CacheFactory.create_cache(namespace="web_content")
             >>> chunker = WebContentChunker(
             ...     chunk_size=1000,

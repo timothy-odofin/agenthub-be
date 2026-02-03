@@ -10,7 +10,7 @@ import asyncio
 from datetime import datetime, timedelta
 from unittest.mock import patch
 
-from app.services.cache.implementations.in_memory_cache import InMemoryCacheProvider
+from app.infrastructure.cache.implementations.in_memory_cache import InMemoryCacheProvider
 from app.core.exceptions import CacheError
 
 

@@ -13,7 +13,7 @@ from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ...core.utils.logger import get_logger
 from .base import VectorDB, DocumentMetadata
 from app.db.vector.embeddings.embedding import EmbeddingFactory
-from app.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
 
 logger = get_logger(__name__)
 

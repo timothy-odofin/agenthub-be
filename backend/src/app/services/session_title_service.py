@@ -13,7 +13,7 @@ import re
 
 from app.core.utils.logger import get_logger
 from app.core.config import settings
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm.factory.llm_factory import LLMFactory
 from app.sessions.models import ChatMessage
 
 logger = get_logger(__name__)

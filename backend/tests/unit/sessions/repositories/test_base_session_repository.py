@@ -17,7 +17,7 @@ from unittest.mock import Mock, patch, AsyncMock, MagicMock
 from abc import ABC, abstractmethod
 
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
-from app.connections.base import ConnectionType, AsyncBaseConnectionManager
+from app.infrastructure.connections.base import ConnectionType, AsyncBaseConnectionManager
 from app.sessions.models.message import ChatMessage
 from app.sessions.models.session import ChatSession
 

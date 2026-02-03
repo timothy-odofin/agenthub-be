@@ -12,7 +12,7 @@ from .providers.db_provider import VectorDBRegistry
 from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from .base import VectorDB, DocumentMetadata
 from app.db.vector.embeddings.embedding import EmbeddingFactory
-from app.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
 
 @VectorDBRegistry.register(VectorDBType.CHROMA)
 class ChromaDB(VectorDB):

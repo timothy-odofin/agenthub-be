@@ -14,7 +14,7 @@ from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ..repositories.pgvector_repo import PgVectorRepository
 from .base import VectorDB
 from app.db.vector.embeddings.embedding import EmbeddingFactory
-from app.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
 
 @VectorDBRegistry.register(VectorDBType.PGVECTOR)
 class PgVectorDB(VectorDB):

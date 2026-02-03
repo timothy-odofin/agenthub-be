@@ -14,7 +14,7 @@ from datetime import datetime
 from typing import List, Optional
 
 from app.core.config.framework.settings import settings
-from app.connections.database.mongodb_connection_manager import MongoDBConnectionManager
+from app.infrastructure.connections.database.mongodb_connection_manager import MongoDBConnectionManager
 from app.sessions.repositories.mongo_session_repository import MongoSessionRepository
 
 

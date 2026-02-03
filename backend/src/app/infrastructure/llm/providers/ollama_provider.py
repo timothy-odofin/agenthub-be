@@ -6,8 +6,8 @@ from typing import Dict, Any, List, AsyncGenerator
 from langchain_ollama import ChatOllama
 from langchain_core.messages import HumanMessage
 from app.core.constants import LLMProvider, LLMCapability
-from app.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
-from app.llm.base.llm_registry import LLMRegistry
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
+from app.infrastructure.llm.base.llm_registry import LLMRegistry
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

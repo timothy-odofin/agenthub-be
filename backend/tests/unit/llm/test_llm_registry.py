@@ -9,8 +9,8 @@ import pytest
 from unittest.mock import patch, Mock
 from typing import Set, Dict, Any, List, AsyncGenerator
 
-from app.llm.base.llm_registry import LLMRegistry
-from app.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
+from app.infrastructure.llm.base.llm_registry import LLMRegistry
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
 from app.core.constants import LLMProvider, LLMCapability
 from app.schemas.llm_output import LLMOutputBase, StructuredLLMResponse
 

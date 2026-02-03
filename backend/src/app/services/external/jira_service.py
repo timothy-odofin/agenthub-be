@@ -1,5 +1,5 @@
-from app.connections.factory.connection_factory import ConnectionFactory
-from app.connections.base import ConnectionType
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.base import ConnectionType
 from app.core.utils.logger import get_logger
 from app.core.utils.single_ton import SingletonMeta
 

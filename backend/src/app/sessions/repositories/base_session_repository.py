@@ -5,8 +5,8 @@ import inspect
 
 from app.sessions.models.message import ChatMessage
 from app.sessions.models.session import ChatSession
-from app.connections.factory.connection_factory import ConnectionFactory
-from app.connections.base import ConnectionType, AsyncBaseConnectionManager
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.base import ConnectionType, AsyncBaseConnectionManager
 
 
 class BaseSessionRepository(ABC):

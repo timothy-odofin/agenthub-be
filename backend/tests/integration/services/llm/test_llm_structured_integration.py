@@ -15,7 +15,7 @@ from app.schemas.llm_output import (
     IngestionAnalysis,
     StructuredLLMResponse
 )
-from app.llm.base.base_llm_provider import LLMResponse
+from app.infrastructure.llm.base.base_llm_provider import LLMResponse
 from app.core.constants import DataSourceType
 
 

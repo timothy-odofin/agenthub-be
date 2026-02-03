@@ -5,8 +5,8 @@ Factory for creating LLM instances.
 from typing import Optional
 from app.core.constants import LLMProvider
 from app.core.utils.logger import get_logger
-from app.llm.base.base_llm_provider import BaseLLMProvider
-from app.llm.base.llm_registry import LLMRegistry
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
+from app.infrastructure.llm.base.llm_registry import LLMRegistry
 
 logger = get_logger(__name__)
 
@@ -77,12 +77,12 @@ class LLMFactory:
             ValueError: If provider name is invalid or model is not supported
         """
         # Import here to avoid circular imports
-        from app.core.config.application.llm import llm_config
+        from app.core.config.framework.settings import settings
         from app.services.llm_service import LLMService
         
         # Get provider name - use default if not specified
         if not provider_name:
-            provider_name = llm_config.get_default_provider()
+            provider_name = settings.get_section('llm.default.provider')
             if not provider_name:
                 raise ValueError("No provider specified and no default provider configured")
         
@@ -113,9 +113,9 @@ class LLMFactory:
     def get_default_llm() -> BaseLLMProvider:
         """Get the default LLM instance based on configuration."""
         # Import here to avoid circular imports
-        from app.core.config.application.llm import llm_config
+        from app.core.config.framework.settings import settings
         
-        default_provider_str = llm_config.get_default_provider()
+        default_provider_str = settings.get_section('llm.default.provider')
         if not default_provider_str:
             raise ValueError("No default LLM provider configured. Set DEFAULT_LLM_PROVIDER environment variable.")
         
@@ -137,8 +137,8 @@ class LLMFactory:
         """Check if a provider is available and properly configured."""
         try:
             # Import here to avoid circular imports
-            from app.core.config.application.llm import llm_config
-            provider_config = llm_config.get_provider_config(provider.value)
+            from app.core.config.framework.settings import settings
+            provider_config = settings.get_section(f'llm.{provider.value}')
             
             return (LLMRegistry.is_provider_registered(provider) and 
                    bool(provider_config))

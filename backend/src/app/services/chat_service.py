@@ -59,7 +59,7 @@ class ChatService(metaclass=SingletonMeta):
         """Lazy load the agent to avoid initialization issues."""
         if self._agent is None:
             try:
-                from app.llm.factory.llm_factory import LLMFactory
+                from app.infrastructure.llm.factory.llm_factory import LLMFactory
                 from app.core.constants import LLMProvider
 
                 llm = LLMFactory.get_llm(LLMProvider.OPENAI)
@@ -103,7 +103,7 @@ class ChatService(metaclass=SingletonMeta):
         - app.services.chat → app.llm.factory → app.services.llm
         - app.services.chat → app.agent.tools → app.services.chat
         """
-        from app.llm.factory.llm_factory import LLMFactory
+        from app.infrastructure.llm.factory.llm_factory import LLMFactory
         from app.core.constants import LLMProvider
         
         start_time = datetime.now()

@@ -173,14 +173,13 @@ class BaseLLMProvider(ABC):
         """
         Initialize LLM provider with configuration.
         
-        Note: Uses lazy import to avoid circular dependency:
-        app.llm.base → app.core.config.application.llm → app.llm.providers
+        Note: Uses lazy import to avoid circular dependency.
         Config is loaded during provider instantiation.
         """
         # Use template method pattern - child defines config name, base retrieves it
         config_name = self.get_config_name()
-        from app.core.config.application.llm import llm_config
-        self.config = llm_config.get_provider_config(config_name)
+        from app.core.config.framework.settings import settings
+        self.config = settings.get_section(f'llm.{config_name}')
         self.client = None
         self._initialized = False
         # Validate configuration early to fail fast
@@ -191,7 +190,7 @@ class BaseLLMProvider(ABC):
         """Return the configuration name/key for this provider.
         
         Returns:
-            str: The configuration key to retrieve from LLMConfig
+            str: The configuration key to retrieve from settings
         """
         pass
 

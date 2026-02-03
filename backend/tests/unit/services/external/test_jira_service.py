@@ -13,7 +13,7 @@ Tests the JiraService functionality including:
 import pytest
 from unittest.mock import Mock, patch, MagicMock
 from app.services.external.jira_service import JiraClient, jira
-from app.connections.base import ConnectionType
+from app.infrastructure.connections.base import ConnectionType
 
 
 class TestJiraServiceArchitecture:

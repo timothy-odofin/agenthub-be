@@ -10,7 +10,7 @@ import json
 from unittest.mock import patch, Mock
 from typing import Dict, Any
 
-from app.llm.base.base_llm_provider import LLMResponse
+from app.infrastructure.llm.base.base_llm_provider import LLMResponse
 from app.schemas.llm_output import LLMOutputBase, StructuredLLMResponse
 from pydantic import BaseModel
 

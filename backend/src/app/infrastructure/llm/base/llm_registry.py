@@ -44,7 +44,7 @@ class LLMRegistry:
             
         try:
             # Import providers module to trigger registration
-            import app.llm.providers
+            import app.infrastructure.llm.providers
             cls._providers_imported = True
         except ImportError:
             # Log the error but don't fail - providers might be registered manually

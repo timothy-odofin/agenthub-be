@@ -1,6 +1,6 @@
 from typing import Any, Callable, Dict
 
-from app.core.config.providers.vector import vector_config
+from app.core.config.framework.settings import settings
 from app.core.constants import EmbeddingType
 from app.core.utils.logger import get_logger
 
@@ -26,7 +26,7 @@ class EmbeddingFactory:
         
         Args:
             embedding_type: Type of embedding to create
-            embedding_config: Optional embedding configuration. If None, uses default from vector_config
+            embedding_config: Optional embedding configuration. If None, uses default from settings
             
         Returns:
             Configured embedding model instance
@@ -34,8 +34,8 @@ class EmbeddingFactory:
         if embedding_type not in cls._registry:
             raise ValueError(f"Unsupported embedding type: {embedding_type}")
 
-        # Use provided config or get default from vector_config
-        config_to_use = embedding_config if embedding_config is not None else vector_config.embedding_config
+        # Use provided config or get default from settings
+        config_to_use = embedding_config if embedding_config is not None else settings.vector.embedding_config
 
         logger.info(f"Creating new embedding model for type: {embedding_type}")
         try:

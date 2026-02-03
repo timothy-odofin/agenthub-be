@@ -7,9 +7,9 @@ Tests the cache provider factory system for creating cache instances.
 import pytest
 from unittest.mock import MagicMock, patch
 
-from app.services.cache.cache_factory import CacheFactory
-from app.services.cache.cache_registry import CacheRegistry
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.cache_factory import CacheFactory
+from app.infrastructure.cache.cache_registry import CacheRegistry
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 from app.core.enums import CacheType
 
 

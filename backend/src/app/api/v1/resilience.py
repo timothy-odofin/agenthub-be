@@ -14,8 +14,8 @@ from app.core.exceptions import NotFoundError, InternalError
 
 # Import connection managers to ensure circuit breakers are initialized
 try:
-    from app.connections.external.jira_connection_manager import JiraConnectionManager
-    from app.connections.external.confluence_connection_manager import ConfluenceConnectionManager
+    from app.infrastructure.connections.external.jira_connection_manager import JiraConnectionManager
+    from app.infrastructure.connections.external.confluence_connection_manager import ConfluenceConnectionManager
 except ImportError:
     # Connection managers may not be available in all environments
     pass
