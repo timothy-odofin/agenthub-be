@@ -12,7 +12,7 @@ from redis.asyncio import Redis, ConnectionPool
 from redis.asyncio.connection import SSLConnection
 from redis.exceptions import ConnectionError as RedisConnectionError, TimeoutError
 
-from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

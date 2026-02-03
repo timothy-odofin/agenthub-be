@@ -6,9 +6,9 @@ to databases, vector stores, and external services.
 """
 
 # Import all connection managers to trigger registration
-import app.connections.database
-import app.connections.external
-import app.connections.vector
+import app.infrastructure.connections.database
+import app.infrastructure.connections.external
+import app.infrastructure.connections.vector
 
 from .base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from .factory import ConnectionFactory

@@ -10,9 +10,9 @@ import json
 import time
 from typing import Any, Dict, List, Optional, Set
 
-from app.services.cache.base_cache_provider import BaseCacheProvider
-from app.services.cache.cache_registry import CacheRegistry
-from app.services.cache.error_handler import handle_cache_errors
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.cache_registry import CacheRegistry
+from app.infrastructure.cache.error_handler import handle_cache_errors
 from app.core.enums import CacheType
 from app.core.utils.logger import get_logger
 

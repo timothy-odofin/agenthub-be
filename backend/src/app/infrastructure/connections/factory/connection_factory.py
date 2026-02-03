@@ -6,8 +6,8 @@ types of connection managers using the registry pattern.
 """
 
 from typing import Optional, List
-from app.connections.base.connection_registry import ConnectionType, ConnectionRegistry
-from app.connections.base.base_connection_manager import BaseConnectionManager
+from app.infrastructure.connections.base.connection_registry import ConnectionType, ConnectionRegistry
+from app.infrastructure.connections.base.base_connection_manager import BaseConnectionManager
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

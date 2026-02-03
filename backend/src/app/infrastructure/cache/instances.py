@@ -5,7 +5,7 @@ Provides singleton cache instances with appropriate namespaces and TTLs
 for different application features.
 
 Usage:
-    from app.services.cache.instances import confirmation_cache, signup_cache
+    from app.infrastructure.cache.instances import confirmation_cache, signup_cache
     
     # Store a confirmation
     await confirmation_cache.set("action_123", action_data, ttl=300)
@@ -14,7 +14,7 @@ Usage:
     session = await signup_cache.get("session_abc")
 """
 
-from app.services.cache import CacheFactory
+from app.infrastructure.cache import CacheFactory
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

@@ -15,7 +15,7 @@ from datetime import datetime
 import chromadb
 from chromadb.config import Settings
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

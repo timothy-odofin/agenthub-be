@@ -9,7 +9,7 @@ from typing import Any, Optional, List, Dict
 from atlassian import Confluence
 import requests
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 from app.core.resilience import retry, circuit_breaker, RetryConfig, CircuitBreakerConfig, RetryStrategy
 

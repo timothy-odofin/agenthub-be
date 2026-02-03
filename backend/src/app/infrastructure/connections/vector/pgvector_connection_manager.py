@@ -11,7 +11,7 @@ Requirements:
 from typing import Any, Optional, Dict, List
 import asyncpg
 
-from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

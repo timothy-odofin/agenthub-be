@@ -10,7 +10,7 @@ from qdrant_client import QdrantClient
 from qdrant_client.http.models import Distance, VectorParams
 from qdrant_client.http import exceptions as qdrant_exceptions
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

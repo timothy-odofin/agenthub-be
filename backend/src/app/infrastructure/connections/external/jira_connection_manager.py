@@ -13,7 +13,7 @@ from typing import Any, Optional, Dict, List, Union
 import requests
 from atlassian import Jira
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 from app.core.resilience import retry, circuit_breaker, RetryConfig, CircuitBreakerConfig, RetryStrategy
 from app.core.config import settings

@@ -9,8 +9,8 @@ Follows the same pattern as ConnectionFactory.
 
 from typing import Optional, List
 from app.core.enums import CacheType
-from app.services.cache.cache_registry import CacheRegistry
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.cache_registry import CacheRegistry
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

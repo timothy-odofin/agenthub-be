@@ -13,7 +13,7 @@ from urllib.parse import quote_plus
 from pymongo import MongoClient
 from pymongo.errors import ConnectionFailure, ServerSelectionTimeoutError
 
-from app.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

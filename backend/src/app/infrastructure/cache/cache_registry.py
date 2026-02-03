@@ -9,7 +9,7 @@ Follows the same pattern as ConnectionRegistry, AgentRegistry, and ToolRegistry.
 
 from typing import Dict, Type, List
 from app.core.enums import CacheType
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
