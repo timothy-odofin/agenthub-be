@@ -132,7 +132,7 @@ model = openai['model']                          # 'gpt-4'
 
 ```python
 from app.core.config import Settings
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 settings = Settings.instance()
 

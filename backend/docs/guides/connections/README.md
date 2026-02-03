@@ -80,7 +80,7 @@ AgentHub's connection management system provides a **unified, type-safe interfac
 ### 1. Using Existing Connections
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get a connection manager instance
 postgres_manager = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -93,7 +93,7 @@ result = await postgres_manager.execute_query("SELECT * FROM users")
 
 # Health check
 if postgres_manager.is_healthy():
-print("Connection is healthy!")
+    print("Connection is healthy!")
 
 # Cleanup
 await postgres_manager.disconnect()
@@ -102,18 +102,18 @@ await postgres_manager.disconnect()
 ### 2. Context Manager Pattern (Recommended)
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Automatic connection and cleanup
 async with ConnectionFactory.get_connection_manager(ConnectionType.REDIS) as redis:
-await redis.set("key", "value")
-value = await redis.get("key")
+    await redis.set("key", "value")
+    value = await redis.get("key")
 ```
 
 ### 3. Check Available Connections
 
 ```python
-from app.connections import ConnectionFactory
+from app.infrastructure.connections import ConnectionFactory
 
 # List all registered connection types
 available = ConnectionFactory.list_available_connections()
@@ -124,10 +124,10 @@ status = ConnectionFactory.get_connection_status()
 print(status)
 # Output:
 # {
-# 'total_registered': 8,
-# 'available_connections': ['postgres', 'redis', 'qdrant', ...],
-# 'unavailable_connections': [],
-# 'connection_details': {...}
+#     'total_registered': 8,
+#     'available_connections': ['postgres', 'redis', 'qdrant', ...],
+#     'unavailable_connections': [],
+#     'connection_details': {...}
 # }
 ```
 
@@ -262,7 +262,7 @@ async def __aexit__(self, ...): pass
 
 1. **Registration** (happens at module import):
 ```python
-from app.connections.base import ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import ConnectionRegistry, ConnectionType
 
 @ConnectionRegistry.register(ConnectionType.POSTGRES)
 class PostgresConnectionManager(AsyncBaseConnectionManager):
@@ -296,7 +296,7 @@ manager = manager_class()
 **Key Methods**:
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get a connection manager instance
 manager = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -320,7 +320,7 @@ status = ConnectionFactory.get_connection_status()
 **All Supported Types**:
 
 ```python
-from app.connections import ConnectionType
+from app.infrastructure.connections import ConnectionType
 
 # Database connections
 ConnectionType.POSTGRES # PostgreSQL
@@ -363,7 +363,7 @@ pool_size: 10
 ### Step 2: Get Connection Manager
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get connection manager (not connected yet)
 manager = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -446,7 +446,7 @@ ssl_mode: "prefer" # optional
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 postgres = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -506,7 +506,7 @@ ssl: false
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 redis = ConnectionFactory.get_connection_manager(ConnectionType.REDIS)
@@ -568,7 +568,7 @@ connection_string: "${MONGODB_CONNECTION_STRING:}"
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 mongo = ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)
@@ -633,7 +633,7 @@ timeout: 60
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 qdrant = ConnectionFactory.get_connection_manager(ConnectionType.QDRANT)
@@ -697,7 +697,7 @@ pre_delete_collection: false
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 pgvector = ConnectionFactory.get_connection_manager(ConnectionType.PGVECTOR)
@@ -748,7 +748,7 @@ distance_metric: "cosine"
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 chroma = ConnectionFactory.get_connection_manager(ConnectionType.CHROMADB)
@@ -803,7 +803,7 @@ space_keys: ["*"] # or specific spaces like ["ENG", "PROD"]
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 confluence = ConnectionFactory.get_connection_manager(ConnectionType.CONFLUENCE)
@@ -860,7 +860,7 @@ timeout: 30
 
 **Usage**:
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager
 jira = ConnectionFactory.get_connection_manager(ConnectionType.JIRA)
@@ -974,7 +974,7 @@ Elasticsearch connection manager implementation.
 from typing import Any, Optional
 from elasticsearch import AsyncElasticsearch
 
-from app.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
+from app.infrastructure.connections.base import AsyncBaseConnectionManager, ConnectionRegistry, ConnectionType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -1143,7 +1143,7 @@ Create test file: `tests/integration/test_elasticsearch_connection.py`
 
 ```python
 import pytest
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 
 @pytest.mark.asyncio
@@ -1178,7 +1178,7 @@ assert not manager.is_connected
 #### Step 8: Usage Example
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Use your new connection manager!
 async with ConnectionFactory.get_connection_manager(ConnectionType.ELASTICSEARCH) as es:
@@ -1531,7 +1531,7 @@ All connection managers implement health checking.
 ### Basic Health Check
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 manager = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
 await manager.connect()
@@ -1548,7 +1548,7 @@ await manager.reconnect()
 
 ```python
 import asyncio
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 async def monitor_connection(manager, interval: int = 30):
 """Monitor connection health periodically."""
@@ -1573,7 +1573,7 @@ asyncio.create_task(monitor_connection(manager))
 
 ```python
 from fastapi import FastAPI, HTTPException
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 app = FastAPI()
 
@@ -1681,7 +1681,7 @@ return self._client.get(endpoint)
 PostgreSQL manager uses asyncpg connection pooling:
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager with pool
 postgres = ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -1710,7 +1710,7 @@ connection_timeout: 30 # Connection timeout
 Redis manager uses redis.asyncio connection pooling:
 
 ```python
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 # Get manager with pool
 redis = ConnectionFactory.get_connection_manager(ConnectionType.REDIS)
@@ -1742,7 +1742,7 @@ Mock connection managers in unit tests:
 ```python
 import pytest
 from unittest.mock import Mock, AsyncMock
-from app.connections import ConnectionType
+from app.infrastructure.connections import ConnectionType
 
 @pytest.fixture
 def mock_postgres_manager():
@@ -1768,7 +1768,7 @@ Test actual connections:
 
 ```python
 import pytest
-from app.connections import ConnectionFactory, ConnectionType
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 @pytest.mark.integration
 @pytest.mark.asyncio
@@ -1816,7 +1816,7 @@ password: "test_password"
 ### ConnectionFactory
 
 ```python
-from app.connections import ConnectionFactory
+from app.infrastructure.connections import ConnectionFactory
 
 # Get connection manager instance
 manager = ConnectionFactory.get_connection_manager(connection_type: ConnectionType) -> BaseConnectionManager
@@ -1872,7 +1872,7 @@ pass
 ### ConnectionRegistry
 
 ```python
-from app.connections.base import ConnectionRegistry
+from app.infrastructure.connections.base import ConnectionRegistry
 
 # Register connection manager (decorator)
 @ConnectionRegistry.register(ConnectionType.CUSTOM)
@@ -1948,11 +1948,11 @@ import app.connections.[category]
 **Solution**:
 ```python
 # BAD (module level import in connection manager)
-from app.connections import ConnectionFactory
+from app.infrastructure.connections import ConnectionFactory
 
 # GOOD (local import where needed)
 def my_method(self):
-from app.connections import ConnectionFactory
+from app.infrastructure.connections import ConnectionFactory
 factory = ConnectionFactory()
 ```
 

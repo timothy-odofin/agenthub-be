@@ -1,8 +1,10 @@
-# Redis Cache Service
+# Cache Service Guide
 
 ## Overview
 
-The `RedisCacheService` is a **generic, reusable service** for storing temporary/cached data in Redis across the entire application. It provides a consistent, high-level API for common caching patterns while leveraging your existing Redis connection infrastructure.
+The **CacheService** is a unified, factory-based caching service for storing temporary/cached data across the entire application. It provides a consistent, high-level API for common caching patterns while leveraging the infrastructure layer's cache providers (Redis, In-Memory).
+
+> **📝 Note**: This replaces the deprecated `RedisCacheService`. The new implementation uses a factory pattern for better flexibility and testability.
 
 ## Architecture
 
@@ -16,19 +18,30 @@ The `RedisCacheService` is a **generic, reusable service** for storing temporary
 │         │                  │                  │              │
 │         └──────────────────┼──────────────────┘              │
 │                            │                                 │
+│              ┌─────────────▼─────────────┐                   │
+│              │ Pre-configured Instances  │                   │
+│              │ (confirmation_cache, etc) │                   │
+│              └─────────────┬─────────────┘                   │
+│                            │                                 │
 │                    ┌───────▼────────┐                        │
-│                    │ RedisCacheService│                      │
-│                    │   (Generic)      │                      │
-│                    └───────┬──────────┘                      │
+│                    │  CacheService   │                       │
+│                    │   (Wrapper)     │                       │
+│                    └───────┬─────────┘                       │
 │                            │                                 │
 │                    ┌───────▼──────────┐                      │
-│                    │RedisConnectionMgr│                      │
+│                    │  CacheFactory    │                      │
 │                    └───────┬──────────┘                      │
-└────────────────────────────┼──────────────────────────────────┘
-                             │
-                      ┌──────▼───────┐
-                      │ Redis Server │
-                      └──────────────┘
+│                            │                                 │
+│              ┌─────────────┴─────────────┐                   │
+│              │                           │                   │
+│      ┌───────▼──────────┐    ┌──────────▼─────────┐         │
+│      │ RedisCacheProvider│    │InMemoryCacheProvider│        │
+│      └───────┬──────────┘    └──────────┬─────────┘         │
+└──────────────┼────────────────────────────┼──────────────────┘
+               │                            │
+        ┌──────▼───────┐           ┌───────▼────────┐
+        │ Redis Server │           │ Local Memory   │
+        └──────────────┘           └────────────────┘
 ```
 
 ## Key Features
@@ -73,10 +86,10 @@ All operations are async, matching your codebase pattern.
 ### Basic Operations
 
 ```python
-from app.services.redis_cache_service import RedisCacheService
+from app.infrastructure.cache import CacheService
 
 # Create a cache instance for your feature
-cache = RedisCacheService(namespace="myfeature", default_ttl=600)
+cache = CacheService(namespace="myfeature", default_ttl=600)
 
 # Store data
 await cache.set("item_123", {"name": "Alice", "status": "active"})
@@ -144,7 +157,9 @@ print(f"Expires in {ttl} seconds")
 ### Counters & Rate Limiting
 
 ```python
-rate_limit_cache = RedisCacheService("ratelimit", default_ttl=60)
+from app.infrastructure.cache import CacheService
+
+rate_limit_cache = CacheService("ratelimit", default_ttl=60)
 
 # Increment counter
 count = await rate_limit_cache.increment(f"api:{user_id}")
@@ -157,11 +172,12 @@ if count > 100:
 For convenience, common cache instances are pre-configured:
 
 ```python
-from app.services.redis_cache_service import (
-    confirmation_cache,  # 15-minute TTL
-    signup_cache,        # 5-minute TTL  
-    session_cache,       # 30-minute TTL
-    rate_limit_cache     # 1-minute TTL
+from app.infrastructure.cache.instances import (
+    confirmation_cache,  # Namespace: 'confirmation', TTL: 300s (5 min)
+    signup_cache,        # Namespace: 'signup', TTL: 1800s (30 min)
+    session_cache,       # Namespace: 'session', TTL: 86400s (24 hrs)
+    rate_limit_cache,    # Namespace: 'rate_limit', TTL: 3600s (1 hr)
+    temp_cache          # Namespace: 'temp', TTL: 60s (1 min)
 )
 
 # Use directly
@@ -170,6 +186,26 @@ await signup_cache.set("session_456", data)
 ```
 
 ## Migration Guide
+
+### From Old RedisCacheService (Deprecated)
+
+If you were using the old `RedisCacheService` from `app.services.redis_cache_service`:
+
+**Before:**
+```python
+from app.services.redis_cache_service import RedisCacheService
+
+cache = RedisCacheService(namespace="myfeature", default_ttl=600)
+```
+
+**After:**
+```python
+from app.infrastructure.cache import CacheService
+
+cache = CacheService(namespace="myfeature", default_ttl=600)
+```
+
+The API remains the same - only the import path changed!
 
 ### Replacing SignupSessionRepository
 
@@ -191,7 +227,7 @@ class SignupSessionRepository:
 
 **After:**
 ```python
-from app.services.redis_cache_service import signup_cache
+from app.infrastructure.cache.instances import signup_cache
 
 # Much simpler!
 await signup_cache.set(session_id, data)
@@ -211,7 +247,7 @@ class PendingActionsStore:
 
 **After:**
 ```python
-from app.services.redis_cache_service import confirmation_cache
+from app.infrastructure.cache.instances import confirmation_cache
 
 # Redis-backed with automatic TTL
 await confirmation_cache.set(
@@ -229,7 +265,7 @@ actions = await confirmation_cache.get_by_index("user", user_id)
 ### Constructor
 
 ```python
-RedisCacheService(namespace: str, default_ttl: int = 900)
+CacheService(namespace: str, default_ttl: int = 900, cache_type: Optional[CacheType] = None)
 ```
 
 ### Core Methods
@@ -270,50 +306,81 @@ RedisCacheService(namespace: str, default_ttl: int = 900)
 - **Scalable** - works in multi-instance deployments
 - **Automatic cleanup** via Redis TTL
 - **No memory leaks** - Redis manages memory
+- **Fallback support** - Can use InMemoryCacheProvider when Redis unavailable
 
 ### vs. Direct Redis Access
-- **DRY** - reuse existing ConnectionManager
+- **DRY** - reuse existing infrastructure
 - **Consistent API** across features
 - **Automatic serialization** - no manual JSON handling
 - **Namespace isolation** - no key collisions
 - **Built-in indexing** - easy secondary lookups
+- **Provider flexibility** - Switch between Redis/Memory via factory
 
 ### vs. Custom Repositories
 - **Less boilerplate** - no custom class needed
 - **Standardized** - same API everywhere
 - **Tested** - one well-tested implementation
 - **Maintainable** - one place to add features
+- **Factory pattern** - Easy to test and mock
 
 ## Testing
 
 ```python
 import pytest
 from unittest.mock import AsyncMock, patch
-from app.services.redis_cache_service import RedisCacheService
+from app.infrastructure.cache import CacheService
+from app.infrastructure.cache import CacheType
 
 @pytest.fixture
-def mock_redis():
-    with patch('app.services.redis_cache_service.ConnectionFactory') as mock:
-        redis_mock = AsyncMock()
-        mock.get_connection_manager.return_value = redis_mock
-        yield redis_mock
+def mock_cache_provider():
+    with patch('app.infrastructure.cache.CacheFactory.create_cache') as mock:
+        cache_mock = AsyncMock()
+        mock.return_value = cache_mock
+        yield cache_mock
 
-async def test_set_and_get(mock_redis):
-    cache = RedisCacheService("test", default_ttl=60)
+async def test_set_and_get(mock_cache_provider):
+    cache = CacheService("test", default_ttl=60)
     
-    mock_redis.set = AsyncMock(return_value=True)
-    mock_redis.get = AsyncMock(return_value='{"key": "value"}')
+    mock_cache_provider.set = AsyncMock(return_value=True)
+    mock_cache_provider.get = AsyncMock(return_value={"key": "value"})
     
     await cache.set("test_key", {"key": "value"})
     result = await cache.get("test_key")
     
     assert result == {"key": "value"}
-    mock_redis.set.assert_called_once()
+    mock_cache_provider.set.assert_called_once()
+
+async def test_with_in_memory_cache():
+    """Test with in-memory provider for unit tests"""
+    cache = CacheService("test", default_ttl=60, cache_type=CacheType.IN_MEMORY)
+    
+    await cache.set("test_key", {"key": "value"})
+    result = await cache.get("test_key")
+    
+    assert result == {"key": "value"}
 ```
 
 ## Configuration
 
-Redis connection is configured in `resources/application-db.yaml`:
+Cache providers are configured in `resources/application-cache.yaml`:
+
+```yaml
+cache:
+  default_provider: redis  # or 'in_memory' for development
+  
+  redis:
+    enabled: true
+    namespace_prefix: "agenthub"
+    default_ttl: 900
+    serializer: "json"
+  
+  in_memory:
+    enabled: true
+    max_size: 1000
+    cleanup_interval: 60
+```
+
+Redis connection itself is configured in `resources/application-db.yaml`:
 
 ```yaml
 redis:
@@ -321,7 +388,7 @@ redis:
   port: "${REDIS_PORT:6379}"
   password: "${REDIS_PASSWORD}"
   database: "${REDIS_DB:0}"
-  max_connections: 10
+  connection_pool_size: 10
   socket_timeout: 30
 ```
 
@@ -336,8 +403,22 @@ redis:
    - Each index adds overhead to writes
    - But makes reads much faster
 
-3. **Batch Operations**: For multiple items, consider using pipelines
+3. **Provider Selection**: Choose the right provider for your use case
+   - **Redis**: Production, distributed systems, persistence
+   - **InMemory**: Development, testing, single-instance apps
+
+4. **Batch Operations**: For multiple items, consider using pipelines
    - Future enhancement: `set_many()`, `get_many()`
+
+## Architecture Benefits
+
+The new infrastructure-based cache system provides:
+
+1. **Factory Pattern**: Easy to swap providers (Redis ↔ InMemory)
+2. **Registry Pattern**: Automatic provider discovery
+3. **Dependency Injection**: Better testability
+4. **Separation of Concerns**: Infrastructure layer isolated from business logic
+5. **Extensibility**: Easy to add new cache providers (Memcached, etc.)
 
 ## Future Enhancements
 
@@ -347,10 +428,21 @@ redis:
 - [ ] Distributed locking support
 - [ ] Redis pub/sub integration
 - [ ] Metrics and monitoring hooks
+- [ ] Additional providers (Memcached, DynamoDB, etc.)
 
 ## Related Files
 
-- Service: `src/app/services/redis_cache_service.py`
+### Infrastructure Layer
+- Service Wrapper: `src/app/infrastructure/cache/cache_service.py`
+- Factory: `src/app/infrastructure/cache/cache_factory.py`
+- Registry: `src/app/infrastructure/cache/cache_registry.py`
+- Base Provider: `src/app/infrastructure/cache/base/base_cache_provider.py`
+- Redis Provider: `src/app/infrastructure/cache/implementations/redis_cache.py`
+- InMemory Provider: `src/app/infrastructure/cache/implementations/in_memory_cache.py`
+- Pre-configured Instances: `src/app/infrastructure/cache/instances.py`
+
+### Tests
+- Tests: `tests/unit/infrastructure/cache/` (recommended location)
 - Connection: `src/app/connections/database/redis_connection_manager.py`
 - Config: `resources/application-db.yaml`
 - Tests: `tests/unit/services/test_redis_cache_service.py` (to be created)

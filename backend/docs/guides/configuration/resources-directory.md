@@ -372,7 +372,7 @@ api_key = openai['api_key']
 model = openai['model']
 
 # Use in your code
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 llm = LLMFactory.get_llm(provider)
 ```
 
@@ -755,7 +755,7 @@ model = settings.llm.providers.openai.model       # 'gpt-4' or custom
 
 ```python
 from app.core.config import Settings
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 settings = Settings.instance()
 
