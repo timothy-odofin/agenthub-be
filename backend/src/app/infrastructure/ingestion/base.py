@@ -18,7 +18,7 @@ class BaseIngestionService(ABC):
     def __init__(self):
         """Initialize the ingestion service.
         
-        Automatically locates its configuration from AppConfig singleton.
+        Automatically locates its configuration from settings singleton.
 
         Raises:
             ValueError: If SOURCE_TYPE is not defined or config not found
@@ -27,24 +27,46 @@ class BaseIngestionService(ABC):
             raise ValueError(f"{self.__class__.__name__} must define SOURCE_TYPE class attribute")
 
         # Import here to avoid circular imports
-        from ...core.config.application import AppConfig
+        from ...core.config import settings
 
-        # Get the singleton instance
-        app_config = AppConfig()
-
-        if not app_config.ingestion_config:
-            raise ValueError("No ingestion configuration loaded in AppConfig")
-
-        # Locate the config for this service's type
-        source_type_key = self.SOURCE_TYPE.value.lower()
-        if source_type_key not in app_config.ingestion_config.data_sources:
+        # Get data configuration from settings
+        # The YAML file (application-data.yaml) has "sources" key which should be accessible via settings.data
+        data_root = getattr(settings, 'data', None)
+        
+        if not data_root:
             raise ValueError(
-                f"No configuration found for data source type: {self.SOURCE_TYPE.value}. "
-                f"Available types: {list(app_config.ingestion_config.data_sources.keys())}"
+                "No data configuration loaded in settings. "
+                "Check that application-data.yaml exists and is loaded properly."
             )
 
-        self.config: DataSourceConfig = app_config.ingestion_config.data_sources[source_type_key]
-        self.app_config = app_config
+        # The "sources" is a list in YAML, convert it to a dict indexed by type
+        if hasattr(data_root, 'sources'):
+            data_sources_list = data_root.sources
+            
+            # Convert list to dict indexed by type
+            data_sources_dict = {}
+            for item in data_sources_list:
+                if hasattr(item, 'type'):
+                    key = item.type.lower() if isinstance(item.type, str) else str(item.type).lower()
+                    data_sources_dict[key] = item
+            
+            # Locate the config for this service's type
+            source_type_key = self.SOURCE_TYPE.value.lower()
+            
+            if source_type_key not in data_sources_dict:
+                raise ValueError(
+                    f"No configuration found for data source type: {self.SOURCE_TYPE.value}. "
+                    f"Available types: {list(data_sources_dict.keys())}"
+                )
+            
+            self.config = data_sources_dict[source_type_key]
+        else:
+            raise ValueError(
+                f"Invalid data configuration structure. "
+                f"Expected object with 'sources' attribute, got: {type(data_root)}"
+            )
+
+        self.settings = settings
         self.validate_config()
         self.text_splitter = RecursiveCharacterTextSplitter(
             chunk_size=1000,

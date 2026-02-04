@@ -17,7 +17,7 @@ from langchain_community.document_loaders import (
 from app.core.constants import DataSourceType, EmbeddingType
 from app.core.utils.logger import get_logger
 from app.db.vector.providers.db_provider import VectorStoreFactory
-from app.services.ingestion.base import BaseIngestionService
+from app.infrastructure.ingestion.base import BaseIngestionService
 from .file_data_source_util import FileType, _construct_mapping
 from .rag_data_provider import RagDataProvider
 
@@ -30,7 +30,7 @@ class FileIngestionService(BaseIngestionService):
     SOURCE_TYPE = DataSourceType.FILE
 
     def __init__(self):
-        # Call parent to auto-locate config by SOURCE_TYPE from AppConfig singleton
+        # Call parent to auto-locate config by SOURCE_TYPE from settings singleton
         super().__init__()
 
         self._processed_files: Dict[str, bool] = {}

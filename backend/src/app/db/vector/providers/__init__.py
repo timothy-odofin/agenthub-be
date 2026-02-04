@@ -9,7 +9,12 @@ from app.core.utils.dynamic_import import import_providers
 
 # Import the registry and factory first
 from .db_provider import VectorDBRegistry, VectorStoreFactory
-from .embedding_provider import EmbeddingFactory
+from .embedding_provider import (
+    EmbeddingFactory,
+    EmbeddingConfigProvider,
+    SettingsConfigProvider,
+    DictConfigProvider
+)
 
 # Vector database modules configuration: (module_path, class_name)
 VECTOR_DB_MODULES = [
@@ -25,4 +30,7 @@ __all__ = [
     'VectorDBRegistry',
     'VectorStoreFactory', 
     'EmbeddingFactory',
+    'EmbeddingConfigProvider',
+    'SettingsConfigProvider',
+    'DictConfigProvider',
 ] + vector_db_classes

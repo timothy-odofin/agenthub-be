@@ -15,7 +15,8 @@ from app.core.core_enums import (
     AgentType,
     AgentFramework,
     AgentStatus,
-    CacheType
+    CacheType,
+    PromptType
 )
 
 # Re-export for easy access
@@ -31,5 +32,6 @@ __all__ = [
     'AgentFramework',
     'AgentStatus',
     'CacheType',
+    'PromptType',
     'LLMCapability'
 ]

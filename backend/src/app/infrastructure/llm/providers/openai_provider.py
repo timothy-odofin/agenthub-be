@@ -37,8 +37,8 @@ class OpenAILLM(BaseLLMProvider):
         if not self.config.get('api_key'):
             raise ValueError("OpenAI provider requires 'api_key' in configuration")
         
-        # Validate model if provided
-        model = self.config.get('default_model')
+        # Validate model if provided - check both 'model' and 'default_model' keys
+        model = self.config.get('model') or self.config.get('default_model')
         if model and model not in self.get_available_models():
             logger.warning(f"Model '{model}' may not be available. Available models: {self.get_available_models()}")
         
@@ -61,9 +61,12 @@ class OpenAILLM(BaseLLMProvider):
     async def initialize(self) -> None:
         """Initialize the OpenAI LangChain client."""
         try:
+            # Get model from config - try 'model' first (standard key), then 'default_model' as fallback
+            model = self.config.get('model') or self.config.get('default_model') or 'gpt-4o-mini'
+            
             self.client = ChatOpenAI(
                 api_key=self.config.get('api_key'),
-                model=self.config.get('default_model', self.default_model),
+                model=model,
                 temperature=self.config.get('temperature', 0.7),
                 max_tokens=self.config.get('max_tokens', None),
                 streaming=True  # Enable streaming capability
@@ -75,10 +78,25 @@ class OpenAILLM(BaseLLMProvider):
             raise
     
     async def generate(self, prompt: str, **kwargs) -> LLMResponse:
-        """Generate text using OpenAI LangChain API."""
+        """
+        Generate text using OpenAI LangChain API.
+        
+        Args:
+            prompt: The input prompt
+            **kwargs: Additional arguments including:
+                - model: Override the default model for this request
+                - temperature: Override temperature
+                - max_tokens: Override max tokens
+        """
         try:
             # Create message
             message = HumanMessage(content=prompt)
+            
+            # Extract model override if provided
+            model_override = kwargs.pop('model', None)
+            if model_override:
+                logger.info(f"Using model override: {model_override} (default: {self.client.model_name})")
+                kwargs['model'] = model_override
             
             # Generate response using LangChain
             response = await self.client.ainvoke([message], **kwargs)
@@ -95,10 +113,25 @@ class OpenAILLM(BaseLLMProvider):
             raise
     
     async def stream_generate(self, prompt: str, **kwargs) -> AsyncGenerator[str, None]:
-        """Stream generate text using OpenAI LangChain API."""
+        """
+        Stream generate text using OpenAI LangChain API.
+        
+        Args:
+            prompt: The input prompt
+            **kwargs: Additional arguments including:
+                - model: Override the default model for this request
+                - temperature: Override temperature
+                - max_tokens: Override max tokens
+        """
         try:
             # Create message
             message = HumanMessage(content=prompt)
+            
+            # Extract model override if provided
+            model_override = kwargs.pop('model', None)
+            if model_override:
+                logger.info(f"Using model override for streaming: {model_override} (default: {self.client.model_name})")
+                kwargs['model'] = model_override
             
             # Stream response using LangChain
             async for chunk in self.client.astream([message], **kwargs):

@@ -27,30 +27,35 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         self._connection_pool: Optional[ConnectionPool] = None
         self._redis_client: Optional[Redis] = None
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for Redis."""
+        return "db"
+    
     def get_connection_name(self) -> str:
         """Return the configuration name for Redis."""
         return ConnectionType.REDIS.value
     
     def validate_config(self) -> None:
         """Validate Redis configuration."""
+        config_dict = self._get_config_dict()
         required_fields = ['host', 'port']
         
         for field in required_fields:
-            if not self.config.get(field):
+            if not config_dict.get(field):
                 raise ValueError(f"Redis connection requires '{field}' in configuration")
         
         # Validate port
-        port = self.config.get('port')
+        port = config_dict.get('port')
         if not isinstance(port, int) or port <= 0 or port > 65535:
             raise ValueError(f"Redis port must be a valid port number (1-65535), got: {port}")
         
         # Validate database number
-        database = self.config.get('db', 0)  # Use 'db' instead of 'database'
+        database = config_dict.get('db', 0)  # Use 'db' instead of 'database'
         if not isinstance(database, int) or database < 0 or database > 15:
             raise ValueError(f"Redis database must be between 0-15, got: {database}")
         
         # Validate pool size
-        pool_size = self.config.get('connection_pool_size', 10)
+        pool_size = config_dict.get('connection_pool_size', 10)
         if not isinstance(pool_size, int) or pool_size <= 0:
             raise ValueError(f"Redis connection_pool_size must be a positive integer, got: {pool_size}")
         
@@ -67,22 +72,24 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 await self.disconnect()
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Build connection pool parameters
             pool_params = {
-                'host': self.config['host'],
-                'port': self.config['port'],
-                'db': self.config.get('db', 0),
-                'password': self.config.get('password'),
-                'max_connections': self.config.get('connection_pool_size', 10),
-                'socket_timeout': self.config.get('socket_timeout', 5),
-                'socket_connect_timeout': self.config.get('socket_connect_timeout', 5),
-                'health_check_interval': self.config.get('health_check_interval', 30),
+                'host': config_dict['host'],
+                'port': config_dict['port'],
+                'db': config_dict.get('db', 0),
+                'password': config_dict.get('password'),
+                'max_connections': config_dict.get('connection_pool_size', 10),
+                'socket_timeout': config_dict.get('socket_timeout', 5),
+                'socket_connect_timeout': config_dict.get('socket_connect_timeout', 5),
+                'health_check_interval': config_dict.get('health_check_interval', 30),
                 'retry_on_timeout': True,
                 'decode_responses': True
             }
             
             # Handle SSL configuration (simplified for Hugging Face compatibility)
-            use_ssl = self.config.get('ssl', False)
+            use_ssl = config_dict.get('ssl', False)
             if isinstance(use_ssl, str):
                 use_ssl = use_ssl.lower() in ('true', '1', 'yes')
             
@@ -90,8 +97,8 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
                 pool_params['connection_class'] = SSLConnection
                 # Don't set ssl_cert_reqs in pool_params - let it use defaults
                 # Allow custom SSL cert requirements if specified
-                if self.config.get('ssl_ca_certs'):
-                    pool_params['ssl_ca_certs'] = self.config['ssl_ca_certs']
+                if config_dict.get('ssl_ca_certs'):
+                    pool_params['ssl_ca_certs'] = config_dict['ssl_ca_certs']
             
             # Create connection pool
             self._connection_pool = redis.ConnectionPool(**pool_params)
@@ -105,7 +112,7 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             self._connection = self._redis_client
             self._is_connected = True
             
-            logger.info(f"Redis connection established to {self.config['host']}:{self.config['port']}")
+            logger.info(f"Redis connection established to {config_dict['host']}:{config_dict['port']}")
             return self._redis_client
             
         except Exception as e:

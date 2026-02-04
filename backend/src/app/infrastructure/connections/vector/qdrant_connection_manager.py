@@ -28,26 +28,31 @@ class QdrantConnectionManager(BaseConnectionManager):
         """Return the configuration name for Qdrant."""
         return ConnectionType.QDRANT.value
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for vector stores."""
+        return "vector"
+    
     def validate_config(self) -> None:
         """Validate Qdrant configuration."""
+        config_dict = self._get_config_dict()
         required_fields = ['url', 'collection_name']
         
         for field in required_fields:
-            if not self.config.get(field):
+            if not config_dict.get(field):
                 raise ValueError(f"Qdrant connection requires '{field}' in configuration")
         
         # Validate URL format
-        url = self.config.get('url')
+        url = config_dict.get('url')
         if not url.startswith(('http://', 'https://')):
             raise ValueError(f"Qdrant URL must start with http:// or https://, got: {url}")
         
         # Validate embedding dimension
-        embedding_dimension = self.config.get('embedding_dimension', 1536)
+        embedding_dimension = config_dict.get('embedding_dimension', 1536)
         if not isinstance(embedding_dimension, int) or embedding_dimension <= 0:
             raise ValueError(f"Qdrant embedding_dimension must be a positive integer, got: {embedding_dimension}")
         
         # Validate distance metric
-        distance = self.config.get('distance', 'Cosine')
+        distance = config_dict.get('distance', 'Cosine')
         valid_distances = ['Cosine', 'Euclid', 'Dot']
         if distance not in valid_distances:
             raise ValueError(f"Qdrant distance must be one of {valid_distances}, got: {distance}")
@@ -65,18 +70,20 @@ class QdrantConnectionManager(BaseConnectionManager):
                 self.disconnect()
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Create Qdrant client
             self._qdrant_client = QdrantClient(
-                url=self.config['url'],
-                api_key=self.config.get('api_key'),
-                timeout=self.config.get('timeout', 60)
+                url=config_dict['url'],
+                api_key=config_dict.get('api_key'),
+                timeout=config_dict.get('timeout', 60)
             )
             
             # Test connection by getting collections
             collections = self._qdrant_client.get_collections()
             
             # Ensure collection exists
-            collection_name = self.config['collection_name']
+            collection_name = config_dict['collection_name']
             collection_names = [c.name for c in collections.collections]
             
             if collection_name not in collection_names:
@@ -92,8 +99,8 @@ class QdrantConnectionManager(BaseConnectionManager):
                 self._qdrant_client.create_collection(
                     collection_name=collection_name,
                     vectors_config=VectorParams(
-                        size=self.config.get('embedding_dimension', 1536),
-                        distance=distance_mapping.get(self.config.get('distance', 'Cosine'), Distance.COSINE)
+                        size=config_dict.get('embedding_dimension', 1536),
+                        distance=distance_mapping.get(config_dict.get('distance', 'Cosine'), Distance.COSINE)
                     )
                 )
                 logger.info(f"Created Qdrant collection: {collection_name}")
@@ -103,7 +110,7 @@ class QdrantConnectionManager(BaseConnectionManager):
             self._connection = self._qdrant_client
             self._is_connected = True
             
-            logger.info(f"Qdrant connection established to {self.config['url']}")
+            logger.info(f"Qdrant connection established to {config_dict['url']}")
             return self._qdrant_client
             
         except Exception as e:

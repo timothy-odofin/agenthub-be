@@ -6,10 +6,14 @@ vector stores, and external services with proper configuration validation.
 """
 
 from abc import ABC, abstractmethod
-from typing import Any, Optional, Dict
-from app.core.utils.logger import get_logger
+from typing import Any, Optional, Dict, Literal
+from src.app.core.utils.logger import get_logger
+from src.app.core.config.framework.settings import settings
 
 logger = get_logger(__name__)
+
+# Type hint for valid configuration categories
+ConfigCategory = Literal['db', 'external', 'vector']
 
 
 class BaseConnectionManager(ABC):
@@ -17,15 +21,26 @@ class BaseConnectionManager(ABC):
     
     def __init__(self):
         """
-        Initialize the connection manager with configuration.
+        Initialize the connection manager with configuration from settings.
         
-        Uses template method pattern - child defines connection name,
-        base class retrieves configuration and validates it.
+        Uses template method pattern - child defines category and connection name,
+        base class retrieves configuration from settings and validates it.
         """
-        # Get connection-specific configuration
+        # Get category and connection name from concrete implementation
+        category = self.get_config_category()
         connection_name = self.get_connection_name()
-        config_source = self._get_config_source(connection_name)
-        self.config = config_source.get_connection_config(connection_name)
+        
+        # Get configuration directly from settings using dot notation
+        # e.g., settings.db for 'db' category, settings.external for 'external'
+        config_section = getattr(settings, category)
+        # Access specific connection config (e.g., redis, postgresql, jira)
+        self.config = getattr(config_section, connection_name, None)
+        
+        if self.config is None:
+            raise ValueError(
+                f"Configuration not found for {category}.{connection_name}. "
+                f"Check application-{category}.yaml has '{connection_name}' section"
+            )
         
         # Initialize connection state
         self._connection: Optional[Any] = None
@@ -34,41 +49,50 @@ class BaseConnectionManager(ABC):
         # Validate configuration early to fail fast
         self.validate_config()
         
-        logger.info(f"Initialized {self.__class__.__name__} connection manager")
+        logger.info(
+            f"Initialized {self.__class__.__name__}",
+            extra={
+                "category": category,
+                "connection_name": connection_name,
+                "config_keys": list(self._get_config_dict().keys()) if hasattr(self.config, '_data') else []
+            }
+        )
     
-    def _get_config_source(self, connection_name: str) -> Any:
+    def _get_config_dict(self) -> Dict[str, Any]:
         """
-        Get the appropriate configuration source for a connection.
+        Convert config to dictionary for inspection/validation.
         
-        Uses the config source registry to automatically determine
-        the correct config source based on decorator registrations.
-        
-        NOTE: ConfigSourceRegistry is imported here (lazy import) to avoid
-        circular dependency. This is a standard Python pattern for breaking
-        circular dependencies in large applications:
-        - BaseConnectionManager needs ConfigSourceRegistry to get config
-        - Config classes (DatabaseConfig, VectorConfig, etc.) may need to
-          import connection-related types
-        - Lazy loading breaks the cycle and is production-ready
-        
-        Args:
-            connection_name: The name of the connection
-            
         Returns:
-            The appropriate configuration source
+            Dictionary representation of config
         """
-        # Lazy import to break circular dependency (intentional pattern)
-        from app.core.config.framework.registry import ConfigSourceRegistry
+        from src.app.core.config.utils.config_converter import dynamic_config_to_dict
+        return dynamic_config_to_dict(self.config)
+    
+    @abstractmethod
+    def get_config_category(self) -> ConfigCategory:
+        """
+        Return the configuration category for this connection.
         
-        return ConfigSourceRegistry.get_config_source(connection_name)
-       
+        Returns:
+            str: One of 'db', 'external', 'vector'
+            
+        Example:
+            def get_config_category(self) -> str:
+                return "db"
+        """
+        pass
+    
     @abstractmethod
     def get_connection_name(self) -> str:
         """
-        Return the configuration name/key for this connection manager.
+        Return the connection name within its category.
         
         Returns:
-            str: The configuration key to retrieve from the config source
+            str: The connection identifier (e.g., 'redis', 'postgresql', 'jira')
+            
+        Example:
+            def get_connection_name(self) -> str:
+                return "redis"
         """
         pass
     

@@ -29,26 +29,31 @@ class PgVectorConnectionManager(AsyncBaseConnectionManager):
         """Return the configuration name for PgVector."""
         return ConnectionType.PGVECTOR.value
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for vector stores."""
+        return "vector"
+    
     def validate_config(self) -> None:
         """Validate PgVector configuration."""
+        config_dict = self._get_config_dict()
         required_fields = ['connection_string', 'collection_name']
         
         for field in required_fields:
-            if not self.config.get(field):
+            if not config_dict.get(field):
                 raise ValueError(f"PgVector connection requires '{field}' in configuration")
         
         # Validate connection string format
-        connection_string = self.config.get('connection_string')
+        connection_string = config_dict.get('connection_string')
         if not connection_string.startswith('postgresql://'):
             raise ValueError(f"PgVector connection_string must start with postgresql://, got: {connection_string}")
         
         # Validate embedding dimension
-        embedding_dimension = self.config.get('embedding_dimension', 1536)
+        embedding_dimension = config_dict.get('embedding_dimension', 1536)
         if not isinstance(embedding_dimension, int) or embedding_dimension <= 0:
             raise ValueError(f"PgVector embedding_dimension must be a positive integer, got: {embedding_dimension}")
         
         # Validate distance strategy
-        distance_strategy = self.config.get('distance_strategy', 'cosine')
+        distance_strategy = config_dict.get('distance_strategy', 'cosine')
         valid_strategies = ['cosine', 'euclidean', 'dot_product']
         if distance_strategy not in valid_strategies:
             raise ValueError(f"PgVector distance_strategy must be one of {valid_strategies}, got: {distance_strategy}")
@@ -66,8 +71,10 @@ class PgVectorConnectionManager(AsyncBaseConnectionManager):
                 await self.disconnect()
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Create PostgreSQL connection
-            self._pg_connection = await asyncpg.connect(self.config['connection_string'])
+            self._pg_connection = await asyncpg.connect(config_dict['connection_string'])
             
             # Test connection by checking pgvector extension
             result = await self._pg_connection.fetch(
@@ -84,8 +91,8 @@ class PgVectorConnectionManager(AsyncBaseConnectionManager):
                     raise ConnectionError(f"Failed to install pgvector extension: {e}")
             
             # Ensure collection table exists
-            collection_name = self.config['collection_name']
-            embedding_dimension = self.config.get('embedding_dimension', 1536)
+            collection_name = config_dict['collection_name']
+            embedding_dimension = config_dict.get('embedding_dimension', 1536)
             
             # Create table if it doesn't exist
             await self._create_collection_table(collection_name, embedding_dimension)
@@ -93,7 +100,7 @@ class PgVectorConnectionManager(AsyncBaseConnectionManager):
             self._connection = self._pg_connection
             self._is_connected = True
             
-            logger.info(f"PgVector connection established to {self.config['connection_string']}")
+            logger.info(f"PgVector connection established to {config_dict['connection_string']}")
             return self._pg_connection
             
         except Exception as e:

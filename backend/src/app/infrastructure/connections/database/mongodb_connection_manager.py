@@ -28,14 +28,20 @@ class MongoDBConnectionManager(BaseConnectionManager):
         self._mongo_client: Optional[MongoClient] = None
         self._database: Optional[Any] = None
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for MongoDB."""
+        return "db"
+    
     def get_connection_name(self) -> str:
         """Return the configuration name for MongoDB."""
         return ConnectionType.MONGODB.value
     
     def validate_config(self) -> None:
         """Validate MongoDB configuration."""
+        config_dict = self._get_config_dict()
+        
         # Check if we have a connection string or individual components
-        connection_string = self.config.get('connection_string')
+        connection_string = config_dict.get('connection_string')
         if connection_string:
             # Validate connection string format
             if not connection_string.startswith('mongodb://') and not connection_string.startswith('mongodb+srv://'):
@@ -45,11 +51,11 @@ class MongoDBConnectionManager(BaseConnectionManager):
             required_fields = ['host', 'port', 'database']
             
             for field in required_fields:
-                if not self.config.get(field):
+                if not config_dict.get(field):
                     raise ValueError(f"MongoDB connection requires '{field}' in configuration when not using connection_string")
             
             # Validate port
-            port = self.config.get('port')
+            port = config_dict.get('port')
             if not isinstance(port, int) or port <= 0:
                 raise ValueError(f"MongoDB port must be a positive integer, got: {port}")
         
@@ -57,16 +63,18 @@ class MongoDBConnectionManager(BaseConnectionManager):
     
     def _build_connection_string(self) -> str:
         """Build MongoDB connection string from individual config components."""
+        config_dict = self._get_config_dict()
+        
         # Use provided connection string if available
-        if self.config.get('connection_string'):
-            return self.config['connection_string']
+        if config_dict.get('connection_string'):
+            return config_dict['connection_string']
         
         # Build connection string from components
-        username = self.config.get('username')
-        password = self.config.get('password')
-        host = self.config['host']
-        port = self.config['port']
-        database = self.config['database']
+        username = config_dict.get('username')
+        password = config_dict.get('password')
+        host = config_dict['host']
+        port = config_dict['port']
+        database = config_dict['database']
         
         # URL-encode username and password
         if username and password:

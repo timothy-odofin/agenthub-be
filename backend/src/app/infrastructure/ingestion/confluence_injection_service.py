@@ -7,8 +7,8 @@ from app.core.utils.exception.http_exception_handler import handle_atlassian_err
 from app.core.utils.logger import get_logger
 from app.db.vector.providers.db_provider import VectorStoreFactory
 from app.services.external.confluence_service import ConfluenceService
-from app.services.ingestion.base import BaseIngestionService
-from app.services.ingestion.rag_data_provider import RagDataProvider
+from app.infrastructure.ingestion.base import BaseIngestionService
+from app.infrastructure.ingestion.rag_data_provider import RagDataProvider
 
 logger = get_logger(__name__)
 
@@ -20,7 +20,7 @@ class ConfluenceIngestionService(BaseIngestionService):
     SOURCE_TYPE = DataSourceType.CONFLUENCE
 
     def __init__(self):
-        # Call parent to auto-locate config by SOURCE_TYPE from AppConfig singleton
+        # Call parent to auto-locate config by SOURCE_TYPE from settings singleton
         super().__init__()
         
         # Initialize Confluence client

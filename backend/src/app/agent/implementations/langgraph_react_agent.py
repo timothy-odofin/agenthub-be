@@ -7,12 +7,12 @@ from langgraph.prebuilt import create_react_agent
 from langgraph.prebuilt.tool_executor import ToolExecutor
 from langchain_core.messages import HumanMessage, AIMessage, BaseMessage
 
-from app.core.enums import AgentCapability, AgentType, AgentStatus, AgentFramework
+from app.core.enums import AgentCapability, AgentType, AgentStatus, AgentFramework, PromptType
 from app.agent.frameworks.langgraph_agent import LangGraphAgent
 from app.agent.models import AgentContext, AgentResponse
 from app.agent.base.agent_registry import AgentRegistry
 from app.agent.tools import ToolRegistry
-from app.core.config.providers.prompt import prompt_config, PromptType
+from app.core.config import settings
 from app.infrastructure.llm.context import ContextWindowManager
 
 
@@ -96,10 +96,15 @@ class LangGraphReactAgent(LangGraphAgent):
         ]
         tools_description = "\n".join(available_tools) if available_tools else "No tools available"
         
-        return prompt_config.get_system_prompt(
-            self.agent_prompt_type,
-            available_tools=tools_description
-        )
+        # Get system prompt from settings using dot notation
+        # Example: 'agent.react_agent' -> settings.prompt.system.agent.react_agent
+        prompt_path = self.agent_prompt_type.split('.')
+        system_prompt_obj = settings.prompt.system
+        for key in prompt_path:
+            system_prompt_obj = getattr(system_prompt_obj, key)
+        
+        # Format the prompt with available tools
+        return system_prompt_obj.format(available_tools=tools_description)
     
     async def execute(self, query: str, context: AgentContext) -> AgentResponse:
         start_time = datetime.now()

@@ -27,7 +27,7 @@ class ChromaDB(VectorDB):
         """Get vector database configuration via connection manager."""
         if not self._connection_manager:
             self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.CHROMADB)
-        return self._connection_manager.config
+        return self._connection_manager._get_config_dict()
 
     def _create_connection(self):
         """Initialize ChromaDB with the connection manager factory."""

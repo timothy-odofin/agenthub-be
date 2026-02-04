@@ -22,8 +22,8 @@ from typing import List
 import pytest
 from langchain.schema import Document
 
-from app.services.ingestion.file_ingestion_service import FileIngestionService
-from app.services.ingestion.file_data_source_util import FileType
+from app.infrastructure.ingestion.file_ingestion_service import FileIngestionService
+from app.infrastructure.ingestion.file_data_source_util import FileType
 from app.core.constants import DataSourceType, EmbeddingType
 from app.core.schemas.ingestion_config import DataSourceConfig
 
@@ -31,18 +31,15 @@ from app.core.schemas.ingestion_config import DataSourceConfig
 class TestFileIngestionServiceArchitecture:
     """Test suite for FileIngestionService class architecture."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_inheritance_from_base_ingestion_service(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_inheritance_from_base_ingestion_service(self, mock_settings):
         """Test that FileIngestionService properly inherits from BaseIngestionService."""
         # Setup mock
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test/path']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -53,18 +50,15 @@ class TestFileIngestionServiceArchitecture:
             assert hasattr(service, '_processed_files')  # Service-specific
             assert hasattr(service, '_loader_mapping')  # Service-specific
 
-    @patch('app.core.config.application.AppConfig')
-    def test_initialization_sets_required_attributes(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_initialization_sets_required_attributes(self, mock_settings):
         """Test that initialization sets all required service attributes."""
         # Setup mock
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test/path']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('app.services.ingestion.file_data_source_util._construct_mapping') as mock_mapping, \
@@ -85,49 +79,40 @@ class TestFileIngestionServiceArchitecture:
 class TestFileIngestionServiceValidation:
     """Test suite for configuration validation."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_validate_config_success(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_validate_config_success(self, mock_settings):
         """Test successful configuration validation with existing paths."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/existing/path1', '/existing/path2']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
             # validate_config is called during initialization, no exception should occur
             assert service.config.sources == ['/existing/path1', '/existing/path2']
 
-    @patch('app.core.config.application.AppConfig')
-    def test_validate_config_no_sources(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_validate_config_no_sources(self, mock_settings):
         """Test validation failure when no sources are provided."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = []  # Empty sources
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with pytest.raises(ValueError, match="No sources paths provided in configuration"):
             FileIngestionService()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_validate_config_nonexistent_path(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_validate_config_nonexistent_path(self, mock_settings):
         """Test validation failure when source path doesn't exist."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/nonexistent/path']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=False):
             with pytest.raises(ValueError, match="Source path does not exist: /nonexistent/path"):
@@ -137,17 +122,14 @@ class TestFileIngestionServiceValidation:
 class TestFileIngestionServiceFileTypeDetection:
     """Test suite for file type detection functionality."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_detect_file_type_pdf(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_detect_file_type_pdf(self, mock_settings):
         """Test PDF file type detection."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('magic.from_file', return_value='application/pdf'):
@@ -155,17 +137,14 @@ class TestFileIngestionServiceFileTypeDetection:
             file_type = service._detect_file_type('/test/file.pdf')
             assert file_type == FileType.PDF
 
-    @patch('app.core.config.application.AppConfig')
-    def test_detect_file_type_text(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_detect_file_type_text(self, mock_settings):
         """Test text file type detection."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('magic.from_file', return_value='text/plain'):
@@ -173,17 +152,14 @@ class TestFileIngestionServiceFileTypeDetection:
             file_type = service._detect_file_type('/test/file.txt')
             assert file_type == FileType.TXT
 
-    @patch('app.core.config.application.AppConfig')
-    def test_detect_file_type_unsupported(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_detect_file_type_unsupported(self, mock_settings):
         """Test handling of unsupported file types."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('magic.from_file', return_value='application/unknown'):
@@ -196,17 +172,14 @@ class TestFileIngestionServiceFileTypeDetection:
 class TestFileIngestionServiceDocumentLoading:
     """Test suite for document loading functionality."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_load_document_text_file(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_load_document_text_file(self, mock_settings):
         """Test loading a text document."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         # Mock loader instance and class
         mock_loader = Mock()
@@ -234,17 +207,14 @@ class TestFileIngestionServiceDocumentLoading:
             mock_loader_class.assert_called_once_with('/test/file.txt')
             mock_loader.load.assert_called_once()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_load_document_pdf_with_config(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_load_document_pdf_with_config(self, mock_settings):
         """Test loading a PDF document with loader configuration."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         # Mock loader instance and class
         mock_loader = Mock()
@@ -272,17 +242,14 @@ class TestFileIngestionServiceDocumentLoading:
             assert documents[0].page_content == "PDF content"
             mock_loader_class.assert_called_once_with('/test/file.pdf')
 
-    @patch('app.core.config.application.AppConfig')
-    def test_load_document_unsupported_type(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_load_document_unsupported_type(self, mock_settings):
         """Test handling of unsupported file types during loading."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('magic.from_file', return_value='text/plain'), \
@@ -302,17 +269,14 @@ class TestFileIngestionServiceDocumentLoading:
 class TestFileIngestionServiceArchiveHandling:
     """Test suite for archive file handling."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_handle_zip_archive(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_handle_zip_archive(self, mock_settings):
         """Test ZIP archive handling."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True), \
              patch('app.services.ingestion.file_data_source_util._construct_mapping') as mock_mapping:
@@ -350,17 +314,14 @@ class TestFileIngestionServiceArchiveHandling:
                 assert documents[0].metadata.get("archive_source") == '/test/archive.zip'
                 assert documents[0].metadata.get("archive_path") == 'extracted.txt'
 
-    @patch('app.core.config.application.AppConfig')
-    def test_handle_rar_archive_not_implemented(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_handle_rar_archive_not_implemented(self, mock_settings):
         """Test that RAR archive handling raises NotImplementedError."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -372,18 +333,15 @@ class TestFileIngestionServiceArchiveHandling:
 class TestFileIngestionServiceSingleFileProcessing:
     """Test suite for single file processing."""
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_ingest_single_success(self, mock_app_config_class):
+    async def test_ingest_single_success(self, mock_settings):
         """Test successful single file ingestion."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -410,18 +368,15 @@ class TestFileIngestionServiceSingleFileProcessing:
                     EmbeddingType.DEFAULT, mock_documents
                 )
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_ingest_single_no_documents(self, mock_app_config_class):
+    async def test_ingest_single_no_documents(self, mock_settings):
         """Test single file ingestion when no documents are extracted."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -440,18 +395,15 @@ class TestFileIngestionServiceSingleFileProcessing:
                 mock_vector_store.get_connection.assert_called_once()
                 mock_vector_store.save_and_embed.assert_not_called()
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_ingest_single_error_handling(self, mock_app_config_class):
+    async def test_ingest_single_error_handling(self, mock_settings):
         """Test error handling during single file ingestion."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -470,18 +422,15 @@ class TestFileIngestionServiceSingleFileProcessing:
 class TestFileIngestionServiceBatchProcessing:
     """Test suite for batch file processing."""
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_ingest_multiple_sources_success(self, mock_app_config_class):
+    async def test_ingest_multiple_sources_success(self, mock_settings):
         """Test successful ingestion of multiple sources."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test/folder1', '/test/folder2']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -497,18 +446,15 @@ class TestFileIngestionServiceBatchProcessing:
                     call('/test/folder2')
                 ])
 
-    @patch('app.core.config.application.AppConfig')  
+    @patch('app.infrastructure.ingestion.base.settings')  
     @pytest.mark.asyncio
-    async def test_ingest_with_folder_error(self, mock_app_config_class):
+    async def test_ingest_with_folder_error(self, mock_settings):
         """Test ingestion with error in one folder."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test/folder1', '/test/folder2']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -525,18 +471,15 @@ class TestFileIngestionServiceBatchProcessing:
                 assert result is False
                 assert service._processed_files['/test/folder1'] is False
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_process_files_in_folder(self, mock_app_config_class):
+    async def test_process_files_in_folder(self, mock_settings):
         """Test processing all files in a folder."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -573,17 +516,14 @@ class TestFileIngestionServiceBatchProcessing:
 class TestFileIngestionServiceUtilityMethods:
     """Test suite for utility methods."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_get_processed_files_status(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_get_processed_files_status(self, mock_settings):
         """Test getting processed files status."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -601,17 +541,14 @@ class TestFileIngestionServiceUtilityMethods:
             status['/test/file3.txt'] = True
             assert '/test/file3.txt' not in service._processed_files
 
-    @patch('app.core.config.application.AppConfig')
-    def test_set_embedding_type(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_set_embedding_type(self, mock_settings):
         """Test setting embedding type."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -621,18 +558,15 @@ class TestFileIngestionServiceUtilityMethods:
             service.set_embedding_type(EmbeddingType.OPENAI)
             assert service._embedding_type == EmbeddingType.OPENAI
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_close_vector_store(self, mock_app_config_class):
+    async def test_close_vector_store(self, mock_settings):
         """Test closing vector store connection."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -646,18 +580,15 @@ class TestFileIngestionServiceUtilityMethods:
             
             mock_vector_store.close_connection.assert_called_once()
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_close_with_none_vector_store(self, mock_app_config_class):
+    async def test_close_with_none_vector_store(self, mock_settings):
         """Test closing when vector store is None."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()
@@ -670,18 +601,15 @@ class TestFileIngestionServiceUtilityMethods:
 class TestFileIngestionServiceDocumentProcessing:
     """Test suite for document processing and chunking."""
 
-    @patch('app.core.config.application.AppConfig')
+    @patch('app.infrastructure.ingestion.base.settings')
     @pytest.mark.asyncio
-    async def test_process_file_with_chunking(self, mock_app_config_class):
+    async def test_process_file_with_chunking(self, mock_settings):
         """Test file processing with document chunking."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['/test']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with patch('os.path.exists', return_value=True):
             service = FileIngestionService()

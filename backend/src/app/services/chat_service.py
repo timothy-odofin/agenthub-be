@@ -125,6 +125,11 @@ class ChatService(metaclass=SingletonMeta):
             # If not provided, this will use defaults from configuration
             llm = LLMFactory.get_llm_by_name(provider, model)
             
+            # If a specific model is requested, update the LLM client to use it
+            if model and hasattr(llm, 'client') and hasattr(llm.client, 'model_name'):
+                logger.info(f"Overriding LLM model from {llm.client.model_name} to {model}")
+                llm.client.model_name = model
+            
             # Get or create agent with the specified LLM
             # For now, we'll create a new agent if provider/model is specified,
             # otherwise use the default cached agent

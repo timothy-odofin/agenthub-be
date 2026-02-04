@@ -29,7 +29,7 @@ class PgVectorDB(VectorDB):
         """Get vector database configuration via connection manager."""
         if not self._connection_manager:
             self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.PGVECTOR)
-        return self._connection_manager.config
+        return self._connection_manager._get_config_dict()
 
     async def _create_connection(self):
         """Create connection to PgVector using the connection manager factory."""

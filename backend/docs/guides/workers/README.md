@@ -208,7 +208,7 @@ from celery import shared_task
 from typing import List
 
 from app.core.schemas.ingestion_config import DataSourceConfig, DataSourceType
-from app.services.ingestion.file_ingestion_service import FileIngestionService
+from app.infrastructure.ingestion.file_ingestion_service import FileIngestionService
 
 async def create_ingestion_service(
     file_paths: List[str], 

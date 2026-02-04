@@ -43,33 +43,40 @@ class ConfluenceConnectionManager(BaseConnectionManager):
     
     def get_connection_name(self) -> str:
         """Return the configuration name for Confluence."""
-        return ConnectionType.CONFLUENCE.value
+        return "atlassian"  # Confluence uses atlassian config in YAML
+    
+    def get_config_category(self) -> str:
+        """Return the configuration category for external services."""
+        return "external"
     
     def validate_config(self) -> None:
         """Validate Confluence configuration."""
-        required_fields = ['base_url', 'username', 'api_token']
+        config_dict = self._get_config_dict()
+        
+        # Confluence uses atlassian config, extract confluence-specific fields
+        required_fields = ['confluence_base_url', 'email', 'api_key']
         
         for field in required_fields:
-            if not self.config.get(field):
-                raise ValueError(f"Confluence connection requires '{field}' in configuration")
+            if not config_dict.get(field):
+                raise ValueError(f"Confluence connection requires '{field}' in atlassian configuration")
         
         # Validate base_url format
-        base_url = self.config.get('base_url')
+        base_url = config_dict.get('confluence_base_url')
         if not base_url.startswith(('http://', 'https://')):
             raise ValueError(f"Confluence base_url must start with http:// or https://, got: {base_url}")
         
         # Validate timeout
-        timeout = self.config.get('timeout', 30)
+        timeout = config_dict.get('timeout', 30)
         if not isinstance(timeout, int) or timeout <= 0:
             raise ValueError(f"Confluence timeout must be a positive integer, got: {timeout}")
         
         # Validate page_limit
-        page_limit = self.config.get('page_limit', 100)
+        page_limit = config_dict.get('page_limit', 100)
         if not isinstance(page_limit, int) or page_limit <= 0:
             raise ValueError(f"Confluence page_limit must be a positive integer, got: {page_limit}")
         
         # Validate space_keys if not wildcard
-        space_keys = self.config.get('space_keys', ['*'])
+        space_keys = config_dict.get('space_keys', ['*'])
         if isinstance(space_keys, str):
             space_keys = [space_keys]
         if not isinstance(space_keys, list):
@@ -88,13 +95,15 @@ class ConfluenceConnectionManager(BaseConnectionManager):
                 self.disconnect()
         
         try:
-            # Create Confluence client
+            config_dict = self._get_config_dict()
+            
+            # Create Confluence client - using atlassian config with confluence_base_url, email, api_key
             self._confluence_client = Confluence(
-                url=self.config['base_url'],
-                username=self.config['username'],
-                password=self.config['api_token'],  # API token acts as password
-                timeout=self.config.get('timeout', 30),
-                verify_ssl=self.config.get('verify_ssl', True)
+                url=config_dict['confluence_base_url'],
+                username=config_dict['email'],
+                password=config_dict['api_key'],  # API token acts as password
+                timeout=config_dict.get('timeout', 30),
+                verify_ssl=config_dict.get('verify_ssl', True)
             )
             
             # Test connection by getting server info
@@ -105,7 +114,7 @@ class ConfluenceConnectionManager(BaseConnectionManager):
             self._connection = self._confluence_client
             self._is_connected = True
             
-            logger.info(f"Confluence connection established to {self.config['base_url']}")
+            logger.info(f"Confluence connection established to {config_dict['confluence_base_url']}")
             return self._confluence_client
             
         except Exception as e:

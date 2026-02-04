@@ -56,18 +56,25 @@ class JiraConnectionManager(BaseConnectionManager):
     
     def get_connection_name(self) -> str:
         """Return the configuration name for Jira."""
-        return ConnectionType.JIRA.value
+        return "atlassian"  # Jira uses atlassian config in YAML
+    
+    def get_config_category(self) -> str:
+        """Return the configuration category for external services."""
+        return "external"
 
     def validate_config(self) -> None:
         """Validate Jira configuration."""
-        required_fields = ['base_url', 'username', 'api_token']
+        config_dict = self._get_config_dict()
+        
+        # Jira uses atlassian config, extract jira-specific fields
+        required_fields = ['jira_base_url', 'email', 'api_key']
         
         for field in required_fields:
-            if not self.config.get(field):
-                raise ValueError(f"Jira connection requires '{field}' in configuration")
+            if not config_dict.get(field):
+                raise ValueError(f"Jira connection requires '{field}' in atlassian configuration")
         
         # Validate URL format
-        base_url = self.config.get('base_url')
+        base_url = config_dict.get('jira_base_url')
         if not base_url.startswith(('http://', 'https://')):
             raise ValueError(f"Jira base_url must start with http:// or https://, got: {base_url}")
         
@@ -84,17 +91,19 @@ class JiraConnectionManager(BaseConnectionManager):
                 self.disconnect()
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Create requests session for connection pooling
             self._session = requests.Session()
             
-            # Create Jira client
+            # Create Jira client - using atlassian config with jira_base_url, email, api_key
             self._jira_client = Jira(
-                url=self.config['base_url'],
-                username=self.config['username'],
-                password=self.config['api_token'],  # API token used as password
+                url=config_dict['jira_base_url'],
+                username=config_dict['email'],
+                password=config_dict['api_key'],  # API token used as password
                 session=self._session,
-                verify_ssl=self.config.get('verify_ssl', True),
-                timeout=self.config.get('timeout', 30)
+                verify_ssl=config_dict.get('verify_ssl', True),
+                timeout=config_dict.get('timeout', 30)
             )
             
             # Test connection by getting server info
@@ -105,7 +114,7 @@ class JiraConnectionManager(BaseConnectionManager):
             self._connection = self._jira_client
             self._is_connected = True
             
-            logger.info(f"Jira connection established to {self.config['base_url']}")
+            logger.info(f"Jira connection established to {config_dict['jira_base_url']}")
             return self._jira_client
             
         except Exception as e:
@@ -189,7 +198,7 @@ class JiraConnectionManager(BaseConnectionManager):
         
         try:
             # Build the API URL with the new endpoint  
-            url = f"{self.config['base_url']}/rest/api/3/search/jql"
+            url = f"{self.config['jira_base_url']}/rest/api/3/search/jql"
             
             # Prepare headers
             headers = {
@@ -215,7 +224,7 @@ class JiraConnectionManager(BaseConnectionManager):
                 url,
                 json=payload,
                 headers=headers,
-                auth=(self.config['username'], self.config['api_token']),
+                auth=(self.config['username'], self.config['api_key']),
                 verify=self.config.get('verify_ssl', True),
                 timeout=self.config.get('timeout', 30)
             )
@@ -383,7 +392,7 @@ class JiraConnectionManager(BaseConnectionManager):
             ADF JSON properly - it converts it to string instead of keeping as object.
         """
         # Build the API URL
-        url = f"{self.config['base_url']}/rest/api/3/issue/{issue_key}/comment"
+        url = f"{self.config['jira_base_url']}/rest/api/3/issue/{issue_key}/comment"
         
         # Prepare headers
         headers = {
@@ -401,7 +410,7 @@ class JiraConnectionManager(BaseConnectionManager):
             url,
             json=payload,  # This sends as proper JSON, not stringified
             headers=headers,
-            auth=(self.config['username'], self.config['api_token']),
+            auth=(self.config['username'], self.config['api_key']),
             verify=self.config.get('verify_ssl', True),
             timeout=self.config.get('timeout', 30)
         )
@@ -536,8 +545,8 @@ class JiraConnectionManager(BaseConnectionManager):
             try:
                 server_info = self._jira_client.server_info()
                 base_info.update({
-                    'base_url': self.config.get('base_url'),
-                    'username': self.config.get('username'),
+                    'base_url': self.config.get('jira_base_url'),
+                    'username': self.config.get('email'),
                     'server_title': server_info.get('serverTitle'),
                     'server_version': server_info.get('version'),
                     'build_number': server_info.get('buildNumber'),

@@ -24,25 +24,30 @@ class PostgresConnectionManager(AsyncBaseConnectionManager):
         super().__init__()
         self._connection_pool: Optional[Pool] = None
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for PostgreSQL."""
+        return "db"
+    
     def get_connection_name(self) -> str:
         """Return the configuration name for PostgreSQL."""
         return ConnectionType.POSTGRES.value
     
     def validate_config(self) -> None:
         """Validate PostgreSQL configuration."""
+        config_dict = self._get_config_dict()
         required_fields = ['host', 'port', 'database', 'username', 'password']
         
         for field in required_fields:
-            if not self.config.get(field):
+            if not config_dict.get(field):
                 raise ValueError(f"PostgreSQL connection requires '{field}' in configuration")
         
         # Validate port is valid
-        port = self.config.get('port')
+        port = config_dict.get('port')
         if not isinstance(port, int) or port <= 0 or port > 65535:
             raise ValueError(f"PostgreSQL port must be a valid port number (1-65535), got: {port}")
         
         # Validate pool settings
-        pool_size = self.config.get('pool_size', 10)
+        pool_size = config_dict.get('pool_size', 10)
         if not isinstance(pool_size, int) or pool_size <= 0:
             raise ValueError(f"PostgreSQL pool_size must be a positive integer, got: {pool_size}")
         
@@ -54,23 +59,25 @@ class PostgresConnectionManager(AsyncBaseConnectionManager):
             return self._connection_pool
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Build connection string
             connection_string = (
-                f"postgresql://{self.config['username']}:{self.config['password']}"
-                f"@{self.config['host']}:{self.config['port']}/{self.config['database']}"
+                f"postgresql://{config_dict['username']}:{config_dict['password']}"
+                f"@{config_dict['host']}:{config_dict['port']}/{config_dict['database']}"
             )
             
             # Add SSL mode if specified
-            if self.config.get('ssl_mode'):
-                connection_string += f"?sslmode={self.config['ssl_mode']}"
+            if config_dict.get('ssl_mode'):
+                connection_string += f"?sslmode={config_dict['ssl_mode']}"
             
             # Create connection pool
             self._connection_pool = await asyncpg.create_pool(
                 connection_string,
                 min_size=1,
-                max_size=self.config.get('pool_size', 10),
+                max_size=config_dict.get('pool_size', 10),
                 max_inactive_connection_lifetime=300,
-                timeout=self.config.get('connection_timeout', 30),
+                timeout=config_dict.get('connection_timeout', 30),
                 command_timeout=60
             )
             
@@ -81,7 +88,7 @@ class PostgresConnectionManager(AsyncBaseConnectionManager):
             self._connection = self._connection_pool
             self._is_connected = True
             
-            logger.info(f"PostgreSQL connection pool established to {self.config['host']}:{self.config['port']}")
+            logger.info(f"PostgreSQL connection pool established to {config_dict['host']}:{config_dict['port']}")
             return self._connection_pool
             
         except Exception as e:

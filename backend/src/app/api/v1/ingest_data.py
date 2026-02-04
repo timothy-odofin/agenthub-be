@@ -1,7 +1,7 @@
 from fastapi import APIRouter
 
 from app.core.constants import DataSourceType
-from app.services.ingestion.rag_data_provider import RagDataProvider
+from app.infrastructure.ingestion.rag_data_provider import RagDataProvider
 
 router = APIRouter()
 

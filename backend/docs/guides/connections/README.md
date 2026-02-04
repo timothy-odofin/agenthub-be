@@ -929,6 +929,51 @@ endpoint_url: "${S3_ENDPOINT_URL:}" # For MinIO/custom endpoints
 
 ## Creating Custom Connection Managers
 
+### Configuration Pattern (Updated Feb 2026)
+
+Connection managers now use a **simplified configuration access pattern**:
+
+**How Configuration Works:**
+1. Each manager implements `get_config_category()` → returns `"db"`, `"vector"`, or `"external"`
+2. Each manager implements `get_connection_name()` → returns the connection name (e.g., `"elasticsearch"`)
+3. Base class automatically constructs: `settings.{category}.{connection_name}`
+4. Example: `get_config_category()` returns `"db"` + `get_connection_name()` returns `"elasticsearch"` → `settings.db.elasticsearch`
+
+**Accessing Configuration:**
+```python
+# In your connection manager methods:
+config_dict = self._get_config_dict()  # Always get as dictionary
+
+# Use dictionary access
+value = config_dict['key']
+value = config_dict.get('key', default_value)
+```
+
+**Configuration File Structure:**
+```yaml
+# application-db.yaml (for databases)
+db:
+  elasticsearch:  # This is the connection_name
+    hosts: ["http://localhost:9200"]
+    api_key: "${ELASTICSEARCH_API_KEY}"
+
+# application-vector.yaml (for vector stores)
+vector:
+  elasticsearch:
+    hosts: ["http://localhost:9200"]
+
+# application-external.yaml (for external services)
+external:
+  elasticsearch:
+    hosts: ["http://localhost:9200"]
+```
+
+**Key Points:**
+- ✅ No wrapper classes needed - direct `settings` access
+- ✅ Base class handles configuration retrieval automatically
+- ✅ Use `_get_config_dict()` in your methods for dictionary access
+- ✅ Category determines which YAML file (`db`, `vector`, `external`)
+
 ### Step-by-Step Guide
 
 Want to add support for a new database, vector store, or external service? Follow this guide!
@@ -991,17 +1036,22 @@ self._es_client: Optional[AsyncElasticsearch] = None
 def get_connection_name(self) -> str:
 """Return the configuration name for Elasticsearch."""
 return ConnectionType.ELASTICSEARCH.value
+    
+def get_config_category(self) -> str:
+"""Return the configuration category for databases."""
+return "db"  # or "vector" or "external" based on your service type
 
 def validate_config(self) -> None:
 """Validate Elasticsearch configuration."""
+config_dict = self._get_config_dict()  # Get config as dictionary
 required_fields = ['hosts']
 
 for field in required_fields:
-if not self.config.get(field):
+if not config_dict.get(field):
 raise ValueError(f"Elasticsearch requires '{field}' in configuration")
 
-# Validate hosts format
-hosts = self.config.get('hosts')
+        # Validate hosts format
+hosts = config_dict.get('hosts')
 if not isinstance(hosts, list) or len(hosts) == 0:
 raise ValueError("Elasticsearch hosts must be a non-empty list")
 
@@ -1019,12 +1069,14 @@ except Exception:
 await self.disconnect()
 
 try:
+config_dict = self._get_config_dict()  # Get config as dictionary
+            
 # Create client
 self._es_client = AsyncElasticsearch(
-hosts=self.config['hosts'],
-api_key=self.config.get('api_key'),
-timeout=self.config.get('timeout', 30),
-max_retries=self.config.get('max_retries', 3)
+hosts=config_dict['hosts'],
+api_key=config_dict.get('api_key'),
+timeout=config_dict.get('timeout', 30),
+max_retries=config_dict.get('max_retries', 3)
 )
 
 # Test connection
@@ -1034,10 +1086,8 @@ raise ConnectionError("Failed to ping Elasticsearch")
 self._connection = self._es_client
 self._is_connected = True
 
-logger.info(f"Elasticsearch connection established to {self.config['hosts']}")
-return self._es_client
-
-except Exception as e:
+logger.info(f"Elasticsearch connection established to {config_dict['hosts']}")
+return self._es_clientexcept Exception as e:
 self._connection = None
 self._is_connected = False
 logger.error(f"Failed to connect to Elasticsearch: {e}")

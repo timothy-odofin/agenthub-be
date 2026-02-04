@@ -1,4 +1,4 @@
-dataSources:
+sources:
   - type: file
     sources:
 #      - /Users/oyejide/Documents/agenthub-docs

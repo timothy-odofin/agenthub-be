@@ -39,13 +39,17 @@ Complete REST API documentation with examples:
 ### **Guides** 
 In-depth guides for core features:
 
+> **🔄 Updated Feb 2026:** Configuration and connection management patterns have been simplified. See [REFACTORING-2026-02-03.md](./architecture/REFACTORING-2026-02-03.md) for migration guide.
+
 #### **Infrastructure Layer**
-- **[Infrastructure Overview](./architecture/infrastructure-layer.md)** - ⭐ NEW! Factory + Registry patterns
+- **[Infrastructure Overview](./architecture/infrastructure-layer.md)** - ⭐ Factory + Registry patterns
 - **[Cache Service](./guides/redis-cache-service.md)** - Redis & In-Memory caching
-- **[Connections Guide](./guides/connections/README.md)** - Database, vector stores, external APIs
+- **[Connections Guide](./guides/connections/README.md)** - Database, vector stores, external APIs (Updated: Feb 2026)
 - **[LLM Providers Guide](./guides/llm-providers/README.md)** - OpenAI, Groq, Anthropic, Azure
 
 #### **Configuration & Data**
+- **[Configuration System](./architecture/configuration-system.md)** - ⭐ Direct settings access pattern (Updated: Feb 2026)
+- **[Design Patterns](./architecture/design-patterns.md)** - Registry, Factory, Strategy patterns (Updated: Feb 2026)
 - **[Database Guide](./guides/database/README.md)** - MongoDB, PostgreSQL, Redis
 - **[Sessions Guide](./guides/sessions/README.md)** - Session management
 - **[Workers Guide](./guides/workers/README.md)** - Background tasks with Celery

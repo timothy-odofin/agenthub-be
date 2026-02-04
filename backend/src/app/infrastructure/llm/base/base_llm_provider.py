@@ -317,7 +317,8 @@ Ensure your response is valid JSON that matches the expected structure.
     @property
     def default_model(self) -> str:
         """Get default model for this provider."""
-        return self.config.get('default_model', '')
+        # Try 'model' first (standard key in YAML), then 'default_model' as fallback
+        return self.config.get('model') or self.config.get('default_model', '')
     
     @property
     def is_initialized(self) -> bool:

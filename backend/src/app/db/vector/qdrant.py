@@ -31,14 +31,14 @@ class QdrantDB(VectorDB, ABC):
 
     def get_vector_db_config(self) -> Dict[str, Any]:
         """Get vector database configuration via connection manager."""
-        return self._connection_manager.config
+        return self._connection_manager._get_config_dict()
 
-    def _create_connection(self):
+    async def _create_connection(self):
         """Create connection to Qdrant using the connection manager factory."""
         try:
             logger.info("Obtaining Qdrant connection...")
             
-            # Use the connection manager to establish connection (now sync)
+            # Use the connection manager to establish connection (sync operation in async context)
             self._connection = self._connection_manager.connect()
             
             logger.info(f"Successfully obtained Qdrant connection to {self.config['url']}")
@@ -48,7 +48,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to connect to Qdrant: {str(e)}")
             raise
 
-    def _close_connection(self):
+    async def _close_connection(self):
         """Close connection to Qdrant."""
         if self._connection_manager:
             self._connection_manager.disconnect()
@@ -67,7 +67,7 @@ class QdrantDB(VectorDB, ABC):
         logger.info("Using existing Qdrant vectorstore instance.")
         return self._vectorstore
 
-    def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
+    async def save_and_embed(self, embedding_type: EmbeddingType, docs: List[Document]) -> List[str]:
         """Save documents and generate embeddings."""
         try:
             # Get embedding model
@@ -78,7 +78,7 @@ class QdrantDB(VectorDB, ABC):
             # Get vectorstore with embedding model
             vectorstore = self._get_vectorstore(embedding_model)
             
-            # Add documents (sync operation)
+            # Add documents (sync operation wrapped for async context)
             logger.info("Adding documents to Qdrant...")
             ids = vectorstore.add_documents(docs)
             logger.info(f"Successfully added {len(docs)} documents to Qdrant collection {self.config['collection_name']}")
@@ -89,7 +89,7 @@ class QdrantDB(VectorDB, ABC):
             logger.error(f"Failed to save documents to Qdrant: {str(e)}")
             raise
 
-    def search_similar(
+    async def search_similar(
         self,
         query: str,
         k: int = 5,

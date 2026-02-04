@@ -13,6 +13,7 @@ from bson import ObjectId
 
 from app.db.models.user import User, UserInDB
 from app.core.utils.logger import get_logger
+from app.infrastructure.connections import ConnectionFactory, ConnectionType
 
 logger = get_logger(__name__)
 
@@ -49,7 +50,6 @@ class UserRepository:
         This property is only called when database access is needed.
         """
         if self._db is None:
-            from app.connections import ConnectionFactory, ConnectionType
             connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)
             connection_manager.connect()
             self._db = connection_manager.get_database()

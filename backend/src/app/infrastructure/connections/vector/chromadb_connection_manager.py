@@ -33,16 +33,21 @@ class ChromaDBConnectionManager(BaseConnectionManager):
         """Return the configuration name for ChromaDB."""
         return ConnectionType.CHROMADB.value
     
+    def get_config_category(self) -> str:
+        """Return the configuration category for vector stores."""
+        return "vector"
+    
     def validate_config(self) -> None:
         """Validate ChromaDB configuration."""
+        config_dict = self._get_config_dict()
         required_fields = ['collection_name']
         
         for field in required_fields:
-            if not self.config.get(field):
+            if not config_dict.get(field):
                 raise ValueError(f"ChromaDB connection requires '{field}' in configuration")
         
         # Validate persist directory if provided
-        persist_directory = self.config.get('persist_directory')
+        persist_directory = config_dict.get('persist_directory')
         if persist_directory:
             persist_path = Path(persist_directory)
             # Create directory if it doesn't exist
@@ -64,10 +69,12 @@ class ChromaDBConnectionManager(BaseConnectionManager):
                 self.disconnect()
         
         try:
+            config_dict = self._get_config_dict()
+            
             # Configure ChromaDB settings
             settings = Settings()
             
-            persist_directory = self.config.get('persist_directory')
+            persist_directory = config_dict.get('persist_directory')
             if persist_directory:
                 settings = Settings(
                     chroma_db_impl="duckdb+parquet",
@@ -81,7 +88,7 @@ class ChromaDBConnectionManager(BaseConnectionManager):
             collections = self._chroma_client.list_collections()
             
             # Ensure collection exists
-            collection_name = self.config['collection_name']
+            collection_name = config_dict['collection_name']
             collection_names = [c.name for c in collections]
             
             if collection_name not in collection_names:
