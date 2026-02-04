@@ -469,7 +469,7 @@ Question: {user_query}
 Answer:"""
 
 # 5. Generate response using LLM
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 llm = LLMFactory.get_default_llm()
 response = await llm.generate(
@@ -493,7 +493,7 @@ Complete RAG implementation using AgentHub components.
 """
 
 from app.db.vector.pgvector import PgVectorDB
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 from app.core.constants import EmbeddingType, LLMProvider
 from langchain.document_loaders import TextLoader
 from langchain.text_splitter import RecursiveCharacterTextSplitter

@@ -1,5 +1,7 @@
 # Configuration System Guide
 
+> **⚠️ DEPRECATION NOTICE (Feb 2026):** The wrapper classes (`DatabaseConfig`, `VectorConfig`, `ExternalConfig`) documented in this guide have been **removed**. Use **direct settings access** instead: `settings.db.postgres`, `settings.vector.qdrant`, `settings.external.atlassian`. See the [Connections Guide](../connections/README.md) for current patterns.
+
 > **Comprehensive guide** to AgentHub's flexible, YAML-based configuration system with automatic discovery and multiple access patterns
 
 ## Table of Contents
@@ -88,20 +90,29 @@ provider = llm_config['default']['provider']
 db_host = db_config['postgres']['host']
 ```
 
-### 2. Use Domain-Specific Configs (Type-Safe)
+### 2. Access Connection Configurations (Direct)
 
 ```python
-from app.core.config import database_config, llm_config, vector_config
+from app.core.config import Settings
 
-# Get typed configurations
-postgres = database_config.postgres_config
-openai = llm_config.openai_config
-qdrant = vector_config.qdrant_config
+settings = Settings.instance()
 
-# Use with IDE autocompletion
-connection_string = postgres['connection_string']
-api_key = openai['api_key']
-url = qdrant['url']
+# Database connections
+postgres_config = settings.db.postgres
+redis_config = settings.db.redis
+mongodb_config = settings.db.mongodb
+
+# Vector stores
+qdrant_config = settings.vector.qdrant
+chromadb_config = settings.vector.chromadb
+
+# External services
+atlassian_config = settings.external.atlassian
+github_config = settings.external.github
+
+# Use configurations
+host = postgres_config['host']
+api_key = atlassian_config['api_key']
 ```
 
 ### 3. Add New Configuration (Zero Code!)

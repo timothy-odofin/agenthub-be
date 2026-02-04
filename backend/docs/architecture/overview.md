@@ -33,14 +33,16 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 ┌─────────────────────────────────────────────────────────────────┐
 │ Core Components Layer │
 │ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
-│ │ LLM Factory │ │ Tool System │ │ Agent Framework │ │
+│ │ Agent Core │ │ Tool System │ │ Agent Framework │ │
 │ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 │
 ┌─────────────────────────────────────────────────────────────────┐
 │ Infrastructure Layer │
 │ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
-│ │ PostgreSQL │ │ MongoDB │ │ Redis │ │
+│ │ LLM Providers│ │ Cache System │ │ Connections │ │
+│ │ (OpenAI, │ │ (Redis/Memory│ │ (DB, Vector, │ │
+│ │ Groq, etc.) │ │ with Factory)│ │ External APIs) │ │
 │ └──────────────┘ └──────────────┘ └────────────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 ```

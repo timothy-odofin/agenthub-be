@@ -4,7 +4,7 @@ from langchain.agents import AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
 from app.core.enums import AgentCapability, AgentType, AgentFramework
 from app.agent.base.base_agent import BaseAgent
-from app.llm.base.base_llm_provider import BaseLLMProvider
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
 from app.agent.tools import ToolRegistry
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
 

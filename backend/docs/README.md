@@ -39,15 +39,21 @@ Complete REST API documentation with examples:
 ### **Guides** 
 In-depth guides for core features:
 
-#### **Configuration & Infrastructure**
-- **[Connections Guide](./guides/connections/README.md)** - 9 connection types (databases, vector stores)
-- **[Database Guide](./guides/database/README.md)** - MongoDB, Redis, Vector DBs
+> **🔄 Updated Feb 2026:** Configuration and connection management patterns have been simplified. See [REFACTORING-2026-02-03.md](./architecture/REFACTORING-2026-02-03.md) for migration guide.
+
+#### **Infrastructure Layer**
+- **[Infrastructure Overview](./architecture/infrastructure-layer.md)** - ⭐ Factory + Registry patterns
+- **[Cache Service](./guides/redis-cache-service.md)** - Redis & In-Memory caching
+- **[Connections Guide](./guides/connections/README.md)** - Database, vector stores, external APIs (Updated: Feb 2026)
+- **[LLM Providers Guide](./guides/llm-providers/README.md)** - OpenAI, Groq, Anthropic, Azure
+
+#### **Configuration & Data**
+- **[Configuration System](./architecture/configuration-system.md)** - ⭐ Direct settings access pattern (Updated: Feb 2026)
+- **[Design Patterns](./architecture/design-patterns.md)** - Registry, Factory, Strategy patterns (Updated: Feb 2026)
+- **[Database Guide](./guides/database/README.md)** - MongoDB, PostgreSQL, Redis
 - **[Sessions Guide](./guides/sessions/README.md)** - Session management
 - **[Workers Guide](./guides/workers/README.md)** - Background tasks with Celery
-
-#### **Data & AI**
 - **[Schemas Guide](./guides/schemas/README.md)** - Pydantic models, validation
-- **[LLM Providers Guide](./guides/llm-providers/README.md)** - OpenAI, Anthropic, Azure
 - **[Resilience Guide](./guides/resilience/README.md)** - Error handling, retries
 
 #### **Tools & Integrations**
@@ -60,8 +66,10 @@ In-depth guides for core features:
 System design and patterns:
 
 - **[Architecture Overview](./architecture/overview.md)** - System components, data flow
+- **[Infrastructure Layer](./architecture/infrastructure-layer.md)** - ⭐ NEW! Unified infrastructure patterns
 - **[Architecture Diagrams](./architecture/overview.md#architecture-diagrams)** - Visual system diagrams (SVG)
-- **[Design Patterns](./architecture/design-patterns.md)** - Factory, Repository, Strategy
+- **[Design Patterns](./architecture/design-patterns.md)** - Factory, Repository, Strategy, Registry
+- **[Cache Design](./architecture/cache-service-design-comparison.md)** - Cache architecture evolution
 - **[Configuration System](./architecture/configuration-system.md)** - YAML-based configs
 
 ---

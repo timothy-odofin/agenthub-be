@@ -814,6 +814,105 @@ strategy = strategy_class(**settings.chunking.params)
 context = ChunkingContext(strategy)
 ```
 
+### Real-World Example: Embedding Configuration Strategy
+
+**Updated Feb 2026** - The embedding system uses Strategy Pattern for configuration management.
+
+```python
+# src/app/db/vector/providers/embedding_provider.py
+
+from abc import ABC, abstractmethod
+from typing import Dict, Any
+from app.core.constants import EmbeddingType
+
+class EmbeddingConfigProvider(ABC):
+    """
+    Strategy interface for embedding configuration providers.
+    
+    Allows different sources for embedding configurations:
+    - Settings (production)
+    - Dictionary (testing)
+    - Database (runtime)
+    - API (remote config)
+    """
+    
+    @abstractmethod
+    def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
+        """Retrieve configuration for a specific embedding type."""
+        pass
+
+class SettingsConfigProvider(EmbeddingConfigProvider):
+    """Production strategy: Load from settings.embeddings."""
+    
+    def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
+        from app.core.config.framework.settings import settings
+        from app.core.config.utils.config_converter import dynamic_config_to_dict
+        
+        config_key = embedding_type.value.lower()  # 'openai', 'huggingface', etc.
+        embedding_config = getattr(settings.embeddings, config_key)
+        return dynamic_config_to_dict(embedding_config)
+
+class DictConfigProvider(EmbeddingConfigProvider):
+    """Test strategy: Load from in-memory dictionary."""
+    
+    def __init__(self, configs: Dict[EmbeddingType, Dict[str, Any]]):
+        self._configs = configs
+    
+    def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
+        if embedding_type not in self._configs:
+            raise ValueError(f"Config for {embedding_type} not found")
+        return self._configs[embedding_type]
+
+class EmbeddingFactory:
+    """Factory with pluggable configuration strategy."""
+    
+    _config_provider: EmbeddingConfigProvider = SettingsConfigProvider()  # Default
+    
+    @classmethod
+    def set_config_provider(cls, provider: EmbeddingConfigProvider) -> None:
+        """Swap configuration strategy at runtime."""
+        cls._config_provider = provider
+    
+    @classmethod
+    def get_embedding_model(cls, embedding_type: EmbeddingType):
+        """Create embedding model using current config strategy."""
+        config = cls._config_provider.get_config(embedding_type)
+        return cls._registry[embedding_type](config)
+```
+
+**Usage - Production:**
+```python
+from app.db.vector.providers import EmbeddingFactory
+from app.core.constants import EmbeddingType
+
+# Uses default SettingsConfigProvider
+# Gets config from settings.embeddings.openai
+embedding = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI)
+```
+
+**Usage - Testing:**
+```python
+from app.db.vector.providers import EmbeddingFactory, DictConfigProvider
+
+# Swap to test strategy
+test_provider = DictConfigProvider({
+    EmbeddingType.OPENAI: {
+        'api_key': 'test-key',
+        'model': 'test-model'
+    }
+})
+EmbeddingFactory.set_config_provider(test_provider)
+
+# Now uses test config
+embedding = EmbeddingFactory.get_embedding_model(EmbeddingType.OPENAI)
+```
+
+**Benefits:**
+- ✅ **Testable**: Inject test configs without touching settings
+- ✅ **Flexible**: Swap config sources at runtime
+- ✅ **Extensible**: Add database/API providers easily
+- ✅ **Clean**: Factory only creates, strategies handle config
+
 ### Benefits
 - **Flexible**: Change algorithms at runtime
 - **Testable**: Test each strategy independently

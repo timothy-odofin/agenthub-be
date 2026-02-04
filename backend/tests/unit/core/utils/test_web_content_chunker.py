@@ -10,7 +10,7 @@ from unittest.mock import Mock, patch, AsyncMock
 from langchain.schema import Document
 
 from app.core.utils.web_content_chunker import WebContentChunker
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 
 
 class TestWebContentChunkerInitialization:

@@ -599,6 +599,73 @@ class Settings:
         self._load_profile_configurations()
         logger.info(f"Profile reload complete. Active profiles: {self.get_profile_names()}")
     
+    def to_dict(self) -> Dict[str, Any]:
+        """
+        Convert all loaded configuration to a standard Python dictionary.
+        
+        This is a convenience wrapper around dynamic_config_to_dict that converts
+        all DynamicConfig objects to plain dictionaries recursively.
+        
+        Returns:
+            Dictionary containing all configuration data
+            
+        Example:
+            >>> settings = Settings.instance()
+            >>> config_dict = settings.to_dict()
+            >>> print(config_dict['db']['redis'])  # Plain dict access
+        """
+        # Lazy import to avoid circular dependency
+        from ..utils.config_converter import dynamic_config_to_dict
+        
+        result = {}
+        for profile_name in self.get_profile_names():
+            profile_config = getattr(self, profile_name, None)
+            if profile_config is not None:
+                result[profile_name] = dynamic_config_to_dict(profile_config)
+        return result
+    
+    def get_section(self, section_path: str, default: Any = None) -> Any:
+        """
+        Extract a specific configuration section using dot notation.
+        
+        This is a convenience wrapper around extract_config_section that allows
+        easy access to nested configuration values.
+        
+        Args:
+            section_path: Dot-separated path to the section (e.g., 'db.redis', 'app.security.jwt_secret_key')
+            default: Default value to return if section not found
+            
+        Returns:
+            The requested configuration section (as DynamicConfig or primitive) or default value
+            
+        Example:
+            >>> settings = Settings.instance()
+            >>> redis_host = settings.get_section('db.redis.host', 'localhost')
+            >>> jwt_secret = settings.get_section('app.security.jwt_secret_key')
+        """
+        # Lazy import to avoid circular dependency
+        from ..utils.config_converter import extract_config_section
+        
+        # Navigate through the settings object
+        parts = section_path.split('.')
+        if not parts:
+            return default
+        
+        # First part should be a profile/section name
+        profile_name = parts[0]
+        profile_config = getattr(self, profile_name, None)
+        
+        if profile_config is None:
+            return default
+        
+        # If only one part, return the whole profile
+        if len(parts) == 1:
+            return profile_config
+        
+        # Extract nested section using remaining path
+        remaining_path = '.'.join(parts[1:])
+        return extract_config_section(profile_config, remaining_path, default)
+    
     def __repr__(self) -> str:
         """String representation of the settings manager."""
         profiles = self.get_profile_names()

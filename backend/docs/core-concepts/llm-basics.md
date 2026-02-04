@@ -193,7 +193,7 @@ providers:
 **Code Example:**
 ```python
 # Using different temperatures for different tasks
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 # Factual extraction (low temperature)
 llm_factual = LLMFactory.get_llm("openai")
@@ -391,7 +391,7 @@ export DEFAULT_LLM_PROVIDER=anthropic
 
 **Method 3: Programmatically**
 ```python
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 from app.core.constants import LLMProvider
 
 # Use specific provider
@@ -522,7 +522,7 @@ temperature = 0.8  # Varied, interesting
 
 ```python
 # AgentHub has built-in resilience
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 try:
     llm = LLMFactory.get_llm(LLMProvider.OPENAI)
@@ -571,7 +571,7 @@ if not is_valid_email(response.content):
 ### AgentHub Quick Start
 
 ```python
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 # 1. Get LLM instance
 llm = LLMFactory.get_default_llm()

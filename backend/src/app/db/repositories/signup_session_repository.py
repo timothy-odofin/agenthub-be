@@ -15,7 +15,7 @@ Key Features:
 from typing import Optional, Dict, Any
 from datetime import datetime
 
-from app.services.cache.instances import signup_cache
+from app.infrastructure.cache.instances import signup_cache
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)

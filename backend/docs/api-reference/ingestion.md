@@ -81,7 +81,7 @@ curl -X POST http://localhost:8000/api/v1/ingest/load/file \
 
 **Configuration**:
 ```yaml
-# resources/application-data-sources.yaml
+# resources/application-data.yaml
 data_sources:
 file:
 type: FILE
@@ -177,7 +177,7 @@ curl -X POST http://localhost:8000/api/v1/ingest/load/web \
 
 **Configuration**:
 ```yaml
-# resources/application-data-sources.yaml
+# resources/application-data.yaml
 data_sources:
 web:
 type: WEB
@@ -327,7 +327,7 @@ port: 6333
 Configure specific files to ingest:
 
 ```yaml
-# resources/application-data-sources.yaml
+# resources/application-data.yaml
 data_sources:
 technical_docs:
 type: FILE
@@ -373,7 +373,7 @@ created_after: "2025-01-01"
 Control how documents are split:
 
 ```yaml
-# resources/application-data-sources.yaml
+# resources/application-data.yaml
 chunking:
 strategy: "semantic" # or "fixed", "recursive"
 chunk_size: 1000 # characters per chunk

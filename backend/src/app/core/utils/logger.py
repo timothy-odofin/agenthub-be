@@ -21,7 +21,6 @@ from pathlib import Path
 from typing import Optional, Dict, Any
 from enum import Enum
 
-from app.core.config import config
 from app.core.utils.formatters import JSONFormatter, HumanReadableFormatter
 
 

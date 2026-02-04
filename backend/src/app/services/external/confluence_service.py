@@ -123,8 +123,10 @@ class ConfluenceService(metaclass=SingletonMeta):
         Config is only loaded when client is first initialized.
         """
         if self._confluence is None:
-            from app.core.config import config
-            atlassian_config = config.atlassian_config
+            from app.core.config.framework.settings import settings
+            from app.core.utils.config_converter import dynamic_config_to_dict
+            
+            atlassian_config = dynamic_config_to_dict(settings.external.atlassian)
             logger.info(f"Initializing Confluence client... with config: {atlassian_config.keys()}")
             self._confluence = Confluence(
                 url=atlassian_config['confluence_base_url'],

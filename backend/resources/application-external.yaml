@@ -5,6 +5,7 @@
 atlassian:
   api_key: "${ATLASSIAN_API_KEY}"    # None if not set
   email: "${ATLASSIAN_EMAIL}"
+  username: "${ATLASSIAN_EMAIL}"
   confluence_base_url: "${ATLASSIAN_BASE_URL_CONFLUENCE}"
   jira_base_url: "${ATLASSIAN_BASE_URL_JIRA}"
 

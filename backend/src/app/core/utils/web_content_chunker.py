@@ -8,7 +8,7 @@ patterns as the document ingestion system.
 
 Usage:
     >>> from app.core.utils.web_content_chunker import WebContentChunker
-    >>> from app.services.cache.cache_factory import CacheFactory
+    >>> from app.infrastructure.cache.cache_factory import CacheFactory
     >>> 
     >>> # With caching
     >>> cache = CacheFactory.create_cache(namespace="web_content", default_ttl=3600)
@@ -32,7 +32,7 @@ from langchain_community.document_loaders import AsyncHtmlLoader
 from langchain_text_splitters import RecursiveCharacterTextSplitter
 from bs4 import BeautifulSoup
 
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -73,7 +73,7 @@ class WebContentChunker:
             cache_ttl: Cache time-to-live in seconds (default: 3600 = 1 hour)
             
         Example:
-            >>> from app.services.cache.cache_factory import CacheFactory
+            >>> from app.infrastructure.cache.cache_factory import CacheFactory
             >>> cache = CacheFactory.create_cache(namespace="web_content")
             >>> chunker = WebContentChunker(
             ...     chunk_size=1000,

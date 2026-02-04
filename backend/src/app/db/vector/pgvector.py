@@ -14,7 +14,7 @@ from ...core.constants import EmbeddingType, VectorDBType, ConnectionType
 from ..repositories.pgvector_repo import PgVectorRepository
 from .base import VectorDB
 from app.db.vector.embeddings.embedding import EmbeddingFactory
-from app.connections.factory.connection_factory import ConnectionFactory
+from app.infrastructure.connections.factory.connection_factory import ConnectionFactory
 
 @VectorDBRegistry.register(VectorDBType.PGVECTOR)
 class PgVectorDB(VectorDB):
@@ -29,7 +29,7 @@ class PgVectorDB(VectorDB):
         """Get vector database configuration via connection manager."""
         if not self._connection_manager:
             self._connection_manager = ConnectionFactory.get_connection_manager(ConnectionType.PGVECTOR)
-        return self._connection_manager.config
+        return self._connection_manager._get_config_dict()
 
     async def _create_connection(self):
         """Create connection to PgVector using the connection manager factory."""

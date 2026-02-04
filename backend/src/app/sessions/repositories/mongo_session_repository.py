@@ -11,7 +11,7 @@ from datetime import datetime
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
 from app.sessions.models.session import ChatSession
 from app.sessions.models.message import ChatMessage
-from app.connections.base import ConnectionType
+from app.infrastructure.connections.base import ConnectionType
 from app.sessions.repositories.session_repository_factory import register_repository, SessionRepositoryType
 from app.core.resilience import retry, async_retry, RetryConfig, RetryStrategy
 

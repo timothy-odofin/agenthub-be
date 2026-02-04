@@ -10,7 +10,7 @@ import json
 from datetime import datetime
 from unittest.mock import AsyncMock, MagicMock, patch
 
-from app.services.cache.implementations.redis_cache import RedisCacheProvider
+from app.infrastructure.cache.implementations.redis_cache import RedisCacheProvider
 from app.core.exceptions import CacheError
 
 

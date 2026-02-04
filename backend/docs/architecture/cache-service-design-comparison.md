@@ -1,16 +1,15 @@
-# Cache Service Design: Registry Pattern vs Direct Service
+# Cache Service Design: Evolution & Current Implementation
 
-## Comparison Analysis
+## Overview
 
-### Your Proposed Approach: Registry Pattern (Factory + Multiple Implementations)
+This document describes the evolution of AgentHub's cache system from a direct Redis service to a factory-based infrastructure pattern, and the architectural benefits achieved.
 
-Based on your existing architecture patterns in:
-- `ConnectionRegistry` + `ConnectionFactory` (for databases, Redis, vector DBs)
-- `AgentRegistry` (for different agent types and frameworks)
-- `ToolRegistry` (for categorized tools)
-- `SessionRepositoryRegistry` + `SessionRepositoryFactory` (for session storage)
+## Current Implementation (Recommended)
 
-#### Architecture:
+### Architecture
+
+The current implementation follows the **Factory + Registry Pattern**, consistent with the infrastructure layer design:
+
 ```
 ┌─────────────────────────────────────────────────────────────┐
 │                    Application Layer                         │
@@ -21,42 +20,51 @@ Based on your existing architecture patterns in:
 │         │                  │                  │              │
 │         └──────────────────┼──────────────────┘              │
 │                            │                                 │
+│              ┌─────────────▼─────────────┐                   │
+│              │ Pre-configured Instances  │                   │
+│              │ (confirmation_cache, etc) │                   │
+│              └─────────────┬─────────────┘                   │
+│                            │                                 │
 │                    ┌───────▼────────┐                        │
-│                    │  CacheFactory  │                        │
+│                    │  CacheService  │                        │
+│                    │   (Wrapper)    │                        │
 │                    └───────┬────────┘                        │
 │                            │                                 │
-│              ┌─────────────┼─────────────┐                  │
-│              │             │             │                  │
-│      ┌───────▼──────┐ ┌───▼──────┐ ┌───▼──────┐          │
-│      │ RedisCacheImpl│ │MemcachedImpl│ │InMemoryImpl│      │
-│      └───────┬──────┘ └──────────┘ └──────────┘          │
-│              │                                             │
-│              │ (extends BaseCacheProvider)                 │
-│              │                                             │
-└──────────────┼─────────────────────────────────────────────┘
-               │
-        ┌──────▼───────┐
-        │ Redis/Memcached│
-        └──────────────┘
+│                    ┌───────▼──────────┐                      │
+│                    │  CacheFactory    │                      │
+│                    └───────┬──────────┘                      │
+│                            │                                 │
+│              ┌─────────────┴─────────────┐                  │
+│              │                           │                  │
+│      ┌───────▼──────────┐    ┌──────────▼─────────┐        │
+│      │ RedisCacheProvider│    │InMemoryCacheProvider│       │
+│      └───────┬──────────┘    └──────────┬─────────┘        │
+└──────────────┼────────────────────────────┼─────────────────┘
+               │                            │
+        ┌──────▼───────┐           ┌───────▼────────┐
+        │ Redis Server │           │ Local Memory   │
+        └──────────────┘           └────────────────┘
 ```
 
-#### Implementation Structure:
+### Implementation Structure
+
 ```python
+# Location: app/infrastructure/cache/
+
 # 1. Enum for cache types
 class CacheType(str, Enum):
     REDIS = "redis"
-    MEMCACHED = "memcached"
     IN_MEMORY = "in_memory"
-    ELASTICACHE = "elasticache"
 
 # 2. Base abstract class
 class BaseCacheProvider(ABC):
     @abstractmethod
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None, 
+                  indexes: Optional[Dict[str, str]] = None) -> bool:
         pass
     
     @abstractmethod
-    async def get(self, key: str) -> Optional[Any]:
+    async def get(self, key: str, deserialize: bool = True) -> Optional[Any]:
         pass
     
     # ... other methods
@@ -71,83 +79,88 @@ class CacheRegistry:
             cls._registry[cache_type] = cache_class
             return cache_class
         return decorator
-    
-    @classmethod
-    def get_cache_class(cls, cache_type: CacheType) -> Type[BaseCacheProvider]:
-        return cls._registry[cache_type]
 
 # 4. Concrete implementations
 @CacheRegistry.register(CacheType.REDIS)
 class RedisCacheProvider(BaseCacheProvider):
-    def __init__(self, namespace: str, default_ttl: int = 900):
-        self.namespace = namespace
-        self.default_ttl = default_ttl
-        self._redis_manager = None
-    
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        # Implementation using RedisConnectionManager
-        pass
+    """Redis-backed cache implementation"""
+    # Uses ConnectionFactory.get_connection_manager(ConnectionType.REDIS)
+    pass
 
 @CacheRegistry.register(CacheType.IN_MEMORY)
 class InMemoryCacheProvider(BaseCacheProvider):
-    def __init__(self, namespace: str, default_ttl: int = 900):
-        self._store = {}
-        self._expiry = {}
-    
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None) -> bool:
-        # In-memory implementation
-        pass
+    """In-memory cache implementation for development/testing"""
+    pass
 
 # 5. Factory
 class CacheFactory:
     @staticmethod
     def create_cache(
-        cache_type: CacheType,
-        namespace: str,
+        cache_type: Optional[CacheType] = None,
+        namespace: str = "default",
         default_ttl: int = 900
     ) -> BaseCacheProvider:
+        """Create cache provider instance"""
+        if cache_type is None:
+            cache_type = CacheType(settings.cache.default_provider)
+        
         cache_class = CacheRegistry.get_cache_class(cache_type)
         return cache_class(namespace=namespace, default_ttl=default_ttl)
 
-# 6. Configuration in application-db.yaml
-cache:
-  provider: "redis"  # or "memcached", "in_memory"
-  redis:
-    host: "${REDIS_HOST:localhost}"
-    port: "${REDIS_PORT:6379}"
-  memcached:
-    servers: ["${MEMCACHED_HOST:localhost}:11211"]
+# 6. Convenience Wrapper
+class CacheService:
+    """Convenience wrapper around CacheFactory for dependency injection"""
+    def __init__(self, namespace: str, default_ttl: int = 900, 
+                 cache_type: Optional[CacheType] = None):
+        self._provider = CacheFactory.create_cache(
+            cache_type=cache_type,
+            namespace=namespace,
+            default_ttl=default_ttl
+        )
+    
+    async def set(self, key: str, value: Any, **kwargs) -> bool:
+        return await self._provider.set(key, value, **kwargs)
+    
+    async def get(self, key: str, **kwargs) -> Optional[Any]:
+        return await self._provider.get(key, **kwargs)
+    
+    # ... delegate all methods to provider
 
-# 7. Usage
-from app.services.cache import CacheFactory, CacheType
-
-cache = CacheFactory.create_cache(
-    cache_type=CacheType.REDIS,
-    namespace="confirmation",
-    default_ttl=900
-)
-
-await cache.set("key", value)
+# 7. Pre-configured instances
+confirmation_cache = CacheService(namespace="confirmation", default_ttl=300)
+signup_cache = CacheService(namespace="signup", default_ttl=1800)
+session_cache = CacheService(namespace="session", default_ttl=86400)
+rate_limit_cache = CacheService(namespace="rate_limit", default_ttl=3600)
+temp_cache = CacheService(namespace="temp", default_ttl=60)
 ```
 
----
-
-### My Proposed Approach: Direct Service
-
-A single, Redis-focused service without abstraction layers.
+### Usage Examples
 
 ```python
-from app.services.redis_cache_service import RedisCacheService
+# Option 1: Use pre-configured instances (Recommended)
+from app.infrastructure.cache.instances import confirmation_cache, signup_cache
 
-cache = RedisCacheService(namespace="confirmation", default_ttl=900)
-await cache.set("key", value)
+await confirmation_cache.set("action_123", data)
+await signup_cache.set("session_456", data)
+
+# Option 2: Create custom cache instance
+from app.infrastructure.cache import CacheService
+
+my_cache = CacheService(namespace="myfeature", default_ttl=600)
+await my_cache.set("key", value)
+
+# Option 3: Specify provider explicitly (for testing)
+from app.infrastructure.cache import CacheService, CacheType
+
+test_cache = CacheService("test", default_ttl=60, cache_type=CacheType.IN_MEMORY)
+await test_cache.set("test_key", "test_value")
 ```
 
----
+## Previous Implementation (Deprecated)
 
-## Detailed Comparison
+### Direct Redis Service
 
-### 1. **Extensibility**
+The original implementation was a direct Redis service:
 
 | Aspect | Registry Pattern (Your Approach) | Direct Service (My Approach) |
 |--------|----------------------------------|------------------------------|

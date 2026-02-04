@@ -1,5 +1,7 @@
 # Resources Directory: Flexible Configuration Management
 
+> **⚠️ DEPRECATION NOTICE (Feb 2026):** The domain-specific wrapper classes (`DatabaseConfig`, `VectorConfig`, `ExternalConfig`) have been **removed**. Use **direct settings access**: `settings.db.postgres`, `settings.vector.qdrant`. See [Connections Guide](../connections/README.md) for current patterns.
+
 > **YAML-based configuration system** that provides flexible, environment-specific settings accessible via `settings.profile_name`
 
 ## Table of Contents
@@ -372,7 +374,7 @@ api_key = openai['api_key']
 model = openai['model']
 
 # Use in your code
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 llm = LLMFactory.get_llm(provider)
 ```
 
@@ -755,7 +757,7 @@ model = settings.llm.providers.openai.model       # 'gpt-4' or custom
 
 ```python
 from app.core.config import Settings
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 settings = Settings.instance()
 

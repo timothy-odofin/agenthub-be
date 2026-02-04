@@ -120,6 +120,8 @@ model = openai['model']                          # 'gpt-4'
 
 ### Why This is Powerful
 
+> **Note (Updated Feb 2026):** Previous versions used wrapper classes like `DatabaseConfig`, `VectorConfig`, and `ExternalConfig`. These have been removed in favor of direct settings access for simplicity. If you see old code referencing these wrappers, update to use `settings.db.*`, `settings.vector.*`, and `settings.external.*` directly.
+
 | Feature | Benefit | Example |
 |---------|---------|---------|
 | **Flexible** | Access entire config as dict | `settings.llm` returns everything |
@@ -127,12 +129,13 @@ model = openai['model']                          # 'gpt-4'
 | **Dynamic** | Add new profiles without code changes | Create `application-custom.yaml` |
 | **Type-Agnostic** | Works with any YAML structure | Nested dicts, lists, values |
 | **Environment Aware** | Override with env vars | `${VAR:default}` syntax |
+| **Direct Access** | No wrapper classes needed | `settings.db.mongodb` instead of `DatabaseConfig(settings.db).mongodb` |
 
 ### Real Usage Example
 
 ```python
 from app.core.config import Settings
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 settings = Settings.instance()
 

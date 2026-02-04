@@ -125,3 +125,8 @@ class CacheType(str, Enum):
     MEMCACHED = "memcached"
     IN_MEMORY = "in_memory"
     ELASTICACHE = "elasticache"
+
+
+class PromptType(str, Enum):
+    """Supported prompt types for agents."""
+    REACT_AGENT = "agent.react_agent"

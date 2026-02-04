@@ -7,8 +7,8 @@ Tests the cache provider registration system using the decorator pattern.
 import pytest
 from unittest.mock import MagicMock
 
-from app.services.cache.cache_registry import CacheRegistry
-from app.services.cache.base_cache_provider import BaseCacheProvider
+from app.infrastructure.cache.cache_registry import CacheRegistry
+from app.infrastructure.cache.base_cache_provider import BaseCacheProvider
 from app.core.enums import CacheType
 
 

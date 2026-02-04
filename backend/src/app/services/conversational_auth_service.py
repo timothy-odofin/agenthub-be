@@ -14,7 +14,7 @@ from app.services.auth_service import auth_service
 from app.db.repositories.user_repository import user_repository
 from app.db.repositories.signup_session_repository import signup_session_repository
 from app.core.config import settings
-from app.llm.factory import LLMFactory
+from app.infrastructure.llm.factory import LLMFactory
 from app.core.constants import LLMProvider
 from app.core.security.password_handler import PasswordManager
 import logging

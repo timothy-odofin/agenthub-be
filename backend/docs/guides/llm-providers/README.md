@@ -127,7 +127,7 @@ HUGGINGFACE_API_KEY=hf_...your-key-here
 ### Using the Default Provider
 
 ```python
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 
 # Uses the default provider from config
 llm = await LLMFactory.create_llm()
@@ -140,7 +140,7 @@ print(response.content)
 ### Specifying a Provider
 
 ```python
-from app.llm.factory.llm_factory import LLMFactory
+from app.infrastructure.llm import LLMFactory
 from app.core.constants import LLMProvider
 
 # Use a specific provider

@@ -1,3 +1,5 @@
 .venv/
 .logs/
 scripts/
+agent-hub-app.private-key.pem
+../.venv/

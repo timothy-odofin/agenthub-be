@@ -21,7 +21,7 @@ from pydantic import BaseModel, Field
 
 from app.agent.tools.base.registry import ToolRegistry
 from app.core.utils.web_content_chunker import WebContentChunker
-from app.services.cache.cache_factory import CacheFactory
+from app.infrastructure.cache.cache_factory import CacheFactory
 from app.core.utils.logger import get_logger
 from app.core.config.framework.settings import settings
 

@@ -17,7 +17,7 @@ from typing import Dict, Optional, Any, List
 from dataclasses import dataclass, asdict
 
 from app.core.utils.logger import get_logger
-from app.services.cache.instances import confirmation_cache
+from app.infrastructure.cache.instances import confirmation_cache
 
 logger = get_logger(__name__)
 

@@ -7,12 +7,12 @@ from langchain.agents.format_scratchpad.openai_tools import format_to_openai_too
 from langchain.agents.output_parsers.openai_tools import OpenAIToolsAgentOutputParser
 from langchain_core.messages import HumanMessage, AIMessage
 
-from app.core.enums import AgentCapability, AgentType, AgentStatus, AgentFramework
+from app.core.enums import AgentCapability, AgentType, AgentStatus, AgentFramework, PromptType
 from app.agent.frameworks.langchain_agent import LangChainAgent
 from app.agent.models import AgentContext, AgentResponse
 from app.agent.base.agent_registry import AgentRegistry
-from app.core.config.providers.prompt import prompt_config, PromptType
-from app.llm.context import ContextWindowManager
+from app.core.config import settings
+from app.infrastructure.llm.context import ContextWindowManager
 
 
 @AgentRegistry.register(AgentType.REACT, AgentFramework.LANGCHAIN)
@@ -65,10 +65,15 @@ class LangChainReactAgent(LangChainAgent):
         ]
         tools_description = "\n".join(available_tools) if available_tools else "No tools available"
         
-        system_prompt = prompt_config.get_system_prompt(
-            self.agent_prompt_type,
-            available_tools=tools_description
-        )
+        # Get system prompt from settings using dot notation
+        # Example: 'agent.react_agent' -> settings.prompt.system.agent.react_agent
+        prompt_path = self.agent_prompt_type.split('.')
+        system_prompt_obj = settings.prompt.system
+        for key in prompt_path:
+            system_prompt_obj = getattr(system_prompt_obj, key)
+        
+        # Format the prompt with available tools
+        system_prompt = system_prompt_obj.format(available_tools=tools_description)
         
         return ChatPromptTemplate.from_messages([
             ("system", system_prompt),

@@ -13,7 +13,7 @@ import pytest
 from unittest.mock import Mock, patch, MagicMock
 from abc import ABC
 
-from app.services.ingestion.base import BaseIngestionService
+from app.infrastructure.ingestion.base import BaseIngestionService
 from app.core.constants import DataSourceType
 from app.core.schemas.ingestion_config import DataSourceConfig
 
@@ -73,65 +73,54 @@ class TestBaseIngestionServiceArchitecture:
         with pytest.raises(ValueError, match="must define SOURCE_TYPE class attribute"):
             InvalidIngestionServiceForTesting()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_initialization_success(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_initialization_success(self, mock_settings):
         """Test successful initialization with proper configuration."""
         # Setup mock configuration
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
-        # Mock ingestion config with file data source
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['test_source']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
         
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         # Create service instance
         service = ConcreteIngestionServiceForTesting()
         
         # Verify initialization
         assert service.config == mock_data_source_config
-        assert service.app_config == mock_app_config
+        assert service.settings == mock_settings
         assert service.SOURCE_TYPE == DataSourceType.FILE
         assert hasattr(service, 'text_splitter')
+        mock_settings.get_section.assert_called_once_with('ingestion')
 
-    @patch('app.core.config.application.AppConfig')
-    def test_initialization_no_ingestion_config(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_initialization_no_ingestion_config(self, mock_settings):
         """Test initialization failure when no ingestion config is loaded."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        mock_app_config.ingestion_config = None
+        mock_settings.get_section.return_value = None
         
-        with pytest.raises(ValueError, match="No ingestion configuration loaded in AppConfig"):
+        with pytest.raises(ValueError, match="No ingestion configuration loaded in settings"):
             ConcreteIngestionServiceForTesting()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_initialization_missing_data_source_config(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_initialization_missing_data_source_config(self, mock_settings):
         """Test initialization failure when data source config is missing."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_ingestion_config.data_sources = {'confluence': Mock()}  # Missing 'file' config
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with pytest.raises(ValueError, match="No configuration found for data source type: file"):
             ConcreteIngestionServiceForTesting()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_config_validation_called(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_config_validation_called(self, mock_settings):
         """Test that validate_config is called during initialization."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         # Mock ingestion config with invalid data (empty sources)
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = []  # Empty sources should trigger validation error
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with pytest.raises(ValueError, match="No sources configured"):
             ConcreteIngestionServiceForTesting()
@@ -140,36 +129,30 @@ class TestBaseIngestionServiceArchitecture:
 class TestBaseIngestionServiceProperties:
     """Test suite for BaseIngestionService properties and methods."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_source_type_property(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_source_type_property(self, mock_settings):
         """Test source_type property returns correct DataSourceType."""
         # Setup mock
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['test_source']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         service = ConcreteIngestionServiceForTesting()
         
         assert service.source_type == DataSourceType.FILE
         assert service.source_type == service.SOURCE_TYPE
 
-    @patch('app.core.config.application.AppConfig')
-    def test_text_splitter_initialization(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_text_splitter_initialization(self, mock_settings):
         """Test that text splitter is properly initialized with default settings."""
         # Setup mock
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['test_source']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         service = ConcreteIngestionServiceForTesting()
         
@@ -219,18 +202,15 @@ class TestBaseIngestionServiceAbstractMethodsEnforcement:
         with pytest.raises(TypeError):
             MissingIngestSingle()
 
-    @patch('app.core.config.application.AppConfig')
-    def test_concrete_implementation_works(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_concrete_implementation_works(self, mock_settings):
         """Test that concrete implementation with all methods works correctly."""
         # Setup mock
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['test_source']
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         # This should work without errors
         service = ConcreteIngestionServiceForTesting()
@@ -241,32 +221,26 @@ class TestBaseIngestionServiceAbstractMethodsEnforcement:
 class TestBaseIngestionServiceDataSourceMapping:
     """Test suite for data source type to configuration key mapping."""
 
-    @patch('app.core.config.application.AppConfig')
-    def test_data_source_type_to_key_mapping(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_data_source_type_to_key_mapping(self, mock_settings):
         """Test that DataSourceType enum values are correctly mapped to config keys."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_data_source_config = Mock(spec=DataSourceConfig)
         mock_data_source_config.sources = ['test_source']
         
         # Test FILE type maps to 'file' key
         mock_ingestion_config.data_sources = {'file': mock_data_source_config}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         service = ConcreteIngestionServiceForTesting()
         assert service.config == mock_data_source_config
 
-    @patch('app.core.config.application.AppConfig')
-    def test_error_message_includes_available_types(self, mock_app_config_class):
+    @patch('app.infrastructure.ingestion.base.settings')
+    def test_error_message_includes_available_types(self, mock_settings):
         """Test that error message includes available data source types."""
-        mock_app_config = Mock()
-        mock_app_config_class.return_value = mock_app_config
-        
         mock_ingestion_config = Mock()
         mock_ingestion_config.data_sources = {'confluence': Mock(), 's3': Mock()}
-        mock_app_config.ingestion_config = mock_ingestion_config
+        mock_settings.get_section.return_value = mock_ingestion_config
         
         with pytest.raises(ValueError) as exc_info:
             ConcreteIngestionServiceForTesting()

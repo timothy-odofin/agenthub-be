@@ -10,7 +10,7 @@ from abc import ABC
 from unittest.mock import Mock, AsyncMock
 from typing import List, Dict, Any, AsyncGenerator
 
-from app.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider, LLMResponse
 from app.core.constants import LLMCapability
 
 
