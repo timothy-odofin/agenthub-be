@@ -53,3 +53,4 @@ __pycache__/
 *.py[cod]
 *$py.class
 ../.venv/
+# Minor formatting improvement
