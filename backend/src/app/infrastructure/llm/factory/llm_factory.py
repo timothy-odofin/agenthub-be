@@ -1,5 +1,5 @@
 """
-Factory for creating LLM instances.
+Factory for creating LLM instances with caching support.
 """
 
 from typing import Optional
@@ -7,6 +7,7 @@ from app.core.constants import LLMProvider
 from app.core.utils.logger import get_logger
 from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
 from app.infrastructure.llm.base.llm_registry import LLMRegistry
+from app.infrastructure.cache.instances import llm_provider_cache
 
 logger = get_logger(__name__)
 
@@ -27,19 +28,31 @@ class LLMFactory:
         cls._instance = None
 
     @staticmethod
-    def get_llm(provider: LLMProvider) -> BaseLLMProvider:
+    async def get_llm(provider: LLMProvider) -> BaseLLMProvider:
         """
-        Get an LLM instance for the specified provider.
+        Get an LLM instance for the specified provider with caching support.
         
         Args:
             provider: LLM provider to use (required)
             
         Returns:
-            LLM provider instance (lazy initialization)
+            LLM provider instance (cached or newly created)
             
         Raises:
             ValueError: If provider is not available or not registered
         """
+        # Check cache first (async, thread-safe)
+        cache_key = f"{provider.value}"
+        cached_llm = await llm_provider_cache.get(cache_key)
+        
+        if cached_llm is not None:
+            cache_stats = llm_provider_cache.get_stats()
+            logger.info(
+                f"✅ Reusing cached LLM provider: {provider.value} "
+                f"(hit_rate: {cache_stats.get('hit_rate', 'N/A')})"
+            )
+            return cached_llm
+        
         # Validate provider is registered
         if not LLMRegistry.is_provider_registered(provider):
             available = LLMRegistry.list_providers()
@@ -49,11 +62,14 @@ class LLMFactory:
         provider_class = LLMRegistry.get_provider_class(provider)
         llm_instance = provider_class()  # Provider self-configures and handles lazy initialization
         
-        logger.info(f"Created LLM instance: {provider}")
+        # Cache the LLM provider instance (async, thread-safe)
+        await llm_provider_cache.set(cache_key, llm_instance)
+        
+        logger.info(f"Created and cached LLM instance: {provider}")
         return llm_instance
 
     @staticmethod
-    def get_llm_by_name(
+    async def get_llm_by_name(
         provider_name: Optional[str] = None,
         model: Optional[str] = None
     ) -> BaseLLMProvider:
@@ -103,14 +119,14 @@ class LLMFactory:
             f"requested_model='{model}', validated_model='{validated_model}'"
         )
         
-        # Get the LLM instance using the enum-based method
+        # Get the LLM instance using the enum-based method (with caching)
         # Note: The actual model configuration is handled by the provider's settings
         # The validated_model is logged for transparency but may need additional
         # implementation in the provider classes to support runtime model selection
-        return LLMFactory.get_llm(provider)
+        return await LLMFactory.get_llm(provider)
 
     @staticmethod
-    def get_default_llm() -> BaseLLMProvider:
+    async def get_default_llm() -> BaseLLMProvider:
         """Get the default LLM instance based on configuration."""
         # Import here to avoid circular imports
         from app.core.config.framework.settings import settings
@@ -125,7 +141,7 @@ class LLMFactory:
             raise ValueError(f"Invalid default provider '{default_provider_str}'. "
                            f"Valid providers: {[p.value for p in LLMProvider]}")
         
-        return LLMFactory.get_llm(provider)
+        return await LLMFactory.get_llm(provider)
 
     @staticmethod
     def list_available_providers() -> list[str]:

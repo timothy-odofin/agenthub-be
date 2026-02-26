@@ -1,10 +1,14 @@
 """
 GitHub Connection Manager for GitHub App integration with repository discovery.
+
+Implements caching for repository discovery to avoid expensive GitHub API calls
+(~16-19 seconds) on every request.
 """
 
 import os
 import fnmatch
 from typing import List, Dict, Any, Optional, Set
+from datetime import datetime, timedelta
 
 from github import Github, GithubException, GithubIntegration
 from github.Repository import Repository
@@ -15,6 +19,10 @@ from app.core.utils.file_utils import read_private_key_file, FileReadError
 from app.core.config.framework.settings import settings
 
 logger = get_logger(__name__)
+
+# Global cache for repository discovery (in-memory, persists across requests)
+_repo_discovery_cache: Dict[str, tuple] = {}  # {installation_id: (repos, timestamp)}
+_CACHE_TTL_SECONDS = 600  # 10 minutes - repos don't change frequently
 
 
 class GitHubRepository:
@@ -163,8 +171,14 @@ class GitHubConnectionManager:
     def discover_accessible_repositories(self) -> List[GitHubRepository]:
         """
         Discover all repositories the GitHub App/user has access to.
-        Returns only repositories we actually have access to.
+        
+        Implements 10-minute caching to avoid expensive GitHub API calls
+        (~16-19 seconds) on every request. Repositories don't change frequently.
+        
+        Returns:
+            List of repositories we actually have access to
         """
+        # Use instance cache if available
         if self._accessible_repositories is not None:
             return self._accessible_repositories
             
@@ -172,6 +186,26 @@ class GitHubConnectionManager:
             if not self.connect():
                 return []
         
+        # Check global cache for this installation
+        installation_id = self._installation.id if self._installation else "no_installation"
+        cache_key = str(installation_id)
+        
+        if cache_key in _repo_discovery_cache:
+            cached_repos, cached_time = _repo_discovery_cache[cache_key]
+            age_seconds = (datetime.now() - cached_time).total_seconds()
+            
+            if age_seconds < _CACHE_TTL_SECONDS:
+                logger.info(
+                    f"✅ Loaded {len(cached_repos)} repositories from cache "
+                    f"(age: {age_seconds:.1f}s, saved ~16-19s GitHub API time)"
+                )
+                self._accessible_repositories = cached_repos
+                return cached_repos
+            else:
+                logger.info(f"Cache expired (age: {age_seconds:.1f}s > {_CACHE_TTL_SECONDS}s), refreshing...")
+        
+        # Cache miss or expired - discover repositories
+        logger.info("Discovering accessible repositories from GitHub API...")
         accessible_repos = []
         
         try:
@@ -196,8 +230,11 @@ class GitHubConnectionManager:
                 
                 for repo in repos:
                     accessible_repos.append(GitHubRepository(repo))
-                    
-            logger.info(f"Discovered {len(accessible_repos)} accessible repositories")
+            
+            # Cache the results
+            _repo_discovery_cache[cache_key] = (accessible_repos, datetime.now())
+            
+            logger.info(f"Discovered and cached {len(accessible_repos)} accessible repositories")
             self._accessible_repositories = accessible_repos
             
         except Exception as e:
@@ -250,6 +287,54 @@ class GitHubConnectionManager:
             if repo.full_name == repo_name:
                 return repo
         return None
+    
+    @staticmethod
+    def clear_repo_cache(installation_id: Optional[str] = None) -> None:
+        """
+        Clear cached repository discovery data.
+        
+        Useful when repository permissions change or for testing.
+        
+        Args:
+            installation_id: Specific installation to clear. If None, clears all.
+        """
+        global _repo_discovery_cache
+        
+        if installation_id:
+            cache_key = str(installation_id)
+            if cache_key in _repo_discovery_cache:
+                del _repo_discovery_cache[cache_key]
+                logger.info(f"Cleared repository cache for installation: {installation_id}")
+        else:
+            _repo_discovery_cache.clear()
+            logger.info("Cleared all repository discovery caches")
+    
+    @staticmethod
+    def get_cache_stats() -> Dict[str, Any]:
+        """
+        Get statistics about repository discovery cache.
+        
+        Returns:
+            Dictionary with cache statistics
+        """
+        stats = {
+            "cached_installations": len(_repo_discovery_cache),
+            "cache_ttl_seconds": _CACHE_TTL_SECONDS,
+            "entries": []
+        }
+        
+        now = datetime.now()
+        for installation_id, (repos, cached_time) in _repo_discovery_cache.items():
+            age_seconds = (now - cached_time).total_seconds()
+            stats["entries"].append({
+                "installation_id": installation_id,
+                "repo_count": len(repos),
+                "age_seconds": age_seconds,
+                "expires_in_seconds": max(0, _CACHE_TTL_SECONDS - age_seconds),
+                "is_expired": age_seconds >= _CACHE_TTL_SECONDS
+            })
+        
+        return stats
     
     def get_connection_info(self) -> Dict[str, Any]:
         """Get connection information for debugging."""

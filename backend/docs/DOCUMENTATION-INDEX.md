@@ -1,17 +1,55 @@
-# Documentation Updates - February 3, 2026
+# Documentation Updates
 
 ## Recent Changes
 
-### New Documentation Added
+### Latest Updates - February 25, 2026
 
-1. **[REFACTORING-2026-02-03.md](./architecture/REFACTORING-2026-02-03.md)** ⭐ **NEW**
+1. **[CACHE-ARCHITECTURE-TWO-LAYER-DESIGN.md](./architecture/CACHE-ARCHITECTURE-TWO-LAYER-DESIGN.md)** ⭐ **NEW - ARCHITECTURE**
+   - Explains why AgentHub uses two complementary caching layers
+   - Redis/BaseCacheProvider for serializable data (sessions, tokens)
+   - In-Memory LRU for non-serializable objects (LLM providers, agents)
+   - Industry standard approach, used by Django, FastAPI, Spring
+   - Why "no code duplication" - different problems need different solutions
+
+2. **[PRODUCTION-GRADE-CACHING.md](./architecture/PRODUCTION-GRADE-CACHING.md)** ⭐ **NEW - IMPLEMENTATION**
+   - Enterprise-grade caching patterns (thread safety, LRU, telemetry)
+   - Thread-safe LRU cache with RLock implementation
+   - Memory profiling and capacity planning
+   - Production monitoring and alerting strategies
+
+3. **[OPTIMIZATION-2026-02-25.md](./architecture/OPTIMIZATION-2026-02-25.md)** ⭐ **NEW - CRITICAL**
+   - Performance optimization reducing request time from 50-75s to 2-5s (97-98% improvement)
+   - Connection Manager caching (60% reduction in overhead)
+   - Tool Registry caching (95-98% faster initialization)
+   - GitHub Repository discovery caching (10-minute TTL)
+   - Cache management API and monitoring guide
+   - Production deployment considerations
+
+4. **[QUICK-REFERENCE-CACHE-API.md](./QUICK-REFERENCE-CACHE-API.md)** ⭐ **NEW**
+   - Quick reference for cache management API
+   - Testing utilities for cache clearing
+   - Performance monitoring guide
+   - Troubleshooting common cache issues
+   - Production considerations
+
+5. **[REFACTORING-2026-02-25.md](./architecture/REFACTORING-2026-02-25.md)**
+   - Template Method Pattern implementation across all LLM providers
+   - Service code optimization (removed redundant initialization calls)
+   - Agent framework cleanup (simplified client access)
+   - Tool Registry import optimization
+   - Comprehensive migration guide
+   - Design pattern documentation
+
+### Previous Updates - February 3, 2026
+
+1. **[REFACTORING-2026-02-03.md](./architecture/REFACTORING-2026-02-03.md)**
    - Comprehensive guide to configuration and connection system refactoring
    - Migration guide for developers
    - Before/after code examples
    - Architecture diagrams
    - Breaking changes list
 
-2. **[QUICK-REFERENCE-CONFIG-CHANGES.md](./QUICK-REFERENCE-CONFIG-CHANGES.md)** ⭐ **NEW**
+2. **[QUICK-REFERENCE-CONFIG-CHANGES.md](./QUICK-REFERENCE-CONFIG-CHANGES.md)**
    - Quick TL;DR reference
    - Migration checklist
    - Common code patterns

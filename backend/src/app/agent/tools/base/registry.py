@@ -3,9 +3,13 @@ Registry for agent tools.
 
 Provides a centralized registry for discovering and managing different
 categories of agent tools using the decorator pattern.
+
+Implements aggressive caching for tool instances to avoid expensive
+initialization (especially GitHub API calls that take 19+ seconds).
 """
 
 from typing import Dict, List, Set, Optional, Any
+from langchain.tools import Tool, StructuredTool
 from app.core.utils.logger import get_logger
 from app.core.config.framework.settings import settings
 
@@ -14,6 +18,10 @@ logger = get_logger(__name__)
 # Use module-level globals instead of ClassVar
 _tools: Dict[str, List] = {}
 _packages: Set[str] = set()
+
+# Global cache for instantiated tools (in-memory, persists across requests)
+_tool_cache: Dict[str, List[StructuredTool]] = {}
+_cache_enabled: bool = True  # Can be disabled for testing
 
 
 def is_tool_enabled(category: str, tool_name: str) -> bool:
@@ -145,19 +153,41 @@ class ToolRegistry:
         return all_tools
     
     @classmethod
-    def get_instantiated_tools(cls, category: Optional[str] = None, config: Optional[Dict[str, Any]] = None) -> List:
+    def get_instantiated_tools(
+        cls, 
+        category: Optional[str] = None, 
+        config: Optional[Dict[str, Any]] = None,
+        use_cache: bool = True
+    ) -> List:
         """
         Get instantiated Tool objects for a category or all categories.
         Filters tools based on configuration settings.
         
+        Implements aggressive caching to avoid expensive tool initialization,
+        especially GitHub API calls (19+ seconds) and other external connections.
+        
         Args:
             category: Optional specific category to get tools for
             config: Optional configuration to pass to tool classes
+            use_cache: If True, uses cached tools. Set False to force reload.
             
         Returns:
             List of enabled LangChain Tool objects
         """
-        from langchain.tools import Tool
+        # Generate cache key
+        cache_key = f"category:{category or 'all'}"
+        
+        # Check cache first (unless explicitly disabled or cache is disabled globally)
+        if use_cache and _cache_enabled and cache_key in _tool_cache:
+            cached_tools = _tool_cache[cache_key]
+            logger.info(
+                f"✅ Loaded {len(cached_tools)} tools from cache "
+                f"(saved ~20-30s initialization time)"
+            )
+            return cached_tools
+        
+        # Cache miss - perform full tool initialization
+        logger.info(f"Cache miss - loading tools from scratch for '{cache_key}'")
         
         tools = []
         config = config or {}
@@ -201,7 +231,12 @@ class ToolRegistry:
                     
             except Exception as e:
                 logger.error(f"Failed to instantiate tool {tool_class.__name__}: {e}")
-                
+        
+        # Cache the results
+        if _cache_enabled:
+            _tool_cache[cache_key] = tools
+            logger.info(f"✅ Cached {len(tools)} tools for key '{cache_key}'")
+        
         logger.info(f"Loaded {len(tools)} enabled tools")
         return tools
     
@@ -259,6 +294,59 @@ class ToolRegistry:
             
         except Exception as e:
             logger.error(f"Failed to register capability for {category}.{name}: {e}")
+            logger.warning(f"Could not register capability for {category}.{name}: {e}")
+    
+    @classmethod
+    def clear_tool_cache(cls, category: Optional[str] = None) -> None:
+        """
+        Clear cached tool instances.
+        
+        Useful for development, testing, or when tool configuration changes.
+        
+        Args:
+            category: Specific category to clear. If None, clears all cached tools.
+        """
+        global _tool_cache
+        
+        if category:
+            cache_key = f"category:{category}"
+            if cache_key in _tool_cache:
+                del _tool_cache[cache_key]
+                logger.info(f"Cleared tool cache for category: {category}")
+        else:
+            _tool_cache.clear()
+            logger.info("Cleared all tool caches")
+    
+    @classmethod
+    def set_cache_enabled(cls, enabled: bool) -> None:
+        """
+        Enable or disable tool caching globally.
+        
+        Useful for testing scenarios where you need fresh tool instances.
+        
+        Args:
+            enabled: True to enable caching, False to disable
+        """
+        global _cache_enabled
+        _cache_enabled = enabled
+        logger.info(f"Tool caching {'enabled' if enabled else 'disabled'}")
+    
+    @classmethod
+    def get_cache_stats(cls) -> Dict[str, Any]:
+        """
+        Get statistics about tool cache.
+        
+        Returns:
+            Dictionary with cache statistics
+        """
+        return {
+            "cache_enabled": _cache_enabled,
+            "cached_categories": list(_tool_cache.keys()),
+            "total_cached_tools": sum(len(tools) for tools in _tool_cache.values()),
+            "cache_size_bytes": sum(
+                len(str(tool)) for tools in _tool_cache.values() for tool in tools
+            )
+        }
     
     @classmethod
     def _get_tool_config(cls, category: str, name: str):

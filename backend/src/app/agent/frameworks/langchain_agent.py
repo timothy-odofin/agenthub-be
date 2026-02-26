@@ -32,12 +32,11 @@ class LangChainAgent(BaseAgent):
         self.executor = None
     
     async def initialize(self) -> None:
+        # Ensure LLM provider is initialized before accessing client
         await self.llm_provider._ensure_initialized()
         
-        if hasattr(self.llm_provider, 'client') and self.llm_provider.client is not None:
-            self.llm = self.llm_provider.client
-        else:
-            self.llm = self.llm_provider
+        # Get the LangChain client (needed for bind_tools)
+        self.llm = self.llm_provider.client
         
         self.tools = ToolRegistry.get_instantiated_tools()
         self.prompt = self._create_prompt_template()

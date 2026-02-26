@@ -77,7 +77,7 @@ class OpenAILLM(BaseLLMProvider):
             logger.error(f"Failed to initialize OpenAI provider: {e}")
             raise
     
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
         """
         Generate text using OpenAI LangChain API.
         

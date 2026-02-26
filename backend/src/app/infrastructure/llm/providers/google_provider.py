@@ -68,7 +68,7 @@ class GoogleLLM(BaseLLMProvider):
             logger.error(f"Failed to initialize Google provider: {e}")
             raise
     
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
         """Generate text using Google LangChain API."""
         try:
             # Create message

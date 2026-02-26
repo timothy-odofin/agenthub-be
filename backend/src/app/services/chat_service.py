@@ -21,6 +21,7 @@ from app.agent import AgentFactory, AgentContext
 from app.core.constants import AgentType, AgentFramework
 from app.sessions.repositories.session_repository_factory import SessionRepositoryFactory
 from app.services.session_title_service import SessionTitleService
+from app.infrastructure.cache.instances import agent_cache
 
 logger = get_logger(__name__)
 
@@ -52,7 +53,7 @@ class ChatService(metaclass=SingletonMeta):
         # self._agent_framework = AgentFramework.LANGGRAPH  # Uncomment to use LangGraph
         
         self._initialized = True
-        logger.info("ChatService initialized")
+        logger.info("ChatService initialized with centralized agent caching")
 
     @property
     async def agent(self):
@@ -62,7 +63,7 @@ class ChatService(metaclass=SingletonMeta):
                 from app.infrastructure.llm.factory.llm_factory import LLMFactory
                 from app.core.constants import LLMProvider
 
-                llm = LLMFactory.get_llm(LLMProvider.OPENAI)
+                llm = await LLMFactory.get_llm(LLMProvider.OPENAI)
                 session_repo = SessionRepositoryFactory.get_default_repository()
 
                 self._agent = await AgentFactory.create_agent(
@@ -80,11 +81,44 @@ class ChatService(metaclass=SingletonMeta):
 
         return self._agent
     
-    def set_agent_framework(self, framework: AgentFramework) -> None:
+    async def clear_agent_cache(self, provider: Optional[str] = None, model: Optional[str] = None) -> int:
+        """
+        Clear agent cache.
+        
+        Args:
+            provider: Provider name to clear. If None, clears all.
+            model: Model name to clear. If None but provider is set, clears all models for that provider.
+            
+        Returns:
+            Number of cache entries cleared
+        """
+        # Use centralized agent_cache with async interface
+        if provider is None and model is None:
+            # Clear entire cache
+            await agent_cache.clear()
+            count = 0  # ObjectCache doesn't return count for clear()
+            logger.info("Cleared entire agent cache")
+        else:
+            # Clear specific entries by pattern
+            cache_key = f"{provider or 'default'}:{model or 'default'}"
+            await agent_cache.delete(cache_key)
+            count = 1
+            logger.info(f"Cleared agent cache entry: {cache_key}")
+        
+        return count
+    
+    async def get_agent_cache_stats(self) -> Dict:
+        """Get agent cache statistics with hit/miss rates."""
+        stats = agent_cache.get_stats()
+        return stats
+    
+    async def set_agent_framework(self, framework: AgentFramework) -> None:
         if self._agent is not None:
             logger.warning(f"Switching agent framework from {self._agent_framework} to {framework}")
         self._agent_framework = framework
         self._agent = None  # Reset agent to force re-initialization
+        await agent_cache.clear()  # Clear all cached agents when switching framework
+        logger.info(f"Switched to {framework} framework, cleared agent cache")
 
     async def chat(
             self,
@@ -123,7 +157,7 @@ class ChatService(metaclass=SingletonMeta):
 
             # Get LLM instance based on provider/model parameters
             # If not provided, this will use defaults from configuration
-            llm = LLMFactory.get_llm_by_name(provider, model)
+            llm = await LLMFactory.get_llm_by_name(provider, model)
             
             # If a specific model is requested, update the LLM client to use it
             if model and hasattr(llm, 'client') and hasattr(llm.client, 'model_name'):
@@ -131,19 +165,32 @@ class ChatService(metaclass=SingletonMeta):
                 llm.client.model_name = model
             
             # Get or create agent with the specified LLM
-            # For now, we'll create a new agent if provider/model is specified,
-            # otherwise use the default cached agent
+            # Cache agents by (provider:model) combination to support dynamic model switching
+            cache_key = f"{provider or 'default'}:{model or 'default'}"
+            
             if provider or model:
-                # Create a new agent with the specified LLM
-                session_repo = SessionRepositoryFactory.get_default_repository()
-                agent = await AgentFactory.create_agent(
-                    agent_type=self._agent_type,
-                    framework=self._agent_framework,
-                    llm_provider=llm,
-                    session_repository=session_repo,
-                    verbose=self.agent_verbose
-                )
-                logger.info(f"Created new agent with provider={provider}, model={model}")
+                # Check agent cache first (async, thread-safe)
+                agent = await agent_cache.get(cache_key)
+                
+                if agent is not None:
+                    cache_stats = agent_cache.get_stats()
+                    logger.info(
+                        f"✅ Reusing cached agent for provider={provider}, model={model} "
+                        f"(hit_rate: {cache_stats.get('hit_rate', 'N/A')})"
+                    )
+                else:
+                    # Create a new agent with the specified LLM
+                    session_repo = SessionRepositoryFactory.get_default_repository()
+                    agent = await AgentFactory.create_agent(
+                        agent_type=self._agent_type,
+                        framework=self._agent_framework,
+                        llm_provider=llm,
+                        session_repository=session_repo,
+                        verbose=self.agent_verbose
+                    )
+                    # Cache the agent (async, thread-safe with LRU eviction)
+                    await agent_cache.set(cache_key, agent)
+                    logger.info(f"Created and cached new agent for provider={provider}, model={model}")
             else:
                 # Use the default cached agent
                 agent = await self.agent

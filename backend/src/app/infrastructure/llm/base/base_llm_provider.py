@@ -221,10 +221,33 @@ class BaseLLMProvider(ABC):
         """Initialize the LLM client."""
         pass
     
-    @abstractmethod
     async def generate(self, prompt: str, **kwargs) -> LLMResponse:
         """
-        Generate text from prompt.
+        Generate text from prompt (Template Method).
+        
+        This method ensures the provider is initialized before delegating
+        to the implementation-specific _generate_impl method.
+        
+        Args:
+            prompt: The input prompt
+            **kwargs: Additional generation parameters
+            
+        Returns:
+            LLMResponse with generated content
+        """
+        # Ensure initialization before generation
+        await self._ensure_initialized()
+        
+        # Delegate to implementation-specific method
+        return await self._generate_impl(prompt, **kwargs)
+    
+    @abstractmethod
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
+        """
+        Implementation-specific generation logic.
+        
+        Child classes must implement this method with their provider-specific
+        logic. Initialization is guaranteed to be complete before this is called.
         
         Args:
             prompt: The input prompt

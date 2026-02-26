@@ -4,7 +4,7 @@ Conversational authentication service for chatbot-style signup/login flows with 
 
 import uuid
 import re
-from typing import Dict, Optional, Tuple, Callable, Awaitable
+from typing import Dict, Callable, Awaitable
 from app.schemas.conversational_auth import (
     SignupStep,
     ConversationalSignupRequest,
@@ -34,8 +34,8 @@ class ConversationalAuthService:
         self.clarifications = settings.workflows.signup.conversational_auth.clarifications
         self.validation_errors = settings.workflows.signup.conversational_auth.validation_errors
         
-        # Get LLM instance from factory (same as chat_service pattern)
-        self.llm = LLMFactory.get_llm(LLMProvider.OPENAI)
+        # Lazy-load LLM instance (will be initialized on first use)
+        self._llm = None
         
         # Password manager for hashing
         self.password_manager = PasswordManager()
@@ -50,6 +50,13 @@ class ConversationalAuthService:
         }
         
         logger.info("ConversationalAuthService initialized with Redis session storage")
+    
+    @property
+    async def llm(self):
+        """Lazy-load LLM instance with caching support."""
+        if self._llm is None:
+            self._llm = await LLMFactory.get_llm(LLMProvider.OPENAI)
+        return self._llm
     
     # Validation patterns
     EMAIL_PATTERN = re.compile(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
@@ -94,11 +101,9 @@ class ConversationalAuthService:
             # Combine prompts for LLM
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            # Ensure LLM is initialized before using it
-            await self.llm._ensure_initialized()
-            
             # Call LLM for extraction using the generate method
-            response = await self.llm.generate(full_prompt)
+            llm_instance = await self.llm
+            response = await llm_instance.generate(full_prompt)
             
             # Extract and clean the value
             extracted = response.content.strip()
@@ -143,11 +148,9 @@ class ConversationalAuthService:
             # Combine prompts for LLM
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            # Ensure LLM is initialized
-            await self.llm._ensure_initialized()
-            
             # Call LLM for intent classification
-            response = await self.llm.generate(full_prompt)
+            llm_instance = await self.llm
+            response = await llm_instance.generate(full_prompt)
             intent = response.content.strip().upper()
             
             # Validate intent
@@ -187,11 +190,9 @@ class ConversationalAuthService:
             # Combine prompts for LLM
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            # Ensure LLM is initialized
-            await self.llm._ensure_initialized()
-            
             # Call LLM for intent classification
-            response = await self.llm.generate(full_prompt)
+            llm_instance = await self.llm
+            response = await llm_instance.generate(full_prompt)
             intent = response.content.strip().upper()
             
             # Validate intent
@@ -242,11 +243,9 @@ class ConversationalAuthService:
             # Combine prompts
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            # Ensure LLM is initialized
-            await self.llm._ensure_initialized()
-            
             # Call LLM for intelligent clarification
-            response = await self.llm.generate(full_prompt)
+            llm_instance = await self.llm
+            response = await llm_instance.generate(full_prompt)
             clarification = response.content.strip()
             
             logger.info(f"Intelligent Clarification - Field: {field_type}, Question: '{message}', Response length: {len(clarification)}")
@@ -289,11 +288,9 @@ class ConversationalAuthService:
             # Combine prompts
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
-            # Ensure LLM is initialized
-            await self.llm._ensure_initialized()
-            
             # Call LLM for intelligent START clarification
-            response = await self.llm.generate(full_prompt)
+            llm_instance = await self.llm
+            response = await llm_instance.generate(full_prompt)
             clarification = response.content.strip()
             
             logger.info(f"START Clarification - Question: '{message}', Response length: {len(clarification)}")

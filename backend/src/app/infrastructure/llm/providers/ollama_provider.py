@@ -73,7 +73,7 @@ class OllamaLLM(BaseLLMProvider):
             logger.error(f"Failed to initialize Ollama provider: {e}")
             raise
     
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
         """Generate text using Ollama LangChain API."""
         try:
             # Create message

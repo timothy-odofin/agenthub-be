@@ -158,15 +158,21 @@ if postgres_mgr.is_healthy():
 
 **Location**: `app/infrastructure/llm/`
 
-**Purpose**: Provides unified interface for multiple LLM providers with context management and streaming support.
+**Purpose**: Provides unified interface for multiple LLM providers with context management, streaming support, and automatic initialization using the Template Method Pattern.
 
 **Key Components**:
 - `LLMFactory`: Creates LLM provider instances
 - `LLMRegistry`: Registers LLM implementations
-- `BaseLLMProvider`: Abstract base for all providers
+- `BaseLLMProvider`: Abstract base with Template Method pattern for initialization
 - Provider implementations: OpenAI, Azure OpenAI, Anthropic, Groq, Google, HuggingFace, Ollama
 - `ContextWindowManager`: Manages conversation context and token limits
 - Context strategies: Recent, Sliding Window, Summarization
+
+**Design Pattern**: **Template Method Pattern** (as of Feb 25, 2026)
+- `generate()` is a template method that ensures initialization
+- `_generate_impl()` is implemented by each provider
+- Initialization logic centralized in base class
+- Zero code duplication across providers
 
 **Supported Providers**:
 ```python
@@ -187,9 +193,8 @@ from app.core.constants import LLMProvider
 
 # Get LLM provider
 llm = LLMFactory.get_llm(LLMProvider.GROQ)
-await llm.initialize()
 
-# Generate response
+# Generate response (initialization happens automatically!)
 response = await llm.generate("Explain quantum computing")
 print(response.content)
 
@@ -197,6 +202,8 @@ print(response.content)
 async for chunk in llm.stream_generate("Write a story"):
     print(chunk, end="", flush=True)
 ```
+
+**Note**: As of Feb 25, 2026, you no longer need to manually call `await llm.initialize()` or `await llm._ensure_initialized()` - the Template Method pattern handles this automatically when you call `generate()`.
 
 ## Factory + Registry Pattern
 

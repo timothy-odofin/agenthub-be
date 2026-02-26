@@ -70,7 +70,7 @@ class HuggingFaceLLM(BaseLLMProvider):
             logger.error(f"Failed to initialize HuggingFace provider: {e}")
             raise
     
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
         """Generate text using HuggingFace LangChain API."""
         try:
             # Note: HuggingFaceEndpoint doesn't use HumanMessage format

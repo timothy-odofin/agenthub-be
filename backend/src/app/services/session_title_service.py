@@ -57,8 +57,7 @@ class LLMTitleGenerationStrategy(TitleGenerationStrategy):
             
             # Get LLM instance - use configured default provider if not specified
             provider = self.llm_provider if self.llm_provider else settings.llm.default.provider
-            llm = LLMFactory.get_llm(provider)
-            await llm._ensure_initialized()
+            llm = await LLMFactory.get_llm(provider)
             
             # Build conversation context
             conversation_text = self._format_messages_for_prompt(messages)

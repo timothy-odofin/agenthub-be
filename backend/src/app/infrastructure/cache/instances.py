@@ -15,6 +15,7 @@ Usage:
 """
 
 from app.infrastructure.cache import CacheFactory
+from app.core.core_enums import CacheType
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -50,12 +51,30 @@ rate_limit_cache = CacheFactory.create_cache(
 )
 logger.info("✅ rate_limit_cache initialized")
 
-# Temporary cache - for short-lived data (1 min TTL)
+# Temp cache - for temporary data (1 min TTL)
 temp_cache = CacheFactory.create_cache(
     namespace="temp",
     default_ttl=60  # 1 minute
 )
 logger.info("✅ temp_cache initialized")
+
+# LLM Provider cache - for caching LLM provider instances (object references, no expiry)
+# Uses ObjectCacheProvider for non-serializable objects (contains locks, connections)
+llm_provider_cache = CacheFactory.create_cache(
+    cache_type=CacheType.OBJECT,
+    namespace="llm_providers",
+    default_ttl=None  # No expiration - cache until manually cleared
+)
+logger.info("✅ llm_provider_cache initialized (ObjectCache)")
+
+# Agent cache - for caching agent instances (object references, no expiry)
+# Uses ObjectCacheProvider for non-serializable objects (stateful agents with LLM clients)
+agent_cache = CacheFactory.create_cache(
+    cache_type=CacheType.OBJECT,
+    namespace="agents",
+    default_ttl=None  # No expiration - cache until manually cleared
+)
+logger.info("✅ agent_cache initialized (ObjectCache)")
 
 __all__ = [
     "confirmation_cache",
@@ -63,6 +82,8 @@ __all__ = [
     "session_cache",
     "rate_limit_cache",
     "temp_cache",
+    "llm_provider_cache",
+    "agent_cache",
 ]
 
 logger.info("All cache instances initialized successfully")

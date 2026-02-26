@@ -125,6 +125,7 @@ class CacheType(str, Enum):
     MEMCACHED = "memcached"
     IN_MEMORY = "in_memory"
     ELASTICACHE = "elasticache"
+    OBJECT = "object"  # For non-serializable Python objects (LLM providers, agents)
 
 
 class PromptType(str, Enum):

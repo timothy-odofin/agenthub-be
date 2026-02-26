@@ -32,12 +32,11 @@ class LangGraphAgent(BaseAgent):
         self.memory = None
     
     async def initialize(self) -> None:
+        # Ensure LLM provider is initialized before accessing client
         await self.llm_provider._ensure_initialized()
         
-        if hasattr(self.llm_provider, 'client') and self.llm_provider.client is not None:
-            self.llm = self.llm_provider.client
-        else:
-            self.llm = self.llm_provider
+        # Get the LangChain client (needed for graph operations)
+        self.llm = self.llm_provider.client
         
         if self.enable_checkpointing:
             self.memory = MemorySaver()

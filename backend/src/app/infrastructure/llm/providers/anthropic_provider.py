@@ -67,7 +67,7 @@ class AnthropicLLM(BaseLLMProvider):
             logger.error(f"Failed to initialize Anthropic provider: {e}")
             raise
     
-    async def generate(self, prompt: str, **kwargs) -> LLMResponse:
+    async def _generate_impl(self, prompt: str, **kwargs) -> LLMResponse:
         """Generate text using Anthropic LangChain API."""
         try:
             # Create message

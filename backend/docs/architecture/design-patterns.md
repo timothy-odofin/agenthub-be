@@ -1224,12 +1224,35 @@ async def fetch_external_api(url: str):
 ### Purpose
 **Define skeleton of an algorithm**, letting subclasses override specific steps.
 
-### Use Cases in AgentHub
-1. **Agent Execution Flow**: Common flow, custom steps
-2. **Data Pipeline**: ETL with customizable transforms
-3. **Report Generation**: Standard format, custom content
+### Production Implementation ⭐ **NEW - Feb 25, 2026**
 
-### Implementation
+AgentHub now uses the Template Method Pattern for **LLM Provider initialization** across all 7 providers (OpenAI, Anthropic, Groq, Google, Azure, Ollama, HuggingFace).
+
+**Key Benefits:**
+- ✅ Zero code duplication - Initialization in ONE place (base class)
+- ✅ Impossible to bypass - Architecturally enforced
+- ✅ Clean child classes - Focus only on generation logic
+- ✅ Maintainable - Update once, all providers benefit
+
+**Implementation Location:** `app/infrastructure/llm/base/base_llm_provider.py`
+
+**📖 See Complete Details:** [REFACTORING-2026-02-25.md](./REFACTORING-2026-02-25.md)
+
+The refactoring document includes:
+- Full code examples with before/after
+- Migration guide for developers
+- Service code optimization details
+- Design pattern benefits and tradeoffs
+
+---
+
+### Use Cases in AgentHub
+1. **LLM Provider Initialization** ⭐ **PRIMARY** - Production implementation (Feb 2026)
+2. **Agent Execution Flow**: Common flow, custom steps (Conceptual)
+3. **Data Pipeline**: ETL with customizable transforms (Conceptual)
+4. **Report Generation**: Standard format, custom content (Conceptual)
+
+### Conceptual Implementation Example
 
 ```python
 # src/app/agent/base.py

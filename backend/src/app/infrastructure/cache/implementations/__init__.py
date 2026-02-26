@@ -7,8 +7,10 @@ Importing this module automatically registers all providers with the CacheRegist
 
 from app.infrastructure.cache.implementations.redis_cache import RedisCacheProvider
 from app.infrastructure.cache.implementations.in_memory_cache import InMemoryCacheProvider
+from app.infrastructure.cache.implementations.object_cache import ObjectCacheProvider
 
 __all__ = [
     "RedisCacheProvider",
     "InMemoryCacheProvider",
+    "ObjectCacheProvider",
 ]
