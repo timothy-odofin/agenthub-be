@@ -148,6 +148,7 @@ multidict==6.7.0
 nest-asyncio==1.6.0
 networkx==3.5
 nltk==3.9.2
+numpy<2.0.0  # Pin to 1.x for PyTorch/transformers compatibility
 oauthlib==3.3.1
 olefile==0.47
 ollama==0.6.1
