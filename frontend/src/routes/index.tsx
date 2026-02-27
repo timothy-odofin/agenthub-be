@@ -9,10 +9,12 @@ const routes: RouteObject[] = [
     path: "/",
     element: <ModernLogin />,
   },
+  // Signup route
   {
     path: "/signup",
     element: <ConversationalSignup />,
   },
+  // Protected routes
   {
     path: "/main-dashboard/:sessionId?",
     element: (

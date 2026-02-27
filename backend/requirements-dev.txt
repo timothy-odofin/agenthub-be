@@ -1,5 +1,5 @@
 # =============================================================================
-# Development Dependencies (Install AFTER requirements.txt)
+# Development Dependencies (Install AFTER requirements.txt) follow strictly
 # =============================================================================
 
 # Data science tools for development
