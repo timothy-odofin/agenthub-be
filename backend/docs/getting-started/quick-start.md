@@ -596,14 +596,14 @@ Visit: **http://localhost:8000/api/v1/system/status**
 
 ## What You've Learned
 
-Installed AgentHub and its dependencies 
-Configured LLM providers and databases 
-Started the application 
-Made your first chat query 
-Tested RAG document retrieval 
-Know where to find help 
+Installed AgentHub and its dependencies
+Configured LLM providers and databases
+Started the application
+Made your first chat query
+Tested RAG document retrieval
+Know where to find help
 
-### You're Ready! 
+### You're Ready!
 
 You now have AgentHub running locally. Time to build something amazing!
 
@@ -611,6 +611,6 @@ You now have AgentHub running locally. Time to build something amazing!
 
 ---
 
-**Last Updated**: January 8, 2026 
-**Version**: 1.0.0 
+**Last Updated**: January 8, 2026
+**Version**: 1.0.0
 **Tested On**: macOS, Linux, Windows (WSL2)

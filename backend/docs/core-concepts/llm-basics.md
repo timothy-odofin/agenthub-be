@@ -83,7 +83,7 @@ Your Input → LLM Processing → Response
 
 ```python
 # English text: ~4 characters = 1 token
-"Hello, how are you doing today?" 
+"Hello, how are you doing today?"
 # Approximately 8 tokens: ["Hello", ",", " how", " are", " you", " doing", " today", "?"]
 
 # Code: varies by complexity
@@ -181,11 +181,11 @@ Temperature = 0.0                    Temperature = 1.0
 llm:
   default_provider: "openai"
   temperature: 0.1                     # Conservative for consistency
-  
+
 providers:
   openai:
     temperature: 0.1                   # Factual responses
-  
+
   groq:
     temperature: 0.7                   # More creative
 ```
@@ -241,7 +241,7 @@ async def generate(
 ) -> LLMResponse:
     """
     Generate a response using OpenAI.
-    
+
     Args:
         messages: Input messages
         temperature: Controls randomness (0.0-2.0)
@@ -487,7 +487,7 @@ class LLMResponse:
     def __init__(self, content: str, usage: Dict[str, Any]):
         self.content = content
         self.usage = usage  # Contains token counts!
-        
+
 # Usage tracking
 response = await llm.generate(messages)
 print(f"Tokens used: {response.usage}")

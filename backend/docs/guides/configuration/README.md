@@ -828,7 +828,7 @@ class UserService:
     def __init__(self, db_config: DatabaseConfig, llm_config: LLMConfig):
         self.db = db_config
         self.llm = llm_config
-    
+
     def create_user(self, user_data: dict):
         conn_str = self.db.postgres_config['connection_string']
         # Database operations...
@@ -883,7 +883,7 @@ class DataService:
     def __init__(self):
         self.db = database_config
         self.llm = llm_config
-    
+
     def process_data(self):
         # Type-safe access
         postgres = self.db.postgres_config
@@ -1178,7 +1178,7 @@ openai_api_key: "${OPENAI_API_KEY}"
 llm:
   # Default LLM provider (openai, anthropic, groq, ollama)
   default_provider: "openai"
-  
+
   # Temperature controls randomness (0.0 = deterministic, 2.0 = very random)
   temperature: 0.1
 ```
@@ -1283,11 +1283,11 @@ async def health_check():
     """Health check with configuration validation."""
     try:
         settings = Settings.instance()
-        
+
         # Validate critical configs
         assert hasattr(settings, 'app'), "Missing app config"
         assert hasattr(settings, 'db'), "Missing database config"
-        
+
         return {
             "status": "healthy",
             "environment": settings.app.environment,
@@ -1417,6 +1417,6 @@ class MyClass:
 
 ---
 
-**Last Updated**: January 10, 2026  
-**Version**: 1.0  
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Settings, YAML Configuration, Environment Variables

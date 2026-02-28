@@ -124,7 +124,7 @@ from app.agent.tools.base import BaseTool
 class YourTool(BaseTool):
     name = "your_tool"
     description = "What your tool does"
-    
+
     def _run(self, query: str) -> str:
         # Implementation
         pass
@@ -161,14 +161,14 @@ Create in `src/app/infrastructure/connections/`:
 class YourServiceConnectionManager(BaseConnectionManager):
     def get_config_category(self) -> str:
         return "external"
-    
+
     def get_connection_name(self) -> str:
         return "your_service"
-    
+
     def validate_config(self) -> None:
         # Validate required fields
         pass
-    
+
     def connect(self):
         # Establish connection
         pass
@@ -189,7 +189,7 @@ Create in `src/app/services/external/`:
 class YourService:
     def __init__(self):
         self._connection_manager = None
-    
+
     def your_method(self):
         self._ensure_connected()
         # Implementation

@@ -18,7 +18,7 @@ email-validator = "^2.0.0"  # For pydantic EmailStr validation (MIT License)
 httpx = ">=0.26.0,<0.29.0"
 python-multipart = ">=0.0.9,<0.1.0"
 
-# Database dependencies  
+# Database dependencies
 sqlalchemy = "^2.0.27"
 alembic = "^1.13.1"
 psycopg2-binary = "^2.9.9"

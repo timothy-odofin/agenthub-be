@@ -15,24 +15,24 @@ Main exports:
 
 Usage:
     >>> from app.core.config import settings
-    >>> 
+    >>>
     >>> # Access configuration via dot notation
     >>> db_host = settings.db.postgres.host
-    >>> 
+    >>>
     >>> # Or use get_section with dot-path
     >>> db_host = settings.get_section('db.postgres.host')
-    >>> 
+    >>>
     >>> # Convert to plain dictionary
     >>> config_dict = settings.to_dict()
 """
 
 # Import from framework
-from .framework import Settings, settings, DynamicConfig, YamlLoader
+from .framework import DynamicConfig, Settings, YamlLoader, settings
 
 # Export main configuration system
 __all__ = [
-    'Settings',
-    'settings',
-    'DynamicConfig',
-    'YamlLoader',
+    "Settings",
+    "settings",
+    "DynamicConfig",
+    "YamlLoader",
 ]

@@ -71,10 +71,10 @@ class MongoDBConnectionManager(BaseConnectionManager):
 class MongoDBConnectionManager(BaseConnectionManager):
     def get_connection_name(self) -> str:
         return ConnectionType.MONGODB.value  # 'mongodb'
-    
+
     def get_config_category(self) -> str:
         return "db"  # Category in settings
-    
+
     # Base class uses: settings.{category}.{connection_name}
     # Result: settings.db.mongodb
 ```
@@ -185,15 +185,15 @@ All connection managers now implement two key methods:
 from app.infrastructure.connections.base import BaseConnectionManager
 
 class YourConnectionManager(BaseConnectionManager):
-    
+
     def get_connection_name(self) -> str:
         """Return the config key name (e.g., 'mongodb', 'redis')."""
         return ConnectionType.YOUR_SERVICE.value
-    
+
     def get_config_category(self) -> str:
         """Return the settings category ('db', 'vector', or 'external')."""
         return "db"  # or "vector" or "external"
-    
+
     # Base class automatically constructs:
     # settings.{category}.{connection_name}
     # e.g., settings.db.mongodb
@@ -205,18 +205,18 @@ Connection managers can access their config as a dictionary:
 
 ```python
 class MongoDBConnectionManager(BaseConnectionManager):
-    
+
     def validate_config(self) -> None:
         """Validate configuration."""
         config_dict = self._get_config_dict()  # Get as dictionary
-        
+
         if not config_dict.get('host'):
             raise ValueError("MongoDB host is required")
-    
+
     def connect(self):
         """Establish connection."""
         config_dict = self._get_config_dict()
-        
+
         # Use dictionary access
         client = MongoClient(
             host=config_dict['host'],
@@ -287,7 +287,7 @@ from app.core.constants import EmbeddingType
 
 class EmbeddingConfigProvider(ABC):
     """Abstract base for embedding configuration providers."""
-    
+
     @abstractmethod
     def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
         """Retrieve configuration for a specific embedding type."""
@@ -376,10 +376,10 @@ from app.db.vector.providers import EmbeddingConfigProvider
 
 class DatabaseConfigProvider(EmbeddingConfigProvider):
     """Load embedding configs from database."""
-    
+
     def __init__(self, db_connection):
         self.db = db_connection
-    
+
     def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
         # Load from database
         config = self.db.query(
@@ -442,17 +442,17 @@ class BaseIngestionService(ABC):
     def __init__(self):
         # Old way
         # data_sources = settings.data_sources.dataSources
-        
+
         # New way
         data_root = getattr(settings, 'data')
         data_sources_list = data_root.sources  # List of configs
-        
+
         # Convert list to dict indexed by type
         data_sources_dict = {
-            item.type.lower(): item 
+            item.type.lower(): item
             for item in data_sources_list
         }
-        
+
         # Get config for this service type
         source_type_key = self.SOURCE_TYPE.value.lower()
         self.config = data_sources_dict[source_type_key]
@@ -499,12 +499,12 @@ mongo = settings.db.mongodb
 
 ```python
 class YourConnectionManager(BaseConnectionManager):
-    
+
     # ADD THIS METHOD
     def get_config_category(self) -> str:
         """Return 'db', 'vector', or 'external'."""
         return "db"  # Choose appropriate category
-    
+
     # UPDATE EXISTING METHODS to use _get_config_dict()
     def validate_config(self) -> None:
         config_dict = self._get_config_dict()  # Get as dict
@@ -598,9 +598,9 @@ def test_embedding_config():
     }
     provider = DictConfigProvider(test_configs)
     EmbeddingFactory.set_config_provider(provider)
-    
+
     yield
-    
+
     # Cleanup: reset to default
     from app.db.vector.providers import SettingsConfigProvider
     EmbeddingFactory.set_config_provider(SettingsConfigProvider())

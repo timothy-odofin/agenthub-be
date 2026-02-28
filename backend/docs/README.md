@@ -16,7 +16,7 @@ AgentHub is a production-ready backend framework for building AI agents with RAG
 
 ## ️ Documentation Structure
 
-### **Getting Started** 
+### **Getting Started**
 New to AgentHub? Start here!
 
 - **[Quick Start Guide](./getting-started/quick-start.md)** - Get up and running in 5 minutes
@@ -36,7 +36,7 @@ Complete REST API documentation with examples:
 
 ---
 
-### **Guides** 
+### **Guides**
 In-depth guides for core features:
 
 > **🔄 Updated Feb 2026:** Configuration and connection management patterns have been simplified. See [REFACTORING-2026-02-03.md](./architecture/REFACTORING-2026-02-03.md) for migration guide.
@@ -62,7 +62,7 @@ In-depth guides for core features:
 
 ---
 
-### **Architecture** 
+### **Architecture**
 System design and patterns:
 
 - **[Architecture Overview](./architecture/overview.md)** - System components, data flow
@@ -74,7 +74,7 @@ System design and patterns:
 
 ---
 
-### **Core Concepts** 
+### **Core Concepts**
 Understand the fundamentals:
 
 - **[LLM Basics](./core-concepts/llm-basics.md)** - Beginner-friendly LLM guide
@@ -82,7 +82,7 @@ Understand the fundamentals:
 
 ---
 
-### **Tutorials** 
+### **Tutorials**
 Step-by-step tutorials:
 
 - **[Conversational Authentication](./tutorials/conversational-auth.md)** - Chatbot signup
@@ -90,7 +90,7 @@ Step-by-step tutorials:
 
 ---
 
-### **Deployment** 
+### **Deployment**
 Production deployment:
 
 - **[Deployment Overview](./deployment/overview.md)** - Production setup
@@ -202,13 +202,13 @@ All documentation follows:
 
 ---
 
-**Last Updated**: January 10, 2026 
-**Version**: 1.0 
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Status**: Production Ready
 
 ---
 
-Thank you for using AgentHub! 
+Thank you for using AgentHub!
 
 ---
 
@@ -227,7 +227,7 @@ Thank you for using AgentHub!
 
 ## Key Decisions Made
 
-### **1. Structure: Hybrid Approach** 
+### **1. Structure: Hybrid Approach**
 - Main README.md as hub
 - Organized docs/ directory
 - Progressive disclosure
@@ -235,7 +235,7 @@ Thank you for using AgentHub!
 
 **Validation**: Used by FastAPI, Django, LangChain, Kubernetes
 
-### **2. Target Audiences** 
+### **2. Target Audiences**
 1. LLM Beginners (learn concepts)
 2. Python Developers (extend system)
 3. Architecture Learners (study patterns)
@@ -247,14 +247,14 @@ Thank you for using AgentHub!
 3. Modular architecture (extensibility)
 4. Resilience patterns (production-ready)
 
-### **4. Timeline: 5 Weeks** 
+### **4. Timeline: 5 Weeks**
 - Week 1: Foundation (README, architecture)
 - Week 2: Guides (connections, LLM, tools)
 - Week 3: Tutorials (RAG, auth, frontend)
 - Week 4: Operations (deployment, API)
 - Week 5: Polish (advanced, reference)
 
-### **5. Compliance Integration** 
+### **5. Compliance Integration**
 - Code review while documenting
 - Quality gates defined
 - Standards checklist created
@@ -283,7 +283,7 @@ Thank you for using AgentHub!
 
 ## Special Considerations
 
-### **Conversational Auth - Demo Feature** 
+### **Conversational Auth - Demo Feature**
 
 Per developer note:
 > "The signup that I built with conversation is just for demo purpose for developer to see how the conversation agent works."
@@ -347,5 +347,5 @@ For questions about:
 
 ---
 
-**Last Updated**: 2026-01-08 
+**Last Updated**: 2026-01-08
 **Status**: Planning Complete | Ready to Implement ⏳

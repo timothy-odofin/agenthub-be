@@ -20,7 +20,7 @@ Bot Account adds comment with context → Appears as:
 
 "jira-bot@company.com commented:
  On behalf of: John Doe (john.doe@company.com)
- 
+
  @Jane please review this issue"
 ```
 
@@ -43,13 +43,13 @@ async def add_jira_comment(
 ):
     # Option 1: Use the user object directly
     on_behalf_of = f"{current_user.firstname} {current_user.lastname} ({current_user.email})"
-    
+
     result = jira_tools.add_jira_comment(
         issue_key=issue_key,
         comment_body=comment,
         on_behalf_of=on_behalf_of
     )
-    
+
     return result
 ```
 
@@ -67,17 +67,17 @@ async def add_jira_comment(
 ):
     # Verify and decode token
     payload = token_manager.verify_token(token)
-    
+
     if payload:
         # Extract user info from token
         on_behalf_of = JiraTools.extract_user_from_token(payload)
-        
+
         result = jira_tools.add_jira_comment(
             issue_key=issue_key,
             comment_body=comment,
             on_behalf_of=on_behalf_of
         )
-        
+
         return result
 ```
 
@@ -97,7 +97,7 @@ async def add_comment_with_mention(
 ):
     # Extract user info
     on_behalf_of = f"{current_user.firstname} {current_user.lastname} ({current_user.email})"
-    
+
     # Create ADF with mention and "on behalf of"
     adf = JiraTools.create_mention_adf(
         account_id=mention_account_id,
@@ -105,13 +105,13 @@ async def add_comment_with_mention(
         additional_text=f" {message}",
         on_behalf_of=on_behalf_of
     )
-    
+
     # Add comment
     result = jira_tools.add_jira_comment(
         issue_key=issue_key,
         comment_body=json.dumps(adf)
     )
-    
+
     return result
 ```
 
@@ -128,7 +128,7 @@ async def add_comment_multiple_mentions(
 ):
     # Build user context
     on_behalf_of = f"{current_user.firstname} {current_user.lastname} ({current_user.email})"
-    
+
     # Create comment with multiple parts
     text_parts = [
         {"type": "text", "content": "Hi "},
@@ -137,17 +137,17 @@ async def add_comment_multiple_mentions(
         {"type": "mention", "account_id": "user2-account-id", "display_name": "Jane Smith"},
         {"type": "text", "content": ", please review this issue!"}
     ]
-    
+
     adf = JiraTools.create_comment_with_mentions(
         text_parts,
         on_behalf_of=on_behalf_of
     )
-    
+
     result = jira_tools.add_jira_comment(
         issue_key=issue_key,
         comment_body=json.dumps(adf)
     )
-    
+
     return result
 ```
 
@@ -226,16 +226,16 @@ async def chat(
     """
     # Build user context for any Jira operations
     user_context = f"{current_user.firstname} {current_user.lastname} ({current_user.email})"
-    
+
     # Your LLM/Agent processing...
     # When the agent decides to add a Jira comment:
-    
+
     result = jira_tools.add_jira_comment(
         issue_key="PROJ-123",
         comment_body="Agent response here",
         on_behalf_of=user_context
     )
-    
+
     return {
         "message": "Comment added to Jira",
         "user": user_context,
@@ -255,18 +255,18 @@ from app.agent.tools.atlassian.jira import JiraTools
 
 async def add_user_context_middleware(request: Request, call_next):
     """Automatically extract user context from JWT and add to request state."""
-    
+
     # Get Authorization header
     auth_header = request.headers.get("Authorization")
-    
+
     if auth_header and auth_header.startswith("Bearer "):
         token = auth_header[7:]
         payload = token_manager.verify_token(token)
-        
+
         if payload:
             # Add user context to request state
             request.state.user_context = JiraTools.extract_user_from_token(payload)
-    
+
     response = await call_next(request)
     return response
 
@@ -274,13 +274,13 @@ async def add_user_context_middleware(request: Request, call_next):
 @router.post("/jira/comment")
 async def add_comment(request: Request, issue_key: str, comment: str):
     on_behalf_of = getattr(request.state, "user_context", None)
-    
+
     result = jira_tools.add_jira_comment(
         issue_key=issue_key,
         comment_body=comment,
         on_behalf_of=on_behalf_of
     )
-    
+
     return result
 ```
 

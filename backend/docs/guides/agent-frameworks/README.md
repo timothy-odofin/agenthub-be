@@ -33,7 +33,7 @@ response = await agent.run("Search for the latest Python trends")
 
 ### 2. LangGraph Agents
 
-**Location:** 
+**Location:**
 - `src/app/agent/frameworks/langgraph_agent.py`
 - `src/app/agent/implementations/langgraph_react_agent.py`
 
@@ -95,7 +95,7 @@ from typing import Dict, Any, List
 
 class BaseAgent(ABC):
     """Base interface for all agent implementations."""
-    
+
     @abstractmethod
     async def run(
         self,
@@ -105,7 +105,7 @@ class BaseAgent(ABC):
     ) -> str:
         """Execute agent with given message and context."""
         pass
-    
+
     @abstractmethod
     async def stream(
         self,
@@ -126,11 +126,11 @@ logger = get_logger(__name__)
 
 class CustomAgent(BaseAgent):
     """Your custom agent implementation."""
-    
+
     def __init__(self):
         self.llm = get_llm()  # Get configured LLM
         self.tools = get_tools()  # Get available tools
-    
+
     async def run(
         self,
         message: str,
@@ -138,22 +138,22 @@ class CustomAgent(BaseAgent):
         tools: List[str] = None
     ) -> str:
         """Custom agent logic here."""
-        
+
         # 1. Analyze the message
         intent = await self._analyze_intent(message)
-        
+
         # 2. Select appropriate tools
         selected_tools = self._select_tools(intent, tools)
-        
+
         # 3. Execute with LLM
         response = await self.llm.generate(
             prompt=message,
             context=context,
             tools=selected_tools
         )
-        
+
         return response
-    
+
     async def stream(self, message: str, context: Dict[str, Any] = None):
         """Implement streaming if needed."""
         async for chunk in self.llm.stream(message, context):
@@ -263,11 +263,11 @@ agent:
   default_type: "langchain"  # Default agent to use
   timeout: 60  # Agent execution timeout
   max_iterations: 5  # Max reasoning steps
-  
+
   langchain:
     verbose: true
     max_tokens: 2000
-  
+
   langgraph:
     max_nodes: 10
     parallel_execution: true
@@ -331,13 +331,13 @@ See [Cache Service Guide](../redis-cache-service.md) for details.
 async def complex_workflow(query: str):
     # Step 1: Search for information
     search_result = await agent.use_tool("web_search", {"query": query})
-    
+
     # Step 2: Create Jira issue with findings
     issue = await agent.use_tool("jira", {
         "action": "create",
         "data": search_result
     })
-    
+
     # Step 3: Notify team
     await agent.use_tool("slack", {
         "action": "notify",

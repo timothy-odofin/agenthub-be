@@ -47,17 +47,17 @@ from functools import wraps
 class ToolRegistry:
     """
     Registry for dynamically registering agent tools.
-    
+
     Benefits:
     - No code changes to add new tools
     - Tools discovered automatically
     - Type-safe registration
     """
-    
+
     def __init__(self):
         self._tools: Dict[str, Callable] = {}
         self._metadata: Dict[str, Dict[str, Any]] = {}
-    
+
     def register(
         self,
         name: str,
@@ -66,7 +66,7 @@ class ToolRegistry:
     ):
         """
         Decorator to register a tool.
-        
+
         Example:
             @tool_registry.register("jira_create_issue")
             async def create_issue(summary: str, description: str):
@@ -80,20 +80,20 @@ class ToolRegistry:
                 "category": category,
                 "parameters": self._extract_params(func)
             }
-            
+
             @wraps(func)
             async def wrapper(*args, **kwargs):
                 return await func(*args, **kwargs)
-            
+
             return wrapper
         return decorator
-    
+
     def get_tool(self, name: str) -> Callable:
         """Retrieve a registered tool."""
         if name not in self._tools:
             raise KeyError(f"Tool '{name}' not registered")
         return self._tools[name]
-    
+
     def list_tools(self, category: str = None) -> Dict[str, Dict]:
         """List all registered tools, optionally filtered by category."""
         if category:
@@ -103,7 +103,7 @@ class ToolRegistry:
                 if meta["category"] == category
             }
         return self._metadata.copy()
-    
+
     @staticmethod
     def _extract_params(func: Callable) -> Dict:
         """Extract parameter information from function signature."""
@@ -141,7 +141,7 @@ async def create_jira_issue(
     """Create a Jira issue and return the issue key."""
     # Implementation using Jira service
     from src.app.services.jira_service import JiraService
-    
+
     service = JiraService()
     issue = await service.create_issue(
         project=project,
@@ -192,12 +192,12 @@ from abc import ABC, abstractmethod
 
 class BaseLLM(ABC):
     """Abstract base class for all LLM providers."""
-    
+
     @abstractmethod
     async def generate(self, prompt: str, **kwargs) -> str:
         """Generate text from prompt."""
         pass
-    
+
     @abstractmethod
     async def generate_structured(self, prompt: str, schema: dict) -> dict:
         """Generate structured output matching schema."""
@@ -205,7 +205,7 @@ class BaseLLM(ABC):
 
 class OpenAILLM(BaseLLM):
     """OpenAI implementation."""
-    
+
     def __init__(
         self,
         model: str,
@@ -217,7 +217,7 @@ class OpenAILLM(BaseLLM):
         self.client = openai.AsyncOpenAI(api_key=api_key)
         self.model = model
         self.temperature = temperature
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         response = await self.client.chat.completions.create(
             model=self.model,
@@ -226,7 +226,7 @@ class OpenAILLM(BaseLLM):
             **kwargs
         )
         return response.choices[0].message.content
-    
+
     async def generate_structured(self, prompt: str, schema: dict) -> dict:
         response = await self.client.chat.completions.create(
             model=self.model,
@@ -238,7 +238,7 @@ class OpenAILLM(BaseLLM):
 
 class AzureOpenAILLM(BaseLLM):
     """Azure OpenAI implementation."""
-    
+
     def __init__(
         self,
         deployment: str,
@@ -254,7 +254,7 @@ class AzureOpenAILLM(BaseLLM):
             api_version=api_version
         )
         self.deployment = deployment
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         response = await self.client.chat.completions.create(
             model=self.deployment,
@@ -262,19 +262,19 @@ class AzureOpenAILLM(BaseLLM):
             **kwargs
         )
         return response.choices[0].message.content
-    
+
     async def generate_structured(self, prompt: str, schema: dict) -> dict:
         # Similar to OpenAI implementation
         pass
 
 class AnthropicLLM(BaseLLM):
     """Anthropic Claude implementation."""
-    
+
     def __init__(self, model: str, api_key: str, **kwargs):
         import anthropic
         self.client = anthropic.AsyncAnthropic(api_key=api_key)
         self.model = model
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         response = await self.client.messages.create(
             model=self.model,
@@ -282,7 +282,7 @@ class AnthropicLLM(BaseLLM):
             **kwargs
         )
         return response.content[0].text
-    
+
     async def generate_structured(self, prompt: str, schema: dict) -> dict:
         # Implementation with tool use for structured output
         pass
@@ -290,24 +290,24 @@ class AnthropicLLM(BaseLLM):
 class LLMFactory:
     """
     Factory for creating LLM instances.
-    
+
     Benefits:
     - Switch providers without code changes
     - Centralized configuration
     - Easy to add new providers
     """
-    
+
     _providers: Dict[str, type] = {
         "openai": OpenAILLM,
         "azure": AzureOpenAILLM,
         "anthropic": AnthropicLLM,
     }
-    
+
     @classmethod
     def register_provider(cls, name: str, provider_class: type):
         """Register a custom LLM provider."""
         cls._providers[name] = provider_class
-    
+
     @classmethod
     def create_llm(
         cls,
@@ -316,17 +316,17 @@ class LLMFactory:
     ) -> BaseLLM:
         """
         Create an LLM instance for the specified provider.
-        
+
         Args:
             provider: Provider name (openai, azure, anthropic)
             **kwargs: Provider-specific configuration
-            
+
         Returns:
             Configured LLM instance
-            
+
         Raises:
             ValueError: If provider not supported
-            
+
         Example:
             llm = LLMFactory.create_llm(
                 provider="openai",
@@ -339,10 +339,10 @@ class LLMFactory:
                 f"Provider '{provider}' not supported. "
                 f"Available: {list(cls._providers.keys())}"
             )
-        
+
         provider_class = cls._providers[provider]
         return provider_class(**kwargs)
-    
+
     @classmethod
     def create_from_config(cls, config: dict) -> BaseLLM:
         """Create LLM from configuration dictionary."""
@@ -427,7 +427,7 @@ class LLMSettings(BaseSettings):
     openai_api_key: str = Field(default="", alias="OPENAI_API_KEY")
     azure_api_key: str = Field(default="", alias="AZURE_OPENAI_API_KEY")
     azure_endpoint: str = Field(default="", alias="AZURE_OPENAI_ENDPOINT")
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -437,7 +437,7 @@ class DatabaseSettings(BaseSettings):
     postgres_url: str = Field(alias="DATABASE_URL")
     mongodb_url: str = Field(alias="MONGODB_URL")
     redis_url: str = Field(default="redis://localhost:6379", alias="REDIS_URL")
-    
+
     class Config:
         env_file = ".env"
 
@@ -446,11 +446,11 @@ class AppSettings(BaseSettings):
     app_name: str = "AgentHub"
     environment: str = Field(default="dev", alias="APP_ENV")
     debug: bool = Field(default=False)
-    
+
     # Nested settings
     llm: LLMSettings = Field(default_factory=LLMSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    
+
     class Config:
         env_file = ".env"
 
@@ -458,16 +458,16 @@ class AppSettings(BaseSettings):
 def get_settings() -> AppSettings:
     """
     Get application settings singleton.
-    
+
     Uses @lru_cache to ensure only one instance is created.
     The instance is cached and reused for all subsequent calls.
-    
+
     Benefits:
     - Single source of truth
     - Lazy initialization
     - Thread-safe (in CPython)
     - Memory efficient
-    
+
     Returns:
         AppSettings instance
     """
@@ -481,7 +481,7 @@ class SingletonMeta(type):
     """
     _instances = {}
     _lock = threading.Lock()
-    
+
     def __call__(cls, *args, **kwargs):
         with cls._lock:
             if cls not in cls._instances:
@@ -492,22 +492,22 @@ class SingletonMeta(type):
 class ConnectionPool(metaclass=SingletonMeta):
     """
     Database connection pool singleton.
-    
+
     Ensures all parts of the application use the same connection pool.
     """
-    
+
     def __init__(self):
         if hasattr(self, '_initialized'):
             return
         self._initialized = True
         self._pool = None
         self._settings = get_settings()
-    
+
     async def initialize(self):
         """Initialize the connection pool."""
         if self._pool is not None:
             return
-        
+
         import asyncpg
         self._pool = await asyncpg.create_pool(
             self._settings.database.postgres_url,
@@ -515,13 +515,13 @@ class ConnectionPool(metaclass=SingletonMeta):
             max_size=20,
             command_timeout=60
         )
-    
+
     async def acquire(self):
         """Get a connection from the pool."""
         if self._pool is None:
             await self.initialize()
         return await self._pool.acquire()
-    
+
     async def close(self):
         """Close all connections in the pool."""
         if self._pool:
@@ -592,7 +592,7 @@ class Chunk:
 
 class ChunkingStrategy(ABC):
     """Abstract base class for chunking strategies."""
-    
+
     @abstractmethod
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
         """Split text into chunks."""
@@ -601,52 +601,52 @@ class ChunkingStrategy(ABC):
 class FixedSizeChunkingStrategy(ChunkingStrategy):
     """
     Split text into fixed-size chunks with optional overlap.
-    
+
     Best for: Consistent chunk sizes, simple documents
     """
-    
+
     def __init__(self, chunk_size: int = 1000, overlap: int = 200):
         self.chunk_size = chunk_size
         self.overlap = overlap
-    
+
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
         chunks = []
         start = 0
-        
+
         while start < len(text):
             end = min(start + self.chunk_size, len(text))
             chunk_text = text[start:end]
-            
+
             chunks.append(Chunk(
                 text=chunk_text,
                 start_idx=start,
                 end_idx=end,
                 metadata={"strategy": "fixed_size", "size": len(chunk_text)}
             ))
-            
+
             start = end - self.overlap if end < len(text) else end
-        
+
         return chunks
 
 class SemanticChunkingStrategy(ChunkingStrategy):
     """
     Split text based on semantic boundaries (paragraphs, sentences).
-    
+
     Best for: Maintaining context, natural language
     """
-    
+
     def __init__(self, max_chunk_size: int = 1000):
         self.max_chunk_size = max_chunk_size
-    
+
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
         import re
-        
+
         # Split by paragraphs first
         paragraphs = text.split('\n\n')
         chunks = []
         current_chunk = ""
         start_idx = 0
-        
+
         for para in paragraphs:
             if len(current_chunk) + len(para) <= self.max_chunk_size:
                 current_chunk += para + "\n\n"
@@ -660,7 +660,7 @@ class SemanticChunkingStrategy(ChunkingStrategy):
                     ))
                     start_idx += len(current_chunk)
                 current_chunk = para + "\n\n"
-        
+
         if current_chunk:
             chunks.append(Chunk(
                 text=current_chunk.strip(),
@@ -668,16 +668,16 @@ class SemanticChunkingStrategy(ChunkingStrategy):
                 end_idx=start_idx + len(current_chunk),
                 metadata={"strategy": "semantic"}
             ))
-        
+
         return chunks
 
 class RecursiveChunkingStrategy(ChunkingStrategy):
     """
     Recursively split text by different separators.
-    
+
     Best for: Code, structured documents
     """
-    
+
     def __init__(
         self,
         separators: List[str] = None,
@@ -687,10 +687,10 @@ class RecursiveChunkingStrategy(ChunkingStrategy):
         self.separators = separators or ["\n\n", "\n", ". ", " ", ""]
         self.chunk_size = chunk_size
         self.overlap = overlap
-    
+
     def chunk(self, text: str, **kwargs) -> List[Chunk]:
         return self._split_text(text, self.separators)
-    
+
     def _split_text(
         self,
         text: str,
@@ -703,14 +703,14 @@ class RecursiveChunkingStrategy(ChunkingStrategy):
                 end_idx=len(text),
                 metadata={"strategy": "recursive"}
             )]
-        
+
         separator = separators[0]
         splits = text.split(separator)
-        
+
         chunks = []
         current_chunk = ""
         start_idx = 0
-        
+
         for split in splits:
             if len(current_chunk) + len(split) <= self.chunk_size:
                 current_chunk += split + separator
@@ -723,7 +723,7 @@ class RecursiveChunkingStrategy(ChunkingStrategy):
                         metadata={"strategy": "recursive", "separator": separator}
                     ))
                     start_idx += len(current_chunk)
-                
+
                 # If split is still too large, use next separator
                 if len(split) > self.chunk_size:
                     chunks.extend(
@@ -731,7 +731,7 @@ class RecursiveChunkingStrategy(ChunkingStrategy):
                     )
                 else:
                     current_chunk = split + separator
-        
+
         if current_chunk:
             chunks.append(Chunk(
                 text=current_chunk,
@@ -739,28 +739,28 @@ class RecursiveChunkingStrategy(ChunkingStrategy):
                 end_idx=start_idx + len(current_chunk),
                 metadata={"strategy": "recursive", "separator": separator}
             ))
-        
+
         return chunks
 
 class ChunkingContext:
     """
     Context class for using chunking strategies.
-    
+
     Allows runtime strategy selection.
     """
-    
+
     def __init__(self, strategy: ChunkingStrategy):
         self._strategy = strategy
-    
+
     @property
     def strategy(self) -> ChunkingStrategy:
         return self._strategy
-    
+
     @strategy.setter
     def strategy(self, strategy: ChunkingStrategy):
         """Change strategy at runtime."""
         self._strategy = strategy
-    
+
     def chunk_text(self, text: str, **kwargs) -> List[Chunk]:
         """Execute chunking with current strategy."""
         return self._strategy.chunk(text, **kwargs)
@@ -828,14 +828,14 @@ from app.core.constants import EmbeddingType
 class EmbeddingConfigProvider(ABC):
     """
     Strategy interface for embedding configuration providers.
-    
+
     Allows different sources for embedding configurations:
     - Settings (production)
     - Dictionary (testing)
     - Database (runtime)
     - API (remote config)
     """
-    
+
     @abstractmethod
     def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
         """Retrieve configuration for a specific embedding type."""
@@ -843,21 +843,21 @@ class EmbeddingConfigProvider(ABC):
 
 class SettingsConfigProvider(EmbeddingConfigProvider):
     """Production strategy: Load from settings.embeddings."""
-    
+
     def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
         from app.core.config.framework.settings import settings
         from app.core.config.utils.config_converter import dynamic_config_to_dict
-        
+
         config_key = embedding_type.value.lower()  # 'openai', 'huggingface', etc.
         embedding_config = getattr(settings.embeddings, config_key)
         return dynamic_config_to_dict(embedding_config)
 
 class DictConfigProvider(EmbeddingConfigProvider):
     """Test strategy: Load from in-memory dictionary."""
-    
+
     def __init__(self, configs: Dict[EmbeddingType, Dict[str, Any]]):
         self._configs = configs
-    
+
     def get_config(self, embedding_type: EmbeddingType) -> Dict[str, Any]:
         if embedding_type not in self._configs:
             raise ValueError(f"Config for {embedding_type} not found")
@@ -865,14 +865,14 @@ class DictConfigProvider(EmbeddingConfigProvider):
 
 class EmbeddingFactory:
     """Factory with pluggable configuration strategy."""
-    
+
     _config_provider: EmbeddingConfigProvider = SettingsConfigProvider()  # Default
-    
+
     @classmethod
     def set_config_provider(cls, provider: EmbeddingConfigProvider) -> None:
         """Swap configuration strategy at runtime."""
         cls._config_provider = provider
-    
+
     @classmethod
     def get_embedding_model(cls, embedding_type: EmbeddingType):
         """Create embedding model using current config strategy."""
@@ -945,40 +945,40 @@ import json
 
 class LLMDecorator:
     """Base decorator for LLM enhancements."""
-    
+
     def __init__(self, llm):
         self._llm = llm
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         return await self._llm.generate(prompt, **kwargs)
 
 class CachedLLM(LLMDecorator):
     """
     Add caching to LLM responses.
-    
+
     Caches based on prompt + parameters hash.
     """
-    
+
     def __init__(self, llm, cache_backend=None, ttl: int = 3600):
         super().__init__(llm)
         self._cache = cache_backend or {}
         self._ttl = ttl
-    
+
     def _cache_key(self, prompt: str, **kwargs) -> str:
         """Generate cache key from prompt and params."""
         content = json.dumps({"prompt": prompt, **kwargs}, sort_keys=True)
         return hashlib.md5(content.encode()).hexdigest()
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         cache_key = self._cache_key(prompt, **kwargs)
-        
+
         # Check cache
         if cache_key in self._cache:
             cached_data = self._cache[cache_key]
             if time.time() - cached_data["timestamp"] < self._ttl:
                 print(f"Cache hit for prompt: {prompt[:50]}...")
                 return cached_data["response"]
-        
+
         # Generate and cache
         response = await self._llm.generate(prompt, **kwargs)
         self._cache[cache_key] = {
@@ -990,10 +990,10 @@ class CachedLLM(LLMDecorator):
 class RetryLLM(LLMDecorator):
     """
     Add retry logic to LLM calls.
-    
+
     Retries on transient errors with exponential backoff.
     """
-    
+
     def __init__(
         self,
         llm,
@@ -1005,18 +1005,18 @@ class RetryLLM(LLMDecorator):
         self.max_retries = max_retries
         self.base_delay = base_delay
         self.max_delay = max_delay
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         import asyncio
         from openai import APIError, RateLimitError
-        
+
         for attempt in range(self.max_retries):
             try:
                 return await self._llm.generate(prompt, **kwargs)
             except (APIError, RateLimitError) as e:
                 if attempt == self.max_retries - 1:
                     raise
-                
+
                 # Exponential backoff
                 delay = min(
                     self.base_delay * (2 ** attempt),
@@ -1024,26 +1024,26 @@ class RetryLLM(LLMDecorator):
                 )
                 print(f"Retry {attempt + 1}/{self.max_retries} after {delay}s")
                 await asyncio.sleep(delay)
-        
+
         raise Exception("Max retries exceeded")
 
 class MonitoredLLM(LLMDecorator):
     """
     Add monitoring and metrics to LLM calls.
-    
+
     Tracks: latency, token usage, errors
     """
-    
+
     def __init__(self, llm, metrics_collector=None):
         super().__init__(llm)
         self._metrics = metrics_collector
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         start_time = time.time()
-        
+
         try:
             response = await self._llm.generate(prompt, **kwargs)
-            
+
             # Record success metrics
             duration = time.time() - start_time
             if self._metrics:
@@ -1054,9 +1054,9 @@ class MonitoredLLM(LLMDecorator):
                     prompt_tokens=len(prompt.split()),
                     status="success"
                 )
-            
+
             return response
-            
+
         except Exception as e:
             # Record error metrics
             duration = time.time() - start_time
@@ -1073,10 +1073,10 @@ class MonitoredLLM(LLMDecorator):
 class RateLimitedLLM(LLMDecorator):
     """
     Add rate limiting to LLM calls.
-    
+
     Implements token bucket algorithm.
     """
-    
+
     def __init__(
         self,
         llm,
@@ -1089,16 +1089,16 @@ class RateLimitedLLM(LLMDecorator):
         self._request_tokens = requests_per_minute
         self._token_bucket = tokens_per_minute
         self._last_refill = time.time()
-    
+
     async def _refill_buckets(self):
         """Refill token buckets based on elapsed time."""
         now = time.time()
         elapsed = now - self._last_refill
-        
+
         # Refill at rate per second
         request_refill = (self.requests_per_minute / 60) * elapsed
         token_refill = (self.tokens_per_minute / 60) * elapsed
-        
+
         self._request_tokens = min(
             self.requests_per_minute,
             self._request_tokens + request_refill
@@ -1108,31 +1108,31 @@ class RateLimitedLLM(LLMDecorator):
             self._token_bucket + token_refill
         )
         self._last_refill = now
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         import asyncio
-        
+
         estimated_tokens = len(prompt.split()) * 1.3  # Rough estimate
-        
+
         # Wait until we have capacity
         while True:
             await self._refill_buckets()
-            
-            if (self._request_tokens >= 1 and 
+
+            if (self._request_tokens >= 1 and
                 self._token_bucket >= estimated_tokens):
                 self._request_tokens -= 1
                 self._token_bucket -= estimated_tokens
                 break
-            
+
             await asyncio.sleep(0.1)
-        
+
         return await self._llm.generate(prompt, **kwargs)
 
 # Function decorator for retry logic
 def with_retry(max_retries: int = 3, base_delay: float = 1.0):
     """
     Decorator to add retry logic to any async function.
-    
+
     Example:
         @with_retry(max_retries=3, base_delay=2.0)
         async def fetch_data(url: str):
@@ -1143,18 +1143,18 @@ def with_retry(max_retries: int = 3, base_delay: float = 1.0):
         @wraps(func)
         async def wrapper(*args, **kwargs) -> Any:
             import asyncio
-            
+
             for attempt in range(max_retries):
                 try:
                     return await func(*args, **kwargs)
                 except Exception as e:
                     if attempt == max_retries - 1:
                         raise
-                    
+
                     delay = base_delay * (2 ** attempt)
                     print(f"Retry {attempt + 1}/{max_retries} after {delay}s: {e}")
                     await asyncio.sleep(delay)
-        
+
         return wrapper
     return decorator
 ```
@@ -1224,12 +1224,35 @@ async def fetch_external_api(url: str):
 ### Purpose
 **Define skeleton of an algorithm**, letting subclasses override specific steps.
 
-### Use Cases in AgentHub
-1. **Agent Execution Flow**: Common flow, custom steps
-2. **Data Pipeline**: ETL with customizable transforms
-3. **Report Generation**: Standard format, custom content
+### Production Implementation ⭐ **NEW - Feb 25, 2026**
 
-### Implementation
+AgentHub now uses the Template Method Pattern for **LLM Provider initialization** across all 7 providers (OpenAI, Anthropic, Groq, Google, Azure, Ollama, HuggingFace).
+
+**Key Benefits:**
+- ✅ Zero code duplication - Initialization in ONE place (base class)
+- ✅ Impossible to bypass - Architecturally enforced
+- ✅ Clean child classes - Focus only on generation logic
+- ✅ Maintainable - Update once, all providers benefit
+
+**Implementation Location:** `app/infrastructure/llm/base/base_llm_provider.py`
+
+**📖 See Complete Details:** [REFACTORING-2026-02-25.md](./REFACTORING-2026-02-25.md)
+
+The refactoring document includes:
+- Full code examples with before/after
+- Migration guide for developers
+- Service code optimization details
+- Design pattern benefits and tradeoffs
+
+---
+
+### Use Cases in AgentHub
+1. **LLM Provider Initialization** ⭐ **PRIMARY** - Production implementation (Feb 2026)
+2. **Agent Execution Flow**: Common flow, custom steps (Conceptual)
+3. **Data Pipeline**: ETL with customizable transforms (Conceptual)
+4. **Report Generation**: Standard format, custom content (Conceptual)
+
+### Conceptual Implementation Example
 
 ```python
 # src/app/agent/base.py
@@ -1257,82 +1280,82 @@ class AgentResponse:
 class BaseAgent(ABC):
     """
     Template for agent execution flow.
-    
+
     Defines the standard steps all agents follow:
     1. Prepare context
     2. Plan actions
     3. Execute tools
     4. Generate response
     5. Post-process
-    
+
     Subclasses override specific steps.
     """
-    
+
     def __init__(self, llm, tools: List = None):
         self.llm = llm
         self.tools = tools or []
-    
+
     async def run(self, context: AgentContext) -> AgentResponse:
         """
         Template method defining the execution flow.
-        
+
         This is the skeleton - subclasses don't override this.
         """
         # Step 1: Prepare
         prepared_context = await self.prepare_context(context)
-        
+
         # Step 2: Plan
         plan = await self.create_plan(prepared_context)
-        
+
         # Step 3: Execute tools (if needed)
         tool_results = []
         if plan.requires_tools:
             tool_results = await self.execute_tools(plan.tool_calls)
-        
+
         # Step 4: Generate response
         response = await self.generate_response(
             prepared_context,
             tool_results
         )
-        
+
         # Step 5: Post-process
         final_response = await self.post_process(response)
-        
+
         return final_response
-    
+
     # Template methods - subclasses override these
-    
+
     async def prepare_context(self, context: AgentContext) -> AgentContext:
         """
         Prepare context for processing.
-        
+
         Default implementation - subclasses can override.
         """
         return context
-    
+
     @abstractmethod
     async def create_plan(self, context: AgentContext) -> 'ExecutionPlan':
         """
         Create execution plan (abstract - must override).
-        
+
         Subclasses implement their planning strategy.
         """
         pass
-    
+
     async def execute_tools(
         self,
         tool_calls: List[Dict[str, Any]]
     ) -> List[Dict[str, Any]]:
         """
         Execute tool calls.
-        
+
         Default implementation - can be overridden for custom logic.
         """
         results = []
         for call in tool_calls:
             tool_name = call["name"]
             tool_args = call["arguments"]
-            
+
             # Find and execute tool
             tool = next((t for t in self.tools if t.name == tool_name), None)
             if tool:
@@ -1341,9 +1364,9 @@ class BaseAgent(ABC):
                     "tool": tool_name,
                     "result": result
                 })
-        
+
         return results
-    
+
     @abstractmethod
     async def generate_response(
         self,
@@ -1352,15 +1375,15 @@ class BaseAgent(ABC):
     ) -> AgentResponse:
         """
         Generate final response (abstract - must override).
-        
+
         Subclasses implement their response generation.
         """
         pass
-    
+
     async def post_process(self, response: AgentResponse) -> AgentResponse:
         """
         Post-process response.
-        
+
         Default implementation - can be overridden.
         """
         return response
@@ -1376,36 +1399,36 @@ class ExecutionPlan:
 class ReActAgent(BaseAgent):
     """
     ReAct (Reasoning + Acting) agent implementation.
-    
+
     Overrides: create_plan, generate_response
     """
-    
+
     async def create_plan(self, context: AgentContext) -> ExecutionPlan:
         """Create plan using ReAct reasoning."""
         # Build prompt with reasoning template
         prompt = f"""
         User: {context.user_input}
-        
+
         Think step by step:
         1. What information do I need?
         2. What tools can help?
         3. What's my reasoning?
-        
+
         Available tools: {[t.name for t in self.tools]}
         """
-        
+
         # Get LLM to reason
         reasoning = await self.llm.generate(prompt)
-        
+
         # Extract tool calls from reasoning
         tool_calls = self._parse_tool_calls(reasoning)
-        
+
         return ExecutionPlan(
             requires_tools=len(tool_calls) > 0,
             tool_calls=tool_calls,
             reasoning=reasoning
         )
-    
+
     async def generate_response(
         self,
         context: AgentContext,
@@ -1415,22 +1438,22 @@ class ReActAgent(BaseAgent):
         # Build final prompt
         prompt = f"""
         User question: {context.user_input}
-        
+
         Tool results:
         {json.dumps(tool_results, indent=2)}
-        
+
         Provide a comprehensive answer:
         """
-        
+
         output = await self.llm.generate(prompt)
-        
+
         return AgentResponse(
             output=output,
             tool_calls=tool_results,
             tokens_used=len(prompt.split()) + len(output.split()),
             metadata={"agent_type": "react"}
         )
-    
+
     def _parse_tool_calls(self, reasoning: str) -> List[Dict[str, Any]]:
         """Parse tool calls from reasoning text."""
         # Implementation to extract tool calls
@@ -1440,10 +1463,10 @@ class ReActAgent(BaseAgent):
 class ChainOfThoughtAgent(BaseAgent):
     """
     Chain-of-Thought agent implementation.
-    
+
     Overrides: prepare_context, create_plan, generate_response
     """
-    
+
     async def prepare_context(self, context: AgentContext) -> AgentContext:
         """Add CoT examples to context."""
         cot_examples = [
@@ -1453,26 +1476,26 @@ class ChainOfThoughtAgent(BaseAgent):
                 "answer": "100"
             }
         ]
-        
+
         context.metadata["cot_examples"] = cot_examples
         return context
-    
+
     async def create_plan(self, context: AgentContext) -> ExecutionPlan:
         """Create plan with explicit reasoning steps."""
         prompt = f"""
         Question: {context.user_input}
-        
+
         Let's think step by step:
         """
-        
+
         reasoning = await self.llm.generate(prompt)
-        
+
         return ExecutionPlan(
             requires_tools=False,  # CoT doesn't use tools
             tool_calls=[],
             reasoning=reasoning
         )
-    
+
     async def generate_response(
         self,
         context: AgentContext,
@@ -1480,7 +1503,7 @@ class ChainOfThoughtAgent(BaseAgent):
     ) -> AgentResponse:
         """Generate response with explicit reasoning."""
         plan = await self.create_plan(context)
-        
+
         return AgentResponse(
             output=plan.reasoning,
             tool_calls=[],
@@ -1566,7 +1589,7 @@ class EventType(Enum):
 
 class Event:
     """Represents a system event."""
-    
+
     def __init__(
         self,
         event_type: EventType,
@@ -1580,7 +1603,7 @@ class Event:
 
 class EventListener(ABC):
     """Abstract base class for event listeners."""
-    
+
     @abstractmethod
     async def handle_event(self, event: Event):
         """Handle an event."""
@@ -1588,10 +1611,10 @@ class EventListener(ABC):
 
 class LoggingListener(EventListener):
     """Listener that logs all events."""
-    
+
     def __init__(self, logger):
         self.logger = logger
-    
+
     async def handle_event(self, event: Event):
         self.logger.info(
             f"Event: {event.event_type.value}",
@@ -1604,10 +1627,10 @@ class LoggingListener(EventListener):
 
 class MetricsListener(EventListener):
     """Listener that collects metrics."""
-    
+
     def __init__(self, metrics_client):
         self.metrics = metrics_client
-    
+
     async def handle_event(self, event: Event):
         # Record event metric
         self.metrics.increment(
@@ -1617,7 +1640,7 @@ class MetricsListener(EventListener):
                 "timestamp": event.timestamp
             }
         )
-        
+
         # Record specific metrics based on event type
         if event.event_type == EventType.LLM_CALLED:
             self.metrics.histogram(
@@ -1631,10 +1654,10 @@ class MetricsListener(EventListener):
 
 class AuditListener(EventListener):
     """Listener that maintains audit trail."""
-    
+
     def __init__(self, audit_db):
         self.audit_db = audit_db
-    
+
     async def handle_event(self, event: Event):
         # Save to audit database
         await self.audit_db.insert({
@@ -1647,14 +1670,14 @@ class AuditListener(EventListener):
 class EventBus:
     """
     Central event bus for pub/sub messaging.
-    
+
     Implements Observer pattern for system-wide events.
     """
-    
+
     def __init__(self):
         self._listeners: Dict[EventType, List[EventListener]] = {}
         self._global_listeners: List[EventListener] = []
-    
+
     def subscribe(
         self,
         event_type: EventType,
@@ -1664,11 +1687,11 @@ class EventBus:
         if event_type not in self._listeners:
             self._listeners[event_type] = []
         self._listeners[event_type].append(listener)
-    
+
     def subscribe_all(self, listener: EventListener):
         """Subscribe to all events."""
         self._global_listeners.append(listener)
-    
+
     def unsubscribe(
         self,
         event_type: EventType,
@@ -1677,24 +1700,24 @@ class EventBus:
         """Unsubscribe from event type."""
         if event_type in self._listeners:
             self._listeners[event_type].remove(listener)
-    
+
     async def publish(self, event: Event):
         """
         Publish event to all subscribers.
-        
+
         Notifies:
         1. Listeners subscribed to this event type
         2. Global listeners
         """
         listeners = []
-        
+
         # Get specific listeners
         if event.event_type in self._listeners:
             listeners.extend(self._listeners[event.event_type])
-        
+
         # Add global listeners
         listeners.extend(self._global_listeners)
-        
+
         # Notify all listeners concurrently
         await asyncio.gather(
             *[listener.handle_event(event) for listener in listeners],
@@ -1735,11 +1758,11 @@ class InstrumentedAgent:
             data={"session_id": context.session_id},
             metadata={"user_id": context.user_id}
         ))
-        
+
         try:
             # Execute agent logic
             response = await self._execute(context)
-            
+
             # Publish completion event
             await event_bus.publish(Event(
                 event_type=EventType.AGENT_COMPLETED,
@@ -1748,9 +1771,9 @@ class InstrumentedAgent:
                     "tokens_used": response.tokens_used
                 }
             ))
-            
+
             return response
-            
+
         except Exception as e:
             # Publish error event
             await event_bus.publish(Event(
@@ -1799,34 +1822,34 @@ T = TypeVar('T')
 class Container:
     """
     Dependency injection container.
-    
+
     Manages service lifecycle and dependencies.
     """
-    
+
     def __init__(self):
         self._singletons: Dict[Type, Any] = {}
         self._factories: Dict[Type, Callable] = {}
-    
+
     def register_singleton(self, interface: Type[T], instance: T):
         """Register a singleton instance."""
         self._singletons[interface] = instance
-    
+
     def register_factory(self, interface: Type[T], factory: Callable[[], T]):
         """Register a factory function."""
         self._factories[interface] = factory
-    
+
     def resolve(self, interface: Type[T]) -> T:
         """Resolve a dependency."""
         # Check singletons first
         if interface in self._singletons:
             return self._singletons[interface]
-        
+
         # Try factories
         if interface in self._factories:
             return self._factories[interface]()
-        
+
         raise ValueError(f"No registration found for {interface}")
-    
+
     def resolve_all(self, *interfaces: Type) -> tuple:
         """Resolve multiple dependencies."""
         return tuple(self.resolve(interface) for interface in interfaces)
@@ -1838,7 +1861,7 @@ container = Container()
 def inject(*dependencies: Type):
     """
     Decorator to inject dependencies into function.
-    
+
     Example:
         @inject(DatabaseService, LLMService)
         async def process_request(db: DatabaseService, llm: LLMService):
@@ -1850,10 +1873,10 @@ def inject(*dependencies: Type):
         async def wrapper(*args, **kwargs):
             # Resolve dependencies
             resolved = container.resolve_all(*dependencies)
-            
+
             # Call with injected dependencies
             return await func(*args, *resolved, **kwargs)
-        
+
         return wrapper
     return decorator
 ```
@@ -1873,12 +1896,12 @@ def setup_di():
         JiraService,
         JiraService(settings.jira)
     )
-    
+
     container.register_singleton(
         DatadogService,
         DatadogService(settings.datadog)
     )
-    
+
     # Register factories
     container.register_factory(
         LLMFactory,
@@ -1899,7 +1922,7 @@ async def create_ticket_with_ai(
     # Use LLM to generate ticket details
     prompt = f"Generate Jira ticket for: {user_input}"
     ticket_details = await llm.generate(prompt)
-    
+
     # Use Jira service to create ticket
     issue = await jira.create_issue(**ticket_details)
     return issue
@@ -1931,9 +1954,9 @@ def test_create_ticket():
     # Replace real service with mock
     mock_jira = AsyncMock(spec=JiraService)
     mock_jira.create_issue.return_value = {"key": "TEST-123"}
-    
+
     container.register_singleton(JiraService, mock_jira)
-    
+
     # Test function with mocked dependency
     result = await create_ticket_with_ai("Fix bug")
     assert result["key"] == "TEST-123"
@@ -1970,33 +1993,33 @@ class ProductionLLMService:
     - Decorator: Add caching, retry, monitoring
     - Observer: Publish events
     """
-    
+
     _instance = None  # Singleton
-    
+
     def __new__(cls):
         if cls._instance is None:
             cls._instance = super().__new__(cls)
             cls._instance._initialized = False
         return cls._instance
-    
+
     def __init__(self):
         if self._initialized:
             return
-        
+
         self._initialized = True
         settings = get_settings()  # Singleton settings
-        
+
         # Factory: Create base LLM
         base_llm = LLMFactory.create_llm(
             provider=settings.llm.default_provider,
             **settings.llm.get_provider_config()
         )
-        
+
         # Decorator: Add layers
         cached = CachedLLM(base_llm, ttl=3600)
         retried = RetryLLM(cached, max_retries=3)
         self.llm = MonitoredLLM(retried)
-    
+
     async def generate(self, prompt: str, **kwargs) -> str:
         """Generate with full production stack."""
         # Observer: Publish start event
@@ -2004,18 +2027,18 @@ class ProductionLLMService:
             event_type=EventType.LLM_CALLED,
             data={"prompt_length": len(prompt)}
         ))
-        
+
         try:
             response = await self.llm.generate(prompt, **kwargs)
-            
+
             # Observer: Publish success event
             await event_bus.publish(Event(
                 event_type=EventType.LLM_COMPLETED,
                 data={"response_length": len(response)}
             ))
-            
+
             return response
-            
+
         except Exception as e:
             # Observer: Publish error event
             await event_bus.publish(Event(
@@ -2056,6 +2079,6 @@ response = await service.generate("Explain RAG")
 
 ---
 
-**Last Updated**: January 8, 2026  
-**Maintainer**: AgentHub Team  
+**Last Updated**: January 8, 2026
+**Maintainer**: AgentHub Team
 **Status**: Production patterns

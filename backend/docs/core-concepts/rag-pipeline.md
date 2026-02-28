@@ -21,11 +21,11 @@
 ### The Problem RAG Solves
 
 ```python
-# Without RAG 
+# Without RAG
 User: "What was our Q3 revenue?"
 LLM: "I don't have access to your company's financial data."
 
-# With RAG 
+# With RAG
 User: "What was our Q3 revenue?"
 RAG: [Searches your documents] → [Finds Q3 report] → [Sends to LLM]
 LLM: "According to your Q3 report, revenue was $2.3M..."
@@ -213,11 +213,11 @@ chunks = splitter.split_text(document)
 Traditional Search (Keywords):
 Query: "How to reset password"
 Finds: Documents with exact words "reset" and "password"
-Misses: "Change your login credentials" 
+Misses: "Change your login credentials"
 
 Semantic Search (Embeddings):
 Query: "How to reset password"
-Finds: All documents about password/login/credentials 
+Finds: All documents about password/login/credentials
 ```
 
 **AgentHub Embedding Providers:**
@@ -289,8 +289,8 @@ class PgVectorDB(VectorDB):
 """PostgreSQL with pgvector extension for similarity search."""
 
 async def save_and_embed(
-self, 
-embedding_type: EmbeddingType, 
+self,
+embedding_type: EmbeddingType,
 docs: List[Document]
 ) -> List[str]:
 """Store documents with their embeddings."""
@@ -617,8 +617,8 @@ asyncio.run(main())
 
 ```python
 async def query_with_filter(
-self, 
-question: str, 
+self,
+question: str,
 document_type: str = None,
 date_range: tuple = None
 ) -> str:
@@ -662,11 +662,11 @@ chunk_overlap = 200 # Preserve context at boundaries
 ### 2. Overlap Between Chunks
 
 ```python
-# Without overlap 
+# Without overlap
 "...end of sentence." | "Start of new..."
 ↑ Context lost!
 
-# With overlap 
+# With overlap
 "...end of sentence. Start of new..."
 "end of sentence. Start of new concept..."
 ↑ Context preserved!

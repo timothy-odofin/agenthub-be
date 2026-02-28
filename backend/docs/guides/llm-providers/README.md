@@ -47,14 +47,14 @@ All LLM providers are configured in `resources/application-llm.yaml`:
 ```yaml
 llm:
   default_provider: openai  # Default provider to use
-  
+
   openai:
     api_key: "${OPENAI_API_KEY}"
     default_model: "gpt-4"
     temperature: 0.1
     max_tokens: 4096
     timeout: 60
-  
+
   azure:
     api_key: "${AZURE_OPENAI_API_KEY}"
     endpoint: "${AZURE_OPENAI_ENDPOINT}"
@@ -62,30 +62,30 @@ llm:
     api_version: "2024-02-15-preview"
     temperature: 0.1
     max_tokens: 4096
-  
+
   anthropic:
     api_key: "${ANTHROPIC_API_KEY}"
     default_model: "claude-3-opus-20240229"
     temperature: 0.1
     max_tokens: 4096
-  
+
   google:
     api_key: "${GOOGLE_API_KEY}"
     default_model: "gemini-pro"
     temperature: 0.1
     max_tokens: 2048
-  
+
   groq:
     api_key: "${GROQ_API_KEY}"
     default_model: "mixtral-8x7b-32768"
     temperature: 0.1
     max_tokens: 4096
-  
+
   ollama:
     base_url: "${OLLAMA_BASE_URL:http://localhost:11434}"
     default_model: "llama2"
     temperature: 0.1
-  
+
   huggingface:
     api_key: "${HUGGINGFACE_API_KEY}"
     default_model: "meta-llama/Llama-2-7b-chat-hf"
@@ -483,7 +483,7 @@ async def generate_with_fallback(prompt: str):
         LLMProvider.ANTHROPIC,
         LLMProvider.GOOGLE
     ]
-    
+
     for provider in providers:
         try:
             llm = await LLMFactory.create_llm(provider)
@@ -491,7 +491,7 @@ async def generate_with_fallback(prompt: str):
         except Exception as e:
             print(f"{provider} failed: {e}")
             continue
-    
+
     raise Exception("All providers failed")
 ```
 
@@ -509,7 +509,7 @@ async def generate_smartly(prompt: str, complexity: str = "simple"):
     else:
         # Balanced option
         llm = await LLMFactory.create_llm(LLMProvider.GOOGLE)
-    
+
     return await llm.generate(prompt)
 ```
 

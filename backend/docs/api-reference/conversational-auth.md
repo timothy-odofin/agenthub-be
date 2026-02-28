@@ -6,7 +6,7 @@
 
 The Conversational Authentication API provides an alternative signup experience where users interact with an AI agent that guides them through account creation one field at a time.
 
-**Base Path**: `/api/v1/auth/signup/` 
+**Base Path**: `/api/v1/auth/signup/`
 **Authentication**: Not required
 
 **Key Features**:
@@ -683,7 +683,7 @@ localStorage.setItem('token', data.access_token);
 
 ---
 
-**Last Updated**: January 10, 2026 
+**Last Updated**: January 10, 2026
 **Status**: Production Ready
 
 ---

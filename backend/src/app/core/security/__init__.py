@@ -12,23 +12,23 @@ Usage:
         get_current_user_optional,
         require_auth,
     )
-    
+
     # Password operations
     hashed = password_manager.hash_password("MyP@ssw0rd!")
     is_valid = password_manager.verify_password("MyP@ssw0rd!", hashed)
-    
+
     # Token operations
     token = token_manager.create_access_token(
         user_id="123",
         email="user@example.com"
     )
     payload = token_manager.verify_token(token)
-    
+
     # Protect endpoints
     @router.get("/protected")
     async def protected(user = Depends(get_current_user)):
         return {"user_id": user.id}
-    
+
     # Optional authentication
     @router.get("/optional")
     async def optional(user = Depends(get_current_user_optional)):
@@ -37,20 +37,14 @@ Usage:
         return {"message": "Anonymous access"}
 """
 
-from app.core.security.password_handler import (
-    password_manager,
-    PasswordManager,
-)
-from app.core.security.token_manager import (
-    token_manager,
-    TokenManager,
-)
 from app.core.security.dependencies import (
     get_current_user,
     get_current_user_optional,
     get_token_payload,
     require_auth,
 )
+from app.core.security.password_handler import PasswordManager, password_manager
+from app.core.security.token_manager import TokenManager, token_manager
 
 __all__ = [
     "password_manager",

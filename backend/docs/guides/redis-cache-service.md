@@ -214,11 +214,11 @@ The API remains the same - only the import path changed!
 class SignupSessionRepository:
     KEY_PREFIX = "signup"
     SESSION_TTL = 300
-    
+
     async def create_session(self, session_id: str, data: dict):
         key = f"{self.KEY_PREFIX}:{session_id}"
         await self.redis.set(key, json.dumps(data), ex=self.SESSION_TTL)
-    
+
     async def get_session(self, session_id: str):
         key = f"{self.KEY_PREFIX}:{session_id}"
         data = await self.redis.get(key)
@@ -340,23 +340,23 @@ def mock_cache_provider():
 
 async def test_set_and_get(mock_cache_provider):
     cache = CacheService("test", default_ttl=60)
-    
+
     mock_cache_provider.set = AsyncMock(return_value=True)
     mock_cache_provider.get = AsyncMock(return_value={"key": "value"})
-    
+
     await cache.set("test_key", {"key": "value"})
     result = await cache.get("test_key")
-    
+
     assert result == {"key": "value"}
     mock_cache_provider.set.assert_called_once()
 
 async def test_with_in_memory_cache():
     """Test with in-memory provider for unit tests"""
     cache = CacheService("test", default_ttl=60, cache_type=CacheType.IN_MEMORY)
-    
+
     await cache.set("test_key", {"key": "value"})
     result = await cache.get("test_key")
-    
+
     assert result == {"key": "value"}
 ```
 
@@ -367,13 +367,13 @@ Cache providers are configured in `resources/application-cache.yaml`:
 ```yaml
 cache:
   default_provider: redis  # or 'in_memory' for development
-  
+
   redis:
     enabled: true
     namespace_prefix: "agenthub"
     default_ttl: 900
     serializer: "json"
-  
+
   in_memory:
     enabled: true
     max_size: 1000

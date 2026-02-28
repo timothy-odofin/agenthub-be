@@ -1,33 +1,7 @@
 {
-  "name": "agenthub-fe",
-  "version": "1.0.0",
-  "description": "AI-powered chat application with intelligent conversational experiences",
   "author": "Timothy Odofin",
-  "license": "MIT",
-  "repository": {
-    "type": "git",
-    "url": "https://github.com/timothy-odofin/agenthub-fe.git"
-  },
   "bugs": {
     "url": "https://github.com/timothy-odofin/agenthub-fe/issues"
-  },
-  "homepage": "https://github.com/timothy-odofin/agenthub-fe#readme",
-  "keywords": [
-    "ai",
-    "chat",
-    "chatbot",
-    "react",
-    "typescript",
-    "vite",
-    "tailwindcss"
-  ],
-  "private": false,
-  "type": "module",
-  "scripts": {
-    "dev": "vite",
-    "build": "tsc -b && vite build",
-    "lint": "eslint .",
-    "preview": "vite preview"
   },
   "dependencies": {
     "@radix-ui/react-slot": "^1.2.4",
@@ -45,6 +19,7 @@
     "tailwind-merge": "^3.4.0",
     "tailwindcss": "^4.1.18"
   },
+  "description": "AI-powered chat application with intelligent conversational experiences",
   "devDependencies": {
     "@eslint/js": "^9.39.1",
     "@types/node": "^24.10.4",
@@ -59,5 +34,30 @@
     "typescript": "~5.9.3",
     "typescript-eslint": "^8.46.4",
     "vite": "^7.2.4"
-  }
+  },
+  "homepage": "https://github.com/timothy-odofin/agenthub-fe#readme",
+  "keywords": [
+    "ai",
+    "chat",
+    "chatbot",
+    "react",
+    "typescript",
+    "vite",
+    "tailwindcss"
+  ],
+  "license": "MIT",
+  "name": "agenthub-fe",
+  "private": false,
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/timothy-odofin/agenthub-fe.git"
+  },
+  "scripts": {
+    "build": "tsc -b && vite build",
+    "dev": "vite",
+    "lint": "eslint .",
+    "preview": "vite preview"
+  },
+  "type": "module",
+  "version": "1.0.0"
 }

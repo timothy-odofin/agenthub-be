@@ -38,7 +38,7 @@ Instead of importing directly in each method, we created a small helper function
 def _get_settings():
     """
     Lazy load settings to avoid circular import.
-    
+
     We import settings here instead of at the top of the file because both
     the settings module and this service try to import each other. By deferring
     the import until it's actually needed, we break the circular dependency.

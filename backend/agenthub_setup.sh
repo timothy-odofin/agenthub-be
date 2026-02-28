@@ -17,10 +17,10 @@ fi
 if ! command -v poetry &> /dev/null; then
     echo -e "${BLUE}Installing Poetry...${NC}"
     curl -sSL https://install.python-poetry.org | python3 -
-    
+
     # Add Poetry to PATH for the current session
     export PATH="/Users/$(whoami)/.local/bin:$PATH"
-    
+
     # Add Poetry to PATH permanently
     if [[ -f ~/.zshrc ]]; then
         echo 'export PATH="/Users/$(whoami)/.local/bin:$PATH"' >> ~/.zshrc

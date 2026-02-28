@@ -117,7 +117,7 @@ grep -rn "data_sources.dataSources" src/
 # Run unit tests
 pytest tests/unit/
 
-# Run integration tests  
+# Run integration tests
 pytest tests/integration/
 
 # Check application startup

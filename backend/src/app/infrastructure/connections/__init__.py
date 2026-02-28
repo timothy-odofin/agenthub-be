@@ -14,8 +14,8 @@ from .base import BaseConnectionManager, ConnectionRegistry, ConnectionType
 from .factory import ConnectionFactory
 
 __all__ = [
-    'BaseConnectionManager',
-    'ConnectionRegistry', 
-    'ConnectionType',
-    'ConnectionFactory'
+    "BaseConnectionManager",
+    "ConnectionRegistry",
+    "ConnectionType",
+    "ConnectionFactory",
 ]

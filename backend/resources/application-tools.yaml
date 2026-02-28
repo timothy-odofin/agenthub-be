@@ -97,7 +97,7 @@ tools:
           enabled: true
           description: "Search for Confluence pages by text query across titles and content"
           category: "search"
-    
+
   # Vector Store Tools (includes embedded confluence pages)
   vector:
     enabled: true
@@ -136,8 +136,8 @@ tools:
     available_tools:
       # Issues Management
       "Get Issues": true
-      "Get Issue": true  
-      "Comment on Issue": 
+      "Get Issue": true
+      "Comment on Issue":
         enabled: true
         requires_confirmation: true
         risk_level: "low"
@@ -147,11 +147,11 @@ tools:
         requires_confirmation: true
         risk_level: "medium"
         confirmation_reason: "Creates a new GitHub issue that notifies repository watchers"
-      
+
       # Pull Requests
       "List open pull requests (PRs)": true
       "Get Pull Request": true
-      "Create Pull Request": 
+      "Create Pull Request":
         enabled: true
         requires_confirmation: true
         risk_level: "high"
@@ -159,42 +159,42 @@ tools:
       "Create review request": true
       "Overview of files included in PR": true
       "List Pull Requests' Files": true
-      
+
       # File Operations
       "Read File": true
-      "Update File": 
+      "Update File":
         enabled: true
         requires_confirmation: true
         risk_level: "high"
         confirmation_reason: "Modifies file content in the repository which may affect functionality"
-      "Create File": 
+      "Create File":
         enabled: false  # Disabled for safety
         requires_confirmation: true
         risk_level: "high"
         confirmation_reason: "Creates a new file in the repository"
-      "Delete File": 
+      "Delete File":
         enabled: false  # Disabled for safety
         requires_confirmation: true
         risk_level: "high"
         confirmation_reason: "Permanently deletes a file from the repository"
-      
+
       # Repository Navigation
       "Overview of existing files in Main branch": true
       "Overview of files in current working branch": true
       "Get files from a directory": true
-      
-      # Search Capabilities  
+
+      # Search Capabilities
       "Search issues and pull requests": true
       "Search code": true
-      
+
       # Branch Management
       "List branches in this repository": true
-      "Create a new branch": 
+      "Create a new branch":
         enabled: true
         requires_confirmation: true
         risk_level: "medium"
         confirmation_reason: "Creates a new branch in the repository"
-      "Set active branch": 
+      "Set active branch":
         enabled: true
         requires_confirmation: true
         risk_level: "medium"
@@ -244,12 +244,12 @@ tools:
         - "Read LangChain docs about agents"
         - "Find information on Real Python about decorators"
     cache_ttl: 3600  # Cache web content for 1 hour (in seconds)
-    
+
     # Content chunking configuration
     chunking:
       chunk_size: 1000      # Maximum characters per chunk
       chunk_overlap: 200    # Overlap between chunks to maintain context
-    
+
     available_tools:
       # Static URL tools for frequently accessed documentation
       documentation:
@@ -259,21 +259,21 @@ tools:
           description: "Search official Python documentation for language features, standard library APIs, and Python programming concepts"
           category: "documentation"
           max_content_length: 50000
-        
+
         read_fastapi_docs:
           enabled: true
           url: "https://swipe-pay-documentation.readme.io/reference/javascript"
           description: "Search FastAPI documentation for web framework patterns, API development, and async request handling"
           category: "documentation"
           max_content_length: 50000
-        
+
         read_langchain_docs:
           enabled: true
           url: "https://python.langchain.com/docs/"
           description: "Search LangChain documentation for LLM integration patterns, chains, agents, and RAG implementations"
           category: "documentation"
           max_content_length: 50000
-      
+
       # Generic URL reader with domain whitelisting
       generic:
         read_web_url:
@@ -285,15 +285,15 @@ tools:
             - "docs.python.org"
             - "fastapi.tiangolo.com"
             - "python.langchain.com"
-            
+
             # Additional allowed domains
             - "realpython.com"
             - "stackoverflow.com"
             - "github.com"
             - "docs.github.com"
-            
+
             # Wildcard patterns for organizational domains
             # - "*.company.com"
             # - "*.internal"
-          
+
           max_content_length: 50000  # Maximum 50KB per page

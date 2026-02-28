@@ -8,9 +8,9 @@ Provides endpoints to:
 
 from fastapi import APIRouter
 
-from app.schemas.llm import ProvidersResponse, ProviderDetailInfo
-from app.services.llm_service import llm_service
 from app.core.utils.logger import get_logger
+from app.schemas.llm import ProviderDetailInfo, ProvidersResponse
+from app.services.llm_service import llm_service
 
 logger = get_logger(__name__)
 router = APIRouter()
@@ -20,7 +20,7 @@ router = APIRouter()
 async def list_providers():
     """
     Get list of available LLM providers.
-    
+
     Returns only providers that are properly configured (have API keys, etc.).
     Each provider includes:
     - name: Provider identifier (e.g., "openai", "anthropic")
@@ -28,9 +28,9 @@ async def list_providers():
     - model_versions: Available models for this provider
     - default_model: The default model for this provider
     - is_default: Whether this is the system's default provider
-    
+
     Frontend can use this to populate provider selection dropdown.
-    
+
     **Example Response:**
     ```json
     {
@@ -56,35 +56,31 @@ async def list_providers():
     ```
     """
     providers = llm_service.get_available_providers()
-    
-    return ProvidersResponse(
-        success=True,
-        providers=providers,
-        total=len(providers)
-    )
+
+    return ProvidersResponse(success=True, providers=providers, total=len(providers))
 
 
 @router.get("/providers/{provider_name}", response_model=ProviderDetailInfo)
 async def get_provider(provider_name: str):
     """
     Get detailed information about a specific provider.
-    
+
     Returns extended provider information including base_url, timeout, and max_tokens.
-    
+
     **Path Parameters:**
     - provider_name: The provider identifier (e.g., "openai", "anthropic", "groq")
-        
+
     **Returns:**
     Detailed provider configuration including:
     - All fields from list endpoint
     - base_url: API endpoint URL
     - timeout: Request timeout in seconds
     - max_tokens: Maximum token limit
-    
+
     **Errors:**
     - 404: If provider not found or not configured (missing API key)
     - 500: Internal server error
-    
+
     **Example Response:**
     ```json
     {

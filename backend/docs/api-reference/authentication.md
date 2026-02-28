@@ -210,7 +210,7 @@ if response.status_code == 200:
     data = response.json()
     access_token = data["access_token"]
     refresh_token = data["refresh_token"]
-    
+
     # Store tokens securely
     # Use access_token for subsequent requests
     print(f"Login successful! User: {data['username']}")
@@ -285,7 +285,7 @@ if response.status_code == 200:
     data = response.json()
     new_access_token = data["access_token"]
     new_refresh_token = data["refresh_token"]
-    
+
     # Update stored tokens
     print("Tokens refreshed successfully")
 else:
@@ -298,8 +298,8 @@ else:
 
 ### Access Token
 
-**Lifetime**: 15 minutes  
-**Purpose**: Authenticate API requests  
+**Lifetime**: 15 minutes
+**Purpose**: Authenticate API requests
 **Storage**: Memory or secure cookie
 
 **Usage**:
@@ -310,8 +310,8 @@ curl http://localhost:8000/api/v1/chat/message \
 
 ### Refresh Token
 
-**Lifetime**: 7 days  
-**Purpose**: Obtain new access tokens  
+**Lifetime**: 7 days
+**Purpose**: Obtain new access tokens
 **Storage**: Secure HTTP-only cookie (recommended) or encrypted storage
 
 **When to Refresh**:
@@ -334,7 +334,7 @@ class AuthClient:
         self.access_token = None
         self.refresh_token = None
         self.token_expiry = None
-    
+
     def signup(self, email, username, password, firstname, lastname):
         """Register a new user."""
         response = requests.post(
@@ -347,14 +347,14 @@ class AuthClient:
                 "lastname": lastname
             }
         )
-        
+
         if response.status_code == 201:
             data = response.json()
             self._store_tokens(data)
             return data
         else:
             raise Exception(f"Signup failed: {response.json()}")
-    
+
     def login(self, identifier, password):
         """Login with username or email."""
         response = requests.post(
@@ -364,44 +364,44 @@ class AuthClient:
                 "password": password
             }
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self._store_tokens(data)
             return data
         else:
             raise Exception(f"Login failed: {response.json()}")
-    
+
     def refresh(self):
         """Refresh the access token."""
         if not self.refresh_token:
             raise Exception("No refresh token available")
-        
+
         response = requests.post(
             f"{self.base_url}/api/v1/auth/refresh",
             json={"refresh_token": self.refresh_token}
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self._store_tokens(data)
             return data
         else:
             raise Exception(f"Token refresh failed: {response.json()}")
-    
+
     def _store_tokens(self, data):
         """Store tokens and set expiry."""
         self.access_token = data.get("access_token")
         self.refresh_token = data.get("refresh_token")
         # Access token expires in 15 minutes
         self.token_expiry = datetime.now() + timedelta(minutes=15)
-    
+
     def get_headers(self):
         """Get authorization headers, refreshing if needed."""
         # Refresh if token expires in less than 1 minute
         if self.token_expiry and datetime.now() >= self.token_expiry - timedelta(minutes=1):
             self.refresh()
-        
+
         return {
             "Authorization": f"Bearer {self.access_token}",
             "Content-Type": "application/json"
@@ -488,7 +488,7 @@ base_url = "http://localhost:8000"
 
 ## Rate Limiting
 
-**Current Status**: Not implemented  
+**Current Status**: Not implemented
 **Planned**:
 - 5 signup attempts per hour per IP
 - 10 login attempts per hour per IP
@@ -532,7 +532,7 @@ base_url = "http://localhost:8000"
 
 ---
 
-**Last Updated**: January 10, 2026  
+**Last Updated**: January 10, 2026
 **Status**: Production Ready
 
 ---

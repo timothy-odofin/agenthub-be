@@ -8,9 +8,9 @@ pinned: false
 app_port: 7860
 ---
 
-# AgentHub 
+# AgentHub
 
-> **Learn, Build, and Deploy Production LLM Applications** 
+> **Learn, Build, and Deploy Production LLM Applications**
 > *A complete framework for developers who want to understand how real-world AI systems work*
 
 [![Python 3.12+](https://img.shields.io/badge/python-3.12+-blue.svg)](https://www.python.org/downlo---
@@ -152,7 +152,7 @@ return await external_api.post("/endpoint", json=data)
 
 **Why this matters**: Production systems fail. This pattern handles:
 - Automatic retry with exponential backoff
-- Circuit breaker prevents cascade failures 
+- Circuit breaker prevents cascade failures
 - ⏱️ Timeout prevents resource exhaustion
 - Built-in monitoring and metrics
 
@@ -202,7 +202,7 @@ POST /api/v1/data-ingestion/load/FILE
 }
 
 # 2. Query with context
-POST /api/v1/chat/message 
+POST /api/v1/chat/message
 {
 "message": "What does the document say about pricing?",
 "use_rag": true
@@ -273,7 +273,7 @@ alembic upgrade head
 make run-api
 ```
 
-**Visit**: 
+**Visit**:
 - API: http://localhost:8000
 - Docs: http://localhost:8000/docs
 - ReDoc: http://localhost:8000/redoc
@@ -344,7 +344,7 @@ uvicorn src.app.main:app --env /path/to/.env.custom
 ### Quick Links by Topic:
 
 - **[Getting Started](docs/getting-started/quick-start.md)** - 5-minute setup
-- **[API Reference](docs/api-reference/README.md)** - REST API endpoints 
+- **[API Reference](docs/api-reference/README.md)** - REST API endpoints
 - **[Architecture](docs/architecture/overview.md)** - System design & patterns
 - **[Guides](docs/guides/)** - Feature guides (LLM, RAG, Tools, Databases)
 - **[Tutorials](docs/tutorials/)** - Step-by-step examples
@@ -385,7 +385,7 @@ uvicorn src.app.main:app --env /path/to/.env.custom
 
 **[Detailed architecture & design patterns →](docs/architecture/overview.md)**
 
-### **Visual Architecture Diagrams** 
+### **Visual Architecture Diagrams**
 
 Explore detailed system diagrams to understand AgentHub's architecture:
 
@@ -405,7 +405,7 @@ Deep-dive into specific topics:
 - **[Resilience Patterns](src/app/core/resilience/)** ⭐ - Retry, circuit breakers (production-ready patterns)
 - ** [Connections](docs/guides/connections/README.md)** - Database & vector store management
 - **[LLM Providers](docs/guides/llm-providers/README.md)** - OpenAI, Anthropic, Groq, Azure
-- **[Tools](docs/guides/tools/README.md)** - Jira, GitHub, Confluence integrations 
+- **[Tools](docs/guides/tools/README.md)** - Jira, GitHub, Confluence integrations
 - **[Sessions](docs/guides/sessions/README.md)** - Multi-turn conversation management
 - **[Testing Examples](tests/)** - See comprehensive test implementations
 
@@ -535,7 +535,7 @@ Deploy to your preferred platform:
 - ** [Render](docs/deployment/render-setup.md)** - Zero DevOps, free tier (recommended for MVPs)
 - **️ [AWS](docs/deployment/overview.md#aws-amazon-web-services)** - ECS Fargate, Elastic Beanstalk, Lambda
 - ** [Google Cloud](docs/deployment/overview.md#google-cloud-platform)** - Cloud Run, GKE
-- ** [Azure](docs/deployment/overview.md#microsoft-azure)** - App Service, Container Apps 
+- ** [Azure](docs/deployment/overview.md#microsoft-azure)** - App Service, Container Apps
 - **️ [Kubernetes](docs/deployment/overview.md#kubernetes-self-managed)** - Self-managed K8s clusters
 - ** [Docker Compose](docs/deployment/overview.md#docker-compose-localdevelopment)** - Local/small deployments
 
@@ -623,16 +623,16 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 ## Why Developers Choose AgentHub
 
-> "Finally, a complete LLM app I can actually learn from. Not just snippets - the whole thing." 
+> "Finally, a complete LLM app I can actually learn from. Not just snippets - the whole thing."
 > — **Python Developer learning AI**
 
-> "The configuration system alone is worth forking. I copied it to my Django project." 
+> "The configuration system alone is worth forking. I copied it to my Django project."
 > — **Senior Backend Engineer**
 
-> "Conversational signup showed me how agents actually work. Changed how I think about LLM apps." 
+> "Conversational signup showed me how agents actually work. Changed how I think about LLM apps."
 > — **ML Engineer**
 
-> "Best part: it's not just 'how to call GPT-4'. It shows resilience, testing, deployment - the whole picture." 
+> "Best part: it's not just 'how to call GPT-4'. It shows resilience, testing, deployment - the whole picture."
 > — **Startup CTO**
 
 ### What Makes AgentHub Different
@@ -808,5 +808,3 @@ Built with ❤️ using these amazing open source projects:
 **[Get Started](docs/getting-started/quick-start.md)** | **[Read the Docs](docs/)** | **[Suggest a Feature](https://github.com/timothy-odofin/agenthub-be/issues/new)** | **[Open an Issue](https://github.com/timothy-odofin/agenthub-be/issues)**
 
 </div>
-
-

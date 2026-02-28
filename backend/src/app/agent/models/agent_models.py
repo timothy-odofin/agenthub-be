@@ -1,6 +1,7 @@
-from typing import Dict, Any, Optional, List
-from datetime import datetime
 from dataclasses import dataclass, field
+from datetime import datetime
+from typing import Any, Dict, List, Optional
+
 from app.core.enums import AgentStatus
 
 
@@ -30,7 +31,7 @@ class AgentResponse:
     token_usage: Dict[str, int] = field(default_factory=dict)
     errors: List[str] = field(default_factory=list)
     timestamp: datetime = field(default_factory=datetime.now)
-    
+
     @property
     def success(self) -> bool:
         return self.status not in [AgentStatus.ERROR, AgentStatus.CANCELLED]

@@ -211,12 +211,12 @@ from app.core.schemas.ingestion_config import DataSourceConfig, DataSourceType
 from app.infrastructure.ingestion.file_ingestion_service import FileIngestionService
 
 async def create_ingestion_service(
-    file_paths: List[str], 
+    file_paths: List[str],
     source_name: str = "documents"
 ):
     """
     Create a file ingestion service with the given configuration.
-    
+
     Args:
         file_paths: List of file paths to ingest
         source_name: Name of the data source
@@ -230,16 +230,16 @@ async def create_ingestion_service(
 
 @shared_task
 def task_file_ingestion(
-    file_paths: List[str], 
+    file_paths: List[str],
     source_name: str = "documents"
 ):
     """
     Task to perform file ingestion.
-    
+
     Args:
         file_paths: List of file paths to process
         source_name: Name of the data source
-    
+
     Returns:
         bool: True if ingestion was successful, False otherwise
     """
@@ -383,7 +383,7 @@ async def test_celery():
     """Test endpoint to verify Celery is working."""
     result = example_task.delay(4, 4)
     return {
-        "task_id": result.id, 
+        "task_id": result.id,
         "message": "Task sent to Celery"
     }
 ```
@@ -412,7 +412,7 @@ router = APIRouter()
 async def ingest_files(file_paths: List[str]):
     """Submit file ingestion task."""
     result = task_file_ingestion.delay(file_paths)
-    
+
     return {
         "task_id": result.id,
         "status": "submitted",
@@ -424,9 +424,9 @@ async def check_ingestion_status(task_id: str):
     """Check ingestion task status."""
     from celery.result import AsyncResult
     from app.workers.celery_app import celery_app
-    
+
     result = AsyncResult(task_id, app=celery_app)
-    
+
     return {
         "task_id": task_id,
         "status": result.status,
@@ -453,18 +453,18 @@ import time
 def send_email_task(recipient: str, subject: str, body: str):
     """
     Send email in background.
-    
+
     Args:
         recipient: Email recipient
         subject: Email subject
         body: Email body
-        
+
     Returns:
         dict: Status and message
     """
     # Simulate email sending
     time.sleep(2)
-    
+
     return {
         "success": True,
         "recipient": recipient,
@@ -507,7 +507,7 @@ def async_operation_task(data: dict):
         # Your async code here
         await some_async_function()
         return result
-    
+
     # Run async function
     return asyncio.run(do_async_work())
 ```
@@ -522,13 +522,13 @@ def cleanup_old_sessions_task(days: int = 30):
         from app.sessions.repositories.session_repository_factory import (
             SessionRepositoryFactory
         )
-        
+
         repo = SessionRepositoryFactory.get_default_repository()
         await repo._ensure_connection()
-        
+
         # Cleanup logic here
         return {"cleaned": 50}
-    
+
     return asyncio.run(cleanup())
 ```
 
@@ -615,17 +615,17 @@ celery_app.conf.update(
     accept_content=['json'],
     result_serializer='json',
     enable_utc=True,
-    
+
     # Task execution
     task_time_limit=3600,        # Hard limit: 1 hour
     task_soft_time_limit=3300,   # Soft limit: 55 minutes
     task_acks_late=True,         # Acknowledge after execution
     worker_prefetch_multiplier=1, # One task at a time
-    
+
     # Result backend
     result_expires=3600,         # Results expire after 1 hour
     result_persistent=True,      # Persist results
-    
+
     # Retry
     task_publish_retry=True,
     task_publish_retry_policy={
@@ -651,7 +651,7 @@ def process_files_task(file_paths: List[str]):
         async with aiohttp.ClientSession() as session:
             for file_path in file_paths:
                 await upload_file(session, file_path)
-    
+
     return asyncio.run(process())
 
 # BAD - Blocking I/O in task
@@ -707,13 +707,13 @@ def batch_process_task(self, items):
     total = len(items)
     for i, item in enumerate(items):
         process_item(item)
-        
+
         # Update progress
         self.update_state(
             state='PROGRESS',
             meta={'current': i + 1, 'total': total}
         )
-    
+
     return {'processed': total}
 ```
 
@@ -937,10 +937,10 @@ result = job.apply_async()
 
 ---
 
-**Last Updated**: January 10, 2026  
-**Version**: 1.0  
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Background Processing, Celery, Redis, Async Tasks
 
 ---
 
-Thank you for using AgentHub's background workers system! 
+Thank you for using AgentHub's background workers system!

@@ -85,16 +85,16 @@ AgentHub uses **JWT (JSON Web Tokens)** for authentication.
 ```
 1. User signs up or logs in
    POST /api/v1/auth/signup or /api/v1/auth/login
-   
+
 2. Server returns tokens
    {
      "access_token": "eyJhbGci...",
      "refresh_token": "eyJhbGci..."
    }
-   
+
 3. Client includes token in requests
    Authorization: Bearer eyJhbGci...
-   
+
 4. Token expires (15 minutes)
    Client refreshes using refresh token
    POST /api/v1/auth/refresh
@@ -577,10 +577,10 @@ Explore detailed documentation for each API:
 
 ---
 
-**Last Updated**: January 10, 2026  
-**API Version**: v1  
+**Last Updated**: January 10, 2026
+**API Version**: v1
 **Status**: Production Ready
 
 ---
 
-Thank you for using AgentHub! 
+Thank you for using AgentHub!

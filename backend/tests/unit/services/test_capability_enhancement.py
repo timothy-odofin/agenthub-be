@@ -4,11 +4,12 @@ Unit tests for capability-aware message enhancement in ChatService.
 Tests the intelligent conversation flow when users select capabilities.
 """
 
-import pytest
-from unittest.mock import Mock, patch, AsyncMock
+from unittest.mock import AsyncMock, Mock, patch
 
-from app.services.chat_service import ChatService
+import pytest
+
 from app.core.capabilities import SystemCapabilities
+from app.services.chat_service import ChatService
 
 
 @pytest.fixture(autouse=True)
@@ -35,29 +36,28 @@ def mock_jira_capability():
                 "Search for open bugs in project ABC",
                 "Create a new task for implementing feature X",
                 "What are my assigned issues?",
-                "Add a comment to issue KEY-123"
+                "Add a comment to issue KEY-123",
             ],
-            "tags": ["project-management", "issue-tracking", "collaboration"]
-        }
+            "tags": ["project-management", "issue-tracking", "collaboration"],
+        },
     )
     return capabilities
 
 
 class TestCapabilityMessageEnhancement:
     """Test message enhancement for capability selections."""
-    
-    def test_enhance_capability_message_with_valid_capability(self, mock_jira_capability):
+
+    def test_enhance_capability_message_with_valid_capability(
+        self, mock_jira_capability
+    ):
         """Test enhancement with valid capability metadata."""
         chat_service = ChatService()
-        
+
         message = "I want to use Jira"
-        metadata = {
-            "capability_id": "jira.jira",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "jira.jira", "is_capability_selection": True}
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Verify enhancement contains key elements
         assert "Jira Integration" in enhanced
         assert "Search, create, and manage Jira issues" in enhanced
@@ -67,37 +67,37 @@ class TestCapabilityMessageEnhancement:
         assert "Capability Selection Context" in enhanced
         assert "Your Task" in enhanced
         assert "project-management" in enhanced
-    
+
     def test_enhance_capability_message_missing_capability_id(self):
         """Test enhancement when capability_id is missing."""
         chat_service = ChatService()
-        
+
         message = "I want to use Jira"
         metadata = {
             "is_capability_selection": True
             # Missing capability_id
         }
-        
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Should return original message
         assert enhanced == message
-    
+
     def test_enhance_capability_message_nonexistent_capability(self):
         """Test enhancement when capability doesn't exist."""
         chat_service = ChatService()
-        
+
         message = "Test message"
         metadata = {
             "capability_id": "nonexistent.tool",
-            "is_capability_selection": True
+            "is_capability_selection": True,
         }
-        
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Should return original message
         assert enhanced == message
-    
+
     def test_enhance_capability_message_with_minimal_capability(self):
         """Test enhancement with capability having minimal metadata."""
         capabilities = SystemCapabilities()
@@ -107,21 +107,18 @@ class TestCapabilityMessageEnhancement:
             enabled=True,
             display_config={
                 "title": "Basic Tool",
-                "description": "A basic tool"
+                "description": "A basic tool",
                 # No example_prompts or tags
-            }
+            },
         )
-        
+
         chat_service = ChatService()
-        
+
         message = "Test"
-        metadata = {
-            "capability_id": "test.basic_tool",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "test.basic_tool", "is_capability_selection": True}
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Should still work with minimal data
         assert "Basic Tool" in enhanced
         assert "A basic tool" in enhanced
@@ -129,19 +126,16 @@ class TestCapabilityMessageEnhancement:
         assert "Test" in enhanced
         # Should not have example prompts section
         assert "Available Actions:" not in enhanced
-    
+
     def test_enhance_capability_message_with_empty_message(self, mock_jira_capability):
         """Test enhancement with empty user message."""
         chat_service = ChatService()
-        
+
         message = ""
-        metadata = {
-            "capability_id": "jira.jira",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "jira.jira", "is_capability_selection": True}
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Should still enhance even with empty message
         assert "Jira Integration" in enhanced
         assert "**User's Message:**" in enhanced
@@ -149,12 +143,12 @@ class TestCapabilityMessageEnhancement:
 
 class TestCapabilitySelectionInChat:
     """Test capability selection handling in chat flow."""
-    
+
     @pytest.mark.asyncio
     async def test_chat_with_capability_selection_metadata(self, mock_jira_capability):
         """Test that chat method enhances message when capability is selected."""
         chat_service = ChatService()
-        
+
         # Mock the agent
         mock_agent = Mock()
         mock_response = Mock()
@@ -167,36 +161,33 @@ class TestCapabilitySelectionInChat:
         mock_response.tools_used = []
         mock_response.errors = []
         mock_response.metadata = {}
-        
+
         mock_agent.execute = AsyncMock(return_value=mock_response)
         chat_service._agent = mock_agent
-        
+
         # Call chat with capability selection metadata
-        metadata = {
-            "capability_id": "jira.jira",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "jira.jira", "is_capability_selection": True}
+
         result = await chat_service.chat(
             message="I want to use Jira",
             user_id="test-user",
             session_id="test-session",
-            metadata=metadata
+            metadata=metadata,
         )
-        
+
         # Verify agent.execute was called with enhanced message
         call_args = mock_agent.execute.call_args
         enhanced_message = call_args[0][0]
-        
+
         assert "Jira Integration" in enhanced_message
         assert "Capability Selection Context" in enhanced_message
         assert result["success"] is True
-    
+
     @pytest.mark.asyncio
     async def test_chat_without_capability_selection(self):
         """Test that regular chat messages are not enhanced."""
         chat_service = ChatService()
-        
+
         # Mock the agent
         mock_agent = Mock()
         mock_response = Mock()
@@ -209,22 +200,22 @@ class TestCapabilitySelectionInChat:
         mock_response.tools_used = []
         mock_response.errors = []
         mock_response.metadata = {}
-        
+
         mock_agent.execute = AsyncMock(return_value=mock_response)
         chat_service._agent = mock_agent
-        
+
         # Call chat WITHOUT capability metadata
         result = await chat_service.chat(
             message="What is the weather?",
             user_id="test-user",
             session_id="test-session",
-            metadata=None  # No metadata
+            metadata=None,  # No metadata
         )
-        
+
         # Verify agent.execute was called with original message
         call_args = mock_agent.execute.call_args
         message = call_args[0][0]
-        
+
         assert message == "What is the weather?"
         assert "Capability Selection Context" not in message
         assert result["success"] is True
@@ -232,19 +223,16 @@ class TestCapabilitySelectionInChat:
 
 class TestEnhancementFormat:
     """Test the format and structure of enhanced messages."""
-    
+
     def test_enhancement_includes_all_sections(self, mock_jira_capability):
         """Test that enhancement includes all expected sections."""
         chat_service = ChatService()
-        
+
         message = "Help with Jira"
-        metadata = {
-            "capability_id": "jira.jira",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "jira.jira", "is_capability_selection": True}
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Check all expected sections are present
         expected_sections = [
             "## Capability Selection Context",
@@ -253,24 +241,21 @@ class TestEnhancementFormat:
             "**Related Topics:**",
             "**User's Message:**",
             "## Your Task",
-            "**Respond by:**"
+            "**Respond by:**",
         ]
-        
+
         for section in expected_sections:
             assert section in enhanced, f"Missing section: {section}"
-    
+
     def test_enhancement_preserves_markdown_format(self, mock_jira_capability):
         """Test that enhancement uses proper markdown formatting."""
         chat_service = ChatService()
-        
+
         message = "Test"
-        metadata = {
-            "capability_id": "jira.jira",
-            "is_capability_selection": True
-        }
-        
+        metadata = {"capability_id": "jira.jira", "is_capability_selection": True}
+
         enhanced = chat_service._enhance_capability_message(message, metadata)
-        
+
         # Check markdown formatting
         assert "##" in enhanced  # Headers
         assert "**" in enhanced  # Bold text

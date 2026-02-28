@@ -48,7 +48,7 @@ Both approaches work together - the AI agent automatically chooses the best meth
 - **Space Discovery** - List and explore all accessible spaces
 - **Flexible Search** - Find pages by keyword or CQL query
 - **Complete Metadata** - Get page history, authors, and modification dates
-- **Easy Configuration** - YAML-based settings  
+- **Easy Configuration** - YAML-based settings
 
 ## Setup
 
@@ -310,7 +310,7 @@ Observation: Returns ["DEV", "PROD", "SD", "agenthubdo"]
 ```
 Here are the available Confluence spaces:
 - DEV (Development)
-- PROD (Production)  
+- PROD (Production)
 - SD (System Design)
 - agenthubdo (AgentHub Documentation)
 ```
@@ -323,7 +323,7 @@ Here are the available Confluence spaces:
 
 **LLM Reasoning:**
 ```
-Thought: User is looking for Confluence documentation. I should use search_confluence_pages 
+Thought: User is looking for Confluence documentation. I should use search_confluence_pages
 for real-time results rather than vector store.
 Action: Use search_confluence_pages with query "API authentication"
 Observation: Returns 3 pages from DEV and SD spaces
@@ -391,7 +391,7 @@ Version: 12 (most recent)
 
 **LLM Reasoning:**
 ```
-Thought: User explicitly wants to search "all knowledge base" which includes files, 
+Thought: User explicitly wants to search "all knowledge base" which includes files,
 Confluence, and other sources. Vector store is better for this cross-source semantic search.
 Action: Use vector store search tool
 Observation: Returns documents from Confluence, PDFs, and markdown files

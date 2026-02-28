@@ -6,7 +6,7 @@
 
 The Health API provides endpoints to monitor system status, check component health, and verify worker processes.
 
-**Base Path**: `/api/v1/health/` 
+**Base Path**: `/api/v1/health/`
 **Authentication**: Not required (public endpoints)
 
 ---
@@ -478,7 +478,7 @@ pg_isready -h localhost -p 5432
 
 ---
 
-**Last Updated**: January 10, 2026 
+**Last Updated**: January 10, 2026
 **Status**: Production Ready
 
 ---

@@ -36,11 +36,11 @@ class MyConnectionManager(BaseConnectionManager):
         super().__init__()
         # Config retrieved via hardcoded mappings
 
-# ✅ NEW  
+# ✅ NEW
 class MyConnectionManager(BaseConnectionManager):
     def get_config_category(self) -> str:
         return "db"  # or "vector" or "external"
-    
+
     def validate_config(self) -> None:
         config_dict = self._get_config_dict()
         # Use config_dict instead of self.config
@@ -157,7 +157,7 @@ def test_something(mock_settings):
 ## Key Benefits
 
 ✅ **Simpler** - Direct access, no wrappers
-✅ **Cleaner** - One way to do things  
+✅ **Cleaner** - One way to do things
 ✅ **Testable** - Easy to mock and inject configs
 ✅ **Maintainable** - Clear patterns, less code
 

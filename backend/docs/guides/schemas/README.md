@@ -111,33 +111,33 @@ class SignupRequest(BaseModel):
 """Schema for user signup requests."""
 
 email: EmailStr = Field(
-..., 
+...,
 description="User's email address",
 example="user@example.com"
 )
 username: str = Field(
-..., 
-min_length=3, 
+...,
+min_length=3,
 max_length=50,
 description="Unique username",
 example="john_doe"
 )
 password: str = Field(
-..., 
+...,
 min_length=8,
 description="User password (min 8 characters)",
 example="SecureP@ss123"
 )
 firstname: str = Field(
-..., 
-min_length=1, 
+...,
+min_length=1,
 max_length=50,
 description="User's first name",
 example="John"
 )
 lastname: str = Field(
-..., 
-min_length=1, 
+...,
+min_length=1,
 max_length=50,
 description="User's last name",
 example="Doe"
@@ -169,23 +169,23 @@ class SignupResponse(BaseModel):
 """Schema for signup responses."""
 
 success: bool = Field(
-..., 
+...,
 description="Whether signup was successful"
 )
 message: str = Field(
-..., 
+...,
 description="Success or error message"
 )
 user_id: Optional[str] = Field(
-None, 
+None,
 description="Created user ID"
 )
 access_token: Optional[str] = Field(
-None, 
+None,
 description="JWT access token"
 )
 refresh_token: Optional[str] = Field(
-None, 
+None,
 description="JWT refresh token"
 )
 ```
@@ -214,12 +214,12 @@ class LoginRequest(BaseModel):
 """Schema for login requests."""
 
 identifier: str = Field(
-..., 
+...,
 description="Username or email address",
 example="john_doe"
 )
 password: str = Field(
-..., 
+...,
 description="User password",
 example="SecureP@ss123"
 )
@@ -294,7 +294,7 @@ class ChatRequest(BaseModel):
 """Schema for chat requests."""
 
 message: str = Field(
-..., 
+...,
 min_length=1,
 description="User's message to the agent",
 example="What is the weather today?"
@@ -371,7 +371,7 @@ class CreateSessionRequest(BaseModel):
 
 user_id: str = Field(..., description="User ID")
 initial_message: Optional[str] = Field(
-None, 
+None,
 description="First message in session"
 )
 ```
@@ -385,21 +385,21 @@ class SessionMessage(BaseModel):
 """Schema for individual messages in a session."""
 
 role: str = Field(
-..., 
+...,
 description="Message role: 'user' or 'assistant'",
 example="user"
 )
 content: str = Field(
-..., 
+...,
 description="Message content",
 example="Tell me about Python"
 )
 timestamp: datetime = Field(
-..., 
+...,
 description="Message timestamp"
 )
 id: Optional[str] = Field(
-None, 
+None,
 description="Message ID"
 )
 ```
@@ -413,7 +413,7 @@ class SessionHistoryResponse(BaseModel):
 """Schema for session history responses."""
 
 messages: List[SessionMessage] = Field(
-..., 
+...,
 description="List of messages in the session"
 )
 session_id: str = Field(..., description="Session ID")
@@ -453,7 +453,7 @@ class SessionListResponse(BaseModel):
 """Schema for listing user sessions."""
 
 sessions: List[dict] = Field(
-..., 
+...,
 description="List of session summaries"
 )
 total: int = Field(..., description="Total session count")
@@ -555,7 +555,7 @@ example=SignupStep.EMAIL
 )
 ```
 
-**Important**: 
+**Important**:
 - `current_step` must match the `next_step` from previous response
 - Server validates and stores data server-side
 - Passwords **never** sent to client
@@ -772,21 +772,21 @@ class LLMOutputBase(BaseModel):
 """Base class for all LLM output schemas."""
 
 success: bool = Field(
-..., 
+...,
 description="Whether the operation was successful"
 )
 confidence: float = Field(
-..., 
-ge=0.0, 
+...,
+ge=0.0,
 le=1.0,
 description="Confidence score (0.0 to 1.0)"
 )
 reasoning: str = Field(
-..., 
+...,
 description="Explanation of the decision/output"
 )
 metadata: Optional[Dict[str, Any]] = Field(
-None, 
+None,
 description="Additional context and metadata"
 )
 timestamp: datetime = Field(
@@ -810,20 +810,20 @@ Used for transparency and debugging agent behavior.
 """
 
 thought_process: str = Field(
-..., 
+...,
 description="Agent's internal reasoning",
 example="User is asking about Python decorators. I should explain with examples."
 )
 
 selected_action: str = Field(
-..., 
+...,
 description="Action the agent decided to take",
 example="provide_code_example"
 )
 
 confidence_level: float = Field(
-..., 
-ge=0.0, 
+...,
+ge=0.0,
 le=1.0,
 description="Confidence in selected action"
 )
@@ -877,18 +877,18 @@ Includes response text, tools used, and follow-up suggestions.
 """
 
 response_text: str = Field(
-..., 
+...,
 description="The agent's text response to the user"
 )
 
 response_type: str = Field(
-..., 
+...,
 description="Type of response",
 example="informational" # or "question", "action", "error"
 )
 
 session_context_used: bool = Field(
-..., 
+...,
 description="Whether previous conversation context was used"
 )
 
@@ -929,37 +929,37 @@ Helps optimize chunking and retrieval strategies.
 """
 
 content_type: str = Field(
-..., 
+...,
 description="Type of content",
 example="technical_documentation"
 )
 
 quality_score: float = Field(
-..., 
-ge=0.0, 
+...,
+ge=0.0,
 le=1.0,
 description="Content quality assessment"
 )
 
 key_topics: List[str] = Field(
-..., 
+...,
 description="Main topics identified",
 example=["python", "decorators", "metaprogramming"]
 )
 
 document_summary: str = Field(
-..., 
+...,
 description="Brief summary of content"
 )
 
 chunk_strategy: str = Field(
-..., 
+...,
 description="Recommended chunking strategy",
 example="semantic_with_overlap"
 )
 
 complexity_level: str = Field(
-..., 
+...,
 description="Content complexity",
 example="intermediate" # beginner, intermediate, advanced
 )
@@ -992,31 +992,31 @@ Used for tracking batch ingestion operations.
 """
 
 source_type: str = Field(
-..., 
+...,
 description="Type of data source",
 example="pdf_files"
 )
 
 processed_items: int = Field(
-..., 
+...,
 description="Number of items processed"
 )
 
 success_rate: float = Field(
-..., 
-ge=0.0, 
+...,
+ge=0.0,
 le=1.0,
 description="Percentage of successful processing"
 )
 
 extraction_method: str = Field(
-..., 
+...,
 description="Method used for extraction",
 example="pypdf"
 )
 
 preprocessing_steps: List[str] = Field(
-..., 
+...,
 description="Steps applied during preprocessing",
 example=["text_cleaning", "deduplication", "chunking"]
 )
@@ -1047,7 +1047,7 @@ Used for health checks and performance monitoring.
 """
 
 component_status: Dict[str, str] = Field(
-..., 
+...,
 description="Status of each system component",
 example={
 "database": "healthy",
@@ -1058,7 +1058,7 @@ example={
 )
 
 performance_metrics: Dict[str, float] = Field(
-..., 
+...,
 description="Performance measurements",
 example={
 "response_time_ms": 120.5,
@@ -1068,7 +1068,7 @@ example={
 )
 
 alert_level: str = Field(
-..., 
+...,
 description="Overall alert level",
 example="ok" # ok, warning, critical
 )
@@ -1111,12 +1111,12 @@ Used for understanding conversation quality and outcomes.
 """
 
 session_summary: str = Field(
-..., 
+...,
 description="Summary of the conversation"
 )
 
 conversation_topics: List[str] = Field(
-..., 
+...,
 description="Topics discussed in the session",
 example=["python_basics", "decorators", "async_programming"]
 )
@@ -1129,7 +1129,7 @@ description="Estimated user satisfaction score"
 )
 
 resolution_status: str = Field(
-..., 
+...,
 description="Whether user's needs were met",
 example="resolved" # resolved, partial, unresolved
 )
@@ -1166,7 +1166,7 @@ Provides unified interface for all output types.
 """
 
 content: str = Field(
-..., 
+...,
 description="Raw text response from LLM"
 )
 
@@ -1176,7 +1176,7 @@ description="Parsed structured data (JSON)"
 )
 
 output_type: str = Field(
-..., 
+...,
 description="Type of structured output",
 example="agent_thinking"
 )
@@ -1192,13 +1192,13 @@ example={
 )
 
 model_name: str = Field(
-..., 
+...,
 description="LLM model used",
 example="gpt-4"
 )
 
 provider: str = Field(
-..., 
+...,
 description="LLM provider",
 example="openai"
 )
@@ -1373,7 +1373,7 @@ class MyFeatureRequest(BaseModel):
 """Request schema for my feature."""
 
 name: str = Field(
-..., 
+...,
 min_length=1,
 max_length=100,
 description="Feature name"
@@ -1723,10 +1723,10 @@ datetime: lambda v: v.isoformat()
 
 ---
 
-**Last Updated**: January 10, 2026 
-**Version**: 1.0 
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Pydantic, FastAPI, Type Safety, Validation
 
 ---
 
-Thank you for using AgentHub's schema system! 
+Thank you for using AgentHub's schema system!
