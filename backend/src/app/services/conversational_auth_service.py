@@ -102,8 +102,8 @@ class ConversationalAuthService:
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
             # Call LLM for extraction using the generate method
-            llm_instance = await self.llm
-            response = await llm_instance.generate(full_prompt)
+            llm = await self.llm
+            response = await llm.generate(full_prompt)
             
             # Extract and clean the value
             extracted = response.content.strip()
@@ -149,8 +149,8 @@ class ConversationalAuthService:
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
             # Call LLM for intent classification
-            llm_instance = await self.llm
-            response = await llm_instance.generate(full_prompt)
+            llm = await self.llm
+            response = await llm.generate(full_prompt)
             intent = response.content.strip().upper()
             
             # Validate intent
@@ -191,8 +191,8 @@ class ConversationalAuthService:
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
             # Call LLM for intent classification
-            llm_instance = await self.llm
-            response = await llm_instance.generate(full_prompt)
+            llm = await self.llm
+            response = await llm.generate(full_prompt)
             intent = response.content.strip().upper()
             
             # Validate intent
@@ -244,8 +244,8 @@ class ConversationalAuthService:
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
             # Call LLM for intelligent clarification
-            llm_instance = await self.llm
-            response = await llm_instance.generate(full_prompt)
+            llm = await self.llm
+            response = await llm.generate(full_prompt)
             clarification = response.content.strip()
             
             logger.info(f"Intelligent Clarification - Field: {field_type}, Question: '{message}', Response length: {len(clarification)}")
@@ -289,8 +289,8 @@ class ConversationalAuthService:
             full_prompt = f"{system_prompt}\n\n{user_prompt}"
             
             # Call LLM for intelligent START clarification
-            llm_instance = await self.llm
-            response = await llm_instance.generate(full_prompt)
+            llm = await self.llm
+            response = await llm.generate(full_prompt)
             clarification = response.content.strip()
             
             logger.info(f"START Clarification - Question: '{message}', Response length: {len(clarification)}")

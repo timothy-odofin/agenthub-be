@@ -164,11 +164,6 @@ class ChatService(metaclass=SingletonMeta):
                 logger.info(f"Overriding LLM model from {llm.client.model_name} to {model}")
                 llm.client.model_name = model
             
-            # If a specific model is requested, update the LLM client to use it
-            if model and hasattr(llm, 'client') and hasattr(llm.client, 'model_name'):
-                logger.info(f"Overriding LLM model from {llm.client.model_name} to {model}")
-                llm.client.model_name = model
-            
             # Get or create agent with the specified LLM
             # Cache agents by (provider:model) combination to support dynamic model switching
             cache_key = f"{provider or 'default'}:{model or 'default'}"
