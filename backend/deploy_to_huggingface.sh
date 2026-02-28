@@ -58,13 +58,13 @@ echo "━━━━━━━━━━━━━━━━━━━━━━━━�
 # Check if huggingface-cli is installed
 if command -v huggingface-cli &> /dev/null; then
     echo "✅ Hugging Face CLI is installed"
-    
+
     # Check if already logged in
     if huggingface-cli whoami &> /dev/null; then
         CURRENT_USER=$(huggingface-cli whoami)
         echo "✅ Already logged in as: $CURRENT_USER"
         read -p "Use this account? (y/n): " USE_CURRENT
-        
+
         if [ "$USE_CURRENT" != "y" ] && [ "$USE_CURRENT" != "Y" ]; then
             echo ""
             echo "Please login with your Hugging Face token:"
@@ -78,7 +78,7 @@ if command -v huggingface-cli &> /dev/null; then
 else
     echo "📦 Hugging Face CLI not found. Installing..."
     pip install -q huggingface_hub
-    
+
     if [ $? -eq 0 ]; then
         echo "✅ Hugging Face CLI installed"
         echo ""
@@ -119,10 +119,10 @@ if [ "$ADD_REMOTE" = "y" ] || [ "$ADD_REMOTE" = "Y" ]; then
         echo "⚠️  Remote 'huggingface' already exists. Removing..."
         git remote remove huggingface
     fi
-    
+
     git remote add huggingface "https://huggingface.co/spaces/$HF_USERNAME/$HF_SPACE_NAME"
     echo "✅ Added Hugging Face remote"
-    
+
     # Show configured remotes
     echo ""
     echo "📡 Configured remotes:"

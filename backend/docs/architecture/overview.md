@@ -876,6 +876,6 @@ Kubernetes Cluster
 
 ---
 
-**Last Updated**: January 8, 2026 
-**Maintainer**: AgentHub Team 
+**Last Updated**: January 8, 2026
+**Maintainer**: AgentHub Team
 **Status**: Production-ready

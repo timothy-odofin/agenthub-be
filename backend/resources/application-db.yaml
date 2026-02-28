@@ -13,7 +13,7 @@ mongodb:
   # Option 1: Atlas/Custom connection string
   connection_string: "${MONGODB_CONNECTION_STRING}"
   database: "${MONGODB_DATABASE:agenthub}"
-  
+
   # Option 2: Individual components (local/Docker)
   host: "${MONGODB_HOST:localhost}"
   port: "${MONGODB_PORT:27017}"

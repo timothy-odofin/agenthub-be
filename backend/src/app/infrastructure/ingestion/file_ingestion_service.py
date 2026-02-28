@@ -5,19 +5,17 @@ import tarfile
 import tempfile
 import zipfile
 from pathlib import Path
-from typing import List, Dict
+from typing import Dict, List
 
 import magic
 from langchain.schema import Document
-from langchain_community.document_loaders import (
-    TextLoader
-
-)
+from langchain_community.document_loaders import TextLoader
 
 from app.core.constants import DataSourceType, EmbeddingType
 from app.core.utils.logger import get_logger
 from app.db.vector.providers.db_provider import VectorStoreFactory
 from app.infrastructure.ingestion.base import BaseIngestionService
+
 from .file_data_source_util import FileType, _construct_mapping
 from .rag_data_provider import RagDataProvider
 
@@ -77,10 +75,10 @@ class FileIngestionService(BaseIngestionService):
     async def ingest_single(self, source: str) -> bool:
         """
         Ingest a single file source.
-        
+
         Args:
             source: Path to the file to ingest
-            
+
         Returns:
             bool: True if ingestion was successful
         """
@@ -94,10 +92,11 @@ class FileIngestionService(BaseIngestionService):
             # Save documents to vector store
             if documents:
                 document_ids = await self._vector_store.save_and_embed(
-                    self._embedding_type,
-                    documents
+                    self._embedding_type, documents
                 )
-                logger.info(f"Successfully processed {source}: {len(document_ids)} chunks saved")
+                logger.info(
+                    f"Successfully processed {source}: {len(document_ids)} chunks saved"
+                )
                 self._processed_files[source] = True
                 return True
             else:
@@ -135,13 +134,13 @@ class FileIngestionService(BaseIngestionService):
     def _load_document(self, file_path: str) -> List[Document]:
         """
         Load a document using the appropriate loader based on file type.
-        
+
         Args:
             file_path: Path to the file to load
-            
+
         Returns:
             List[Document]: Loaded documents
-            
+
         Raises:
             ValueError: If file type is not supported
         """
@@ -171,18 +170,20 @@ class FileIngestionService(BaseIngestionService):
         with tempfile.TemporaryDirectory() as temp_dir:
             # Extract archive based on type
             if file_type == FileType.ZIP:
-                with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                with zipfile.ZipFile(file_path, "r") as zip_ref:
                     zip_ref.extractall(temp_dir)
             elif file_type == FileType.RAR:
                 # Note: RAR support requires additional setup
-                raise NotImplementedError("RAR support requires the 'rarfile' package and external RAR binary")
+                raise NotImplementedError(
+                    "RAR support requires the 'rarfile' package and external RAR binary"
+                )
             elif file_type == FileType.TAR:
-                with tarfile.open(file_path, 'r') as tar_ref:
+                with tarfile.open(file_path, "r") as tar_ref:
                     tar_ref.extractall(temp_dir)
             elif file_type == FileType.GZIP:
-                output_path = os.path.join(temp_dir, 'extracted_file')
-                with gzip.open(file_path, 'rb') as f_in:
-                    with open(output_path, 'wb') as f_out:
+                output_path = os.path.join(temp_dir, "extracted_file")
+                with gzip.open(file_path, "rb") as f_in:
+                    with open(output_path, "wb") as f_out:
                         shutil.copyfileobj(f_in, f_out)
 
             # Process each extracted file
@@ -206,15 +207,22 @@ class FileIngestionService(BaseIngestionService):
                         if loader_info:
                             loader_class, loader_config = loader_info
                             # Skip nested archives to prevent recursion
-                            if loader_class not in [FileType.ZIP, FileType.RAR, FileType.TAR, FileType.GZIP]:
+                            if loader_class not in [
+                                FileType.ZIP,
+                                FileType.RAR,
+                                FileType.TAR,
+                                FileType.GZIP,
+                            ]:
                                 loader = loader_class(extracted_path, **loader_config)
                                 docs = loader.load()
                                 # Add archive context to metadata
                                 for doc in docs:
-                                    doc.metadata.update({
-                                        "archive_source": file_path,
-                                        "archive_path": relative_path
-                                    })
+                                    doc.metadata.update(
+                                        {
+                                            "archive_source": file_path,
+                                            "archive_path": relative_path,
+                                        }
+                                    )
                                 documents.extend(docs)
                     except Exception as e:
                         # Log error and continue with next file

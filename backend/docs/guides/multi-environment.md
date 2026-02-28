@@ -8,7 +8,7 @@ When you're developing locally, you want debug mode on, detailed logs, and maybe
 
 Instead of changing your `.env` file every time you deploy, you can have separate files:
 - `.env.dev` for development
-- `.env.staging` for testing before production  
+- `.env.staging` for testing before production
 - `.env.production` for the real deal
 
 ## Basic Usage
@@ -349,7 +349,7 @@ cp .env .env.production
 
 2. Edit each file for its environment:
 - `.env.dev` - keep debug on, local databases
-- `.env.staging` - debug off, staging databases  
+- `.env.staging` - debug off, staging databases
 - `.env.production` - use placeholders for secrets
 
 3. Update your deployment commands:

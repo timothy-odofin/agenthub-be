@@ -15,7 +15,7 @@ services:
       # Resources Path Configuration
       - key: RESOURCES_PATH
         value: /opt/render/project/src/resources
-      
+
       # Application Settings
       - key: APP_ENV
         value: production
@@ -25,7 +25,7 @@ services:
         value: 0.1.0
       - key: DEBUG
         value: false
-      
+
       # Security - JWT
       - key: JWT_SECRET_KEY
         sync: false  # Set manually in Render dashboard
@@ -33,13 +33,13 @@ services:
         value: HS256
       - key: ACCESS_TOKEN_EXPIRE_MINUTES
         value: 30
-      
+
       # CORS Settings (Update with your frontend URL)
       - key: ALLOWED_ORIGINS
         value: http://localhost:3000,https://your-frontend-domain.com
       - key: ALLOW_CREDENTIALS
         value: true
-      
+
       # MongoDB Atlas (Your existing cluster)
       - key: MONGODB_HOST
         sync: false  # Set manually: chat-session-cluster.kxl3lsm.mongodb.net
@@ -59,7 +59,7 @@ services:
         value: sessions
       - key: MESSAGE_COLLECTION_NAME
         value: messages
-      
+
       # PostgreSQL (if needed for PgVector)
       - key: POSTGRES_USER
         sync: false
@@ -75,7 +75,7 @@ services:
         value: agent_hub_collection
       - key: PGVECTOR_CONNECTION_STRING
         sync: false
-      
+
       # Redis (Render Redis service)
       - key: REDIS_HOST
         fromService:
@@ -92,15 +92,15 @@ services:
           type: redis
           name: agenthub-redis
           property: connectionString
-      
+
       # LLM Provider - OpenAI
       - key: OPENAI_API_KEY
         sync: false  # Set manually in Render dashboard
-      
+
       # LLM Provider - Groq
       - key: GROQ_API_KEY
         sync: false  # Set manually in Render dashboard
-      
+
       # Vector Store - Qdrant
       - key: QDRANT_API_KEY
         sync: false  # Set manually
@@ -108,7 +108,7 @@ services:
         sync: false  # Set manually
       - key: QDRANT_CLUSTER_ID
         sync: false  # Set manually
-      
+
       # LangChain Tracing
       - key: LANGCHAIN_API_KEY
         sync: false  # Set manually
@@ -118,7 +118,7 @@ services:
         value: true
       - key: LANGCHAIN_ENDPOINT
         value: https://api.smith.langchain.com
-      
+
       # Atlassian Integration
       - key: ATLASSIAN_API_KEY
         sync: false  # Set manually
@@ -128,7 +128,7 @@ services:
         sync: false  # Set manually
       - key: ATLASSIAN_EMAIL
         sync: false  # Set manually
-      
+
       # GitHub Integration
       - key: GITHUB_APP_ID
         sync: false  # Set manually
@@ -140,7 +140,7 @@ services:
         sync: false  # Set manually
       - key: GITHUB_PRIVATE_KEY
         sync: false  # Set manually (content of .pem file)
-      
+
       # Datadog (Optional)
       - key: DATADOG_API_KEY
         sync: false  # Set manually if using

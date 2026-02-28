@@ -1,4 +1,5 @@
 from fastapi import APIRouter
+
 from app.workers.tasks import example_task
 
 router = APIRouter()

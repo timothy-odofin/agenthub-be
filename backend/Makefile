@@ -17,7 +17,7 @@ help:
 	@echo "📦 Installation:"
 	@echo "  make install-system-deps - Install system dependencies (macOS only)"
 	@echo "  make install-prod        - Install production dependencies"
-	@echo "  make install-dev         - Install development dependencies" 
+	@echo "  make install-dev         - Install development dependencies"
 	@echo "  make install             - Alias for install-prod"
 	@echo "  make clean-install       - Clean installation (production)"
 	@echo "  make clean-install-dev   - Clean installation (development)"
@@ -73,7 +73,7 @@ install-prod:
 	poetry install --only=main
 	@echo "✅ Production dependencies installed successfully!"
 
-install-dev: 
+install-dev:
 	@echo "📦 Installing development dependencies..."
 	pip install -r requirements.txt
 	pip install -r requirements-dev.txt

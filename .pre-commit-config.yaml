@@ -1,0 +1,66 @@
+# Pre-commit hooks for automatic code formatting and linting
+# See https://pre-commit.com for more information
+
+repos:
+  # Black - Python code formatter
+  - repo: https://github.com/psf/black
+    rev: 24.8.0
+    hooks:
+      - id: black
+        language_version: python3.12
+        args: ['--config=backend/pyproject.toml']
+        files: ^backend/
+
+  # isort - Import sorter
+  - repo: https://github.com/pycqa/isort
+    rev: 5.13.2
+    hooks:
+      - id: isort
+        language_version: python3.12
+        args: ['--settings-path=backend/pyproject.toml']
+        files: ^backend/
+
+  # Flake8 - Python linter
+  - repo: https://github.com/pycqa/flake8
+    rev: 7.1.1
+    hooks:
+      - id: flake8
+        language_version: python3.12
+        args: [
+          '--max-line-length=88',
+          '--extend-ignore=E203,W503,F401,F841,E501,W291,W293,E712,F811,E402,F541,F821'
+        ]
+        files: ^backend/
+
+  # General file checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: trailing-whitespace
+        files: ^backend/
+      - id: end-of-file-fixer
+        files: ^backend/
+      - id: check-yaml
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: check-json
+        exclude: '^frontend/(tsconfig.*\.json|components\.json)$'
+      - id: pretty-format-json
+        args: ['--autofix', '--indent=2']
+        exclude: '^frontend/(tsconfig.*\.json|components\.json)$'
+        files: \.(json)$
+
+  # Python-specific checks
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v5.0.0
+    hooks:
+      - id: check-ast
+        files: ^backend/.*\.py$
+      - id: check-docstring-first
+        files: ^backend/.*\.py$
+      - id: debug-statements
+        files: ^backend/.*\.py$
+      - id: name-tests-test
+        files: ^backend/tests/.*\.py$
+        args: ['--pytest-test-first']

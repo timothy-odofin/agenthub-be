@@ -7,8 +7,10 @@ and repository functionality without complex scenarios.
 Run with: pytest tests/integration/test_signup_session_redis_smoke.py -v
 """
 
-import pytest
 import uuid
+
+import pytest
+
 from app.db.repositories.signup_session_repository import signup_session_repository
 
 
@@ -28,7 +30,7 @@ async def test_make_key_method():
     """Test that _make_key generates correct Redis keys."""
     session_id = "test-session-123"
     key = signup_session_repository._make_key(session_id)
-    
+
     assert key == f"signup:{session_id}"
     assert key.startswith("signup:")
     print(f"✓ Key generation works: {key}")
@@ -38,7 +40,7 @@ async def test_make_key_method():
 async def test_session_ttl_constant():
     """Test that SESSION_TTL is set correctly."""
     ttl = signup_session_repository.SESSION_TTL
-    
+
     assert ttl == 300, f"Expected TTL 300 seconds (5 min), got {ttl}"
     print(f"✓ Session TTL configured: {ttl} seconds")
 
@@ -47,19 +49,19 @@ async def test_session_ttl_constant():
 async def test_key_prefix_constant():
     """Test that KEY_PREFIX is set correctly."""
     prefix = signup_session_repository.KEY_PREFIX
-    
+
     assert prefix == "signup"
     print(f"✓ Key prefix configured: {prefix}")
 
 
-@pytest.mark.asyncio  
+@pytest.mark.asyncio
 async def test_repository_singleton():
     """Test that repository is a singleton."""
     from app.db.repositories.signup_session_repository import SignupSessionRepository
-    
+
     instance1 = signup_session_repository
     instance2 = SignupSessionRepository()
-    
+
     # Both instances should work (may not be same object due to module imports)
     assert instance1 is not None
     assert instance2 is not None
@@ -68,7 +70,7 @@ async def test_repository_singleton():
 
 # Note: Full integration tests requiring actual Redis connection are in
 # test_signup_session_repository_integration.py
-# 
+#
 # If those tests fail with SSL errors, it's a known redis-py compatibility issue.
 # The repository code is correct; the issue is in RedisConnectionManager's SSL handling.
 #

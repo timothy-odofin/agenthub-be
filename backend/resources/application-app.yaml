@@ -32,14 +32,14 @@ agent:
   timeout: 300                        # Agent execution timeout in seconds
   memory_window: 20                   # Number of messages to keep in memory
   tool_timeout: 60                    # Individual tool timeout in seconds
-  
+
   # Tool configuration
   tools:
     vector_store:
       enabled: true
       max_results: 4
       similarity_threshold: 0.7
-    
+
     jira:
       enabled: true
       max_results: 10
@@ -51,7 +51,7 @@ session:
   max_history_length: 100             # Maximum messages per session
   session_timeout: 3600               # Session timeout in seconds (1 hour)
   cleanup_interval: 86400             # Cleanup interval in seconds (24 hours)
-  
+
   # Auto title generation (ChatGPT-style)
   auto_title:
     enabled: true                     # Enable automatic title generation
@@ -79,7 +79,7 @@ resilience:
     max_delay: 10.0                   # Maximum delay in seconds
     strategy: "EXPONENTIAL"           # Retry strategy (EXPONENTIAL, LINEAR, FIXED)
     jitter: true                      # Add randomness to retry delays
-  
+
   circuit_breaker:
     failure_threshold: 5              # Number of failures before opening circuit
     failure_window: 60.0              # Time window for counting failures (seconds)

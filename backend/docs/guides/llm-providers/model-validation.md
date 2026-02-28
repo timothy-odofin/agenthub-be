@@ -202,7 +202,7 @@ llm:
   default:
     provider: openai
     model: gpt-4o-mini
-  
+
   providers:
     openai:
       display_name: "OpenAI"
@@ -220,7 +220,7 @@ llm:
         - o3-mini
       timeout: 600
       max_tokens: 500000
-    
+
     anthropic:
       display_name: "Anthropic"
       api_key: ${ANTHROPIC_API_KEY}
@@ -244,14 +244,14 @@ class LLMService:
     def validate_model_for_provider(provider_name: str, model: str = None) -> str:
         """
         Validate model is supported by provider.
-        
+
         Args:
             provider_name: Name of the LLM provider (e.g., "openai")
             model: Optional model name. If None, returns provider's default
-        
+
         Returns:
             Validated model name
-        
+
         Raises:
             ValueError: If provider not found/configured or model not supported
         """
@@ -264,7 +264,7 @@ class LLMService:
 def validate_llm_params(func: Callable) -> Callable:
     """
     Decorator to validate LLM provider and model parameters in FastAPI requests.
-    
+
     - Extracts provider and model from request body
     - Falls back to system defaults when not provided
     - Validates using LLMService.validate_model_for_provider()

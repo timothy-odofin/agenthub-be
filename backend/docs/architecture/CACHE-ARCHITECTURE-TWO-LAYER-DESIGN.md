@@ -9,13 +9,13 @@ This document explains why AgentHub uses **two complementary caching layers** in
 ## The Two Caching Layers
 
 ### Layer 1: Redis/In-Memory Cache (app.infrastructure.cache)
-**Purpose:** Serializable data (dictionaries, strings, JSON)  
-**Implementation:** `BaseCacheProvider` → `RedisCacheProvider` / `InMemoryCacheProvider`  
-**Thread Safety:** Built into Redis (network atomicity) and In-Memory (asyncio.Lock)  
+**Purpose:** Serializable data (dictionaries, strings, JSON)
+**Implementation:** `BaseCacheProvider` → `RedisCacheProvider` / `InMemoryCacheProvider`
+**Thread Safety:** Built into Redis (network atomicity) and In-Memory (asyncio.Lock)
 **Use Cases:**
 - Confirmation tokens
 - Signup sessions
-- User sessions  
+- User sessions
 - Rate limiting counters
 - Temporary data
 
@@ -27,9 +27,9 @@ This document explains why AgentHub uses **two complementary caching layers** in
 - ✅ Async interface
 
 ### Layer 2: In-Memory Object Cache (LLM/Agent caching)
-**Purpose:** Non-serializable Python objects (LLM providers, Agents)  
-**Implementation:** Thread-safe `LRUCache` class with `threading.RLock()`  
-**Thread Safety:** Explicit locking with RLock (reentrant locks)  
+**Purpose:** Non-serializable Python objects (LLM providers, Agents)
+**Implementation:** Thread-safe `LRUCache` class with `threading.RLock()`
+**Thread Safety:** Explicit locking with RLock (reentrant locks)
 **Use Cases:**
 - LLM provider instances (contain network connections, locks)
 - Agent instances (contain LLM clients, tools, state machines)
@@ -77,9 +77,9 @@ pickle.dumps(llm_provider)  # ❌ TypeError: cannot pickle 'lock' object
 
 ### Attempted Workarounds (All Bad)
 
-❌ **Custom pickle protocol** - Brittle, hard to maintain, breaks on updates  
-❌ **Serialize config only** - Defeats purpose, still need to recreate object  
-❌ **Proxy pattern** - Adds latency, complexity, still needs object cache  
+❌ **Custom pickle protocol** - Brittle, hard to maintain, breaks on updates
+❌ **Serialize config only** - Defeats purpose, still need to recreate object
+❌ **Proxy pattern** - Adds latency, complexity, still needs object cache
 ❌ **Recreate on each request** - Defeats purpose of caching!
 
 ---
@@ -119,7 +119,7 @@ pickle.dumps(llm_provider)  # ❌ TypeError: cannot pickle 'lock' object
 # Layer 1: Redis Cache (Serializable Data)
 async def get_user_session(session_id: str):
     from app.infrastructure.cache.instances import session_cache
-    
+
     # Cache stores serialized dict
     session_data = await session_cache.get(session_id)
     return session_data  # {'user_id': '123', 'created_at': '...'}
@@ -129,10 +129,10 @@ def get_llm_provider(provider: str, model: str):
     # Check in-memory cache (holds actual Python object)
     cache_key = (provider, model)
     cached_llm = _llm_cache.get(cache_key)
-    
+
     if cached_llm:
         return cached_llm  # Returns actual ChatOpenAI instance
-    
+
     # Create and cache
     llm = ChatOpenAI(model=model, ...)
     _llm_cache.set(cache_key, llm)
@@ -183,11 +183,11 @@ await cache.get("key")           # Thread-safe by design
 class LRUCache:
     def __init__(self):
         self.lock = threading.RLock()  # Reentrant lock
-    
+
     def get(self, key):
         with self.lock:  # Explicit thread safety
             return self.cache.get(key)
-    
+
     def set(self, key, value):
         with self.lock:
             if len(self.cache) >= max_size:
@@ -367,6 +367,6 @@ This follows **industry best practices** and is the **standard approach** used b
 - [Optimization Overview](./OPTIMIZATION-2026-02-25.md)
 - [Cache Service Design Comparison](./cache-service-design-comparison.md)
 
-**Author:** Senior Backend Engineer (18+ years experience)  
-**Date:** February 25, 2026  
+**Author:** Senior Backend Engineer (18+ years experience)
+**Date:** February 25, 2026
 **Status:** Architecture Approved ✅

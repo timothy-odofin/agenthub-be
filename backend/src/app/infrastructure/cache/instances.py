@@ -6,17 +6,17 @@ for different application features.
 
 Usage:
     from app.infrastructure.cache.instances import confirmation_cache, signup_cache
-    
+
     # Store a confirmation
     await confirmation_cache.set("action_123", action_data, ttl=300)
-    
+
     # Get a signup session
     session = await signup_cache.get("session_abc")
 """
 
-from app.infrastructure.cache import CacheFactory
 from app.core.core_enums import CacheType
 from app.core.utils.logger import get_logger
+from app.infrastructure.cache import CacheFactory
 
 logger = get_logger(__name__)
 
@@ -25,37 +25,30 @@ logger.info("Initializing cache instances...")
 
 # Confirmation cache - for pending confirmations (5 min TTL)
 confirmation_cache = CacheFactory.create_cache(
-    namespace="confirmation",
-    default_ttl=300  # 5 minutes
+    namespace="confirmation", default_ttl=300  # 5 minutes
 )
 logger.info("✅ confirmation_cache initialized")
 
 # Signup cache - for signup sessions (30 min TTL)
 signup_cache = CacheFactory.create_cache(
-    namespace="signup",
-    default_ttl=1800  # 30 minutes
+    namespace="signup", default_ttl=1800  # 30 minutes
 )
 logger.info("✅ signup_cache initialized")
 
 # Session cache - for user sessions (24 hour TTL)
 session_cache = CacheFactory.create_cache(
-    namespace="session",
-    default_ttl=86400  # 24 hours
+    namespace="session", default_ttl=86400  # 24 hours
 )
 logger.info("✅ session_cache initialized")
 
 # Rate limit cache - for rate limiting (1 hour TTL)
 rate_limit_cache = CacheFactory.create_cache(
-    namespace="rate_limit",
-    default_ttl=3600  # 1 hour
+    namespace="rate_limit", default_ttl=3600  # 1 hour
 )
 logger.info("✅ rate_limit_cache initialized")
 
 # Temp cache - for temporary data (1 min TTL)
-temp_cache = CacheFactory.create_cache(
-    namespace="temp",
-    default_ttl=60  # 1 minute
-)
+temp_cache = CacheFactory.create_cache(namespace="temp", default_ttl=60)  # 1 minute
 logger.info("✅ temp_cache initialized")
 
 # LLM Provider cache - for caching LLM provider instances (object references, no expiry)
@@ -63,7 +56,7 @@ logger.info("✅ temp_cache initialized")
 llm_provider_cache = CacheFactory.create_cache(
     cache_type=CacheType.OBJECT,
     namespace="llm_providers",
-    default_ttl=None  # No expiration - cache until manually cleared
+    default_ttl=None,  # No expiration - cache until manually cleared
 )
 logger.info("✅ llm_provider_cache initialized (ObjectCache)")
 
@@ -72,7 +65,7 @@ logger.info("✅ llm_provider_cache initialized (ObjectCache)")
 agent_cache = CacheFactory.create_cache(
     cache_type=CacheType.OBJECT,
     namespace="agents",
-    default_ttl=None  # No expiration - cache until manually cleared
+    default_ttl=None,  # No expiration - cache until manually cleared
 )
 logger.info("✅ agent_cache initialized (ObjectCache)")
 

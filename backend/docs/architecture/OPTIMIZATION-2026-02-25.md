@@ -44,14 +44,14 @@ Next Request:
 ```python
 class ConnectionFactory:
     _manager_cache: Dict[ConnectionType, BaseConnectionManager] = {}
-    
+
     @staticmethod
     def get_connection_manager(connection_type: ConnectionType):
         # Check cache first
         if connection_type in ConnectionFactory._manager_cache:
             logger.debug(f"Reusing cached connection manager: {connection_type}")
             return ConnectionFactory._manager_cache[connection_type]
-        
+
         # Create and cache
         manager = manager_class()
         ConnectionFactory._manager_cache[connection_type] = manager
@@ -83,12 +83,12 @@ class ToolRegistry:
     @classmethod
     def get_instantiated_tools(cls, category=None, config=None, use_cache=True):
         cache_key = f"category:{category or 'all'}"
-        
+
         # Check cache first
         if use_cache and _cache_enabled and cache_key in _tool_cache:
             logger.info(f"✅ Loaded {len(cached_tools)} tools from cache")
             return _tool_cache[cache_key]
-        
+
         # Load and cache tools
         tools = []  # ... existing loading logic ...
         _tool_cache[cache_key] = tools
@@ -125,16 +125,16 @@ _CACHE_TTL_SECONDS = 600
 class GitHubConnectionManager:
     def discover_accessible_repositories(self):
         cache_key = str(installation_id)
-        
+
         # Check cache
         if cache_key in _repo_discovery_cache:
             cached_repos, cached_time = _repo_discovery_cache[cache_key]
             age = (datetime.now() - cached_time).total_seconds()
-            
+
             if age < _CACHE_TTL_SECONDS:
                 logger.info(f"✅ Loaded {len(cached_repos)} repos from cache")
                 return cached_repos
-        
+
         # Discover and cache
         repos = []  # ... GitHub API calls ...
         _repo_discovery_cache[cache_key] = (repos, datetime.now())
@@ -174,7 +174,7 @@ class LLMFactory:
         if use_cache and cache_key in _llm_provider_cache:
             logger.info(f"✅ Reusing cached LLM provider: {provider_name}, model: {validated_model}")
             return _llm_provider_cache[cache_key]
-        
+
         # Create and cache
         llm_provider = LLMFactory.get_llm(provider)
         llm_provider.config['model'] = validated_model
@@ -207,11 +207,11 @@ class LLMFactory:
 class ChatService(metaclass=SingletonMeta):
     def __init__(self):
         self._agent_cache: Dict[Tuple[str, str], Any] = {}  # Cache by (provider, model)
-    
+
     async def chat(self, message, user_id, provider, model, ...):
         # Check agent cache by (provider, model)
         agent_cache_key = (provider or 'default', model or 'default')
-        
+
         if agent_cache_key in self._agent_cache:
             agent = self._agent_cache[agent_cache_key]
             logger.info(f"✅ Reusing cached agent for provider={provider}, model={model}")
@@ -293,7 +293,7 @@ All caches use **in-memory dictionaries** (module-level globals):
 f"ConnectionType.{connection_type}"
 # Example: ConnectionType.MONGODB
 
-# Tool Registry Cache  
+# Tool Registry Cache
 f"category:{category or 'all'}"
 # Example: "category:jira", "category:all"
 
@@ -559,10 +559,10 @@ Unlike naive caching that would break when users switch models, our implementati
 
 **Real-World Impact:**
 - First request with gpt-4o-mini: ~25-30s (cold cache)
-- Subsequent requests with gpt-4o-mini: ~1-2s (warm cache) 
+- Subsequent requests with gpt-4o-mini: ~1-2s (warm cache)
 - Switching to gpt-4o: ~1-2s (creates new LLM+agent, reuses tools)
 - Back to gpt-4o-mini: ~1-2s (retrieves from cache)
 
-**Author:** GitHub Copilot  
-**Date:** February 25, 2026  
+**Author:** GitHub Copilot
+**Date:** February 25, 2026
 **Status:** Implemented and Production-Ready

@@ -2,20 +2,16 @@
 Unit tests for authentication API endpoints.
 """
 
-import pytest
-from unittest.mock import AsyncMock, MagicMock, patch
-from fastapi import status
 from datetime import datetime, timezone
+from unittest.mock import AsyncMock, MagicMock, patch
 
-from src.app.api.v1.auth import router, signup, login, refresh_token
-from src.app.schemas.auth import (
-    SignupRequest,
-    LoginRequest,
-    RefreshTokenRequest,
-)
-from src.app.db.models.user import UserInDB
-from datetime import datetime
+import pytest
 from bson import ObjectId
+from fastapi import status
+
+from src.app.api.v1.auth import login, refresh_token, router, signup
+from src.app.db.models.user import UserInDB
+from src.app.schemas.auth import LoginRequest, RefreshTokenRequest, SignupRequest
 
 
 @pytest.fixture
@@ -36,9 +32,9 @@ def mock_user():
 
 class TestSignupEndpoint:
     """Test suite for signup endpoint."""
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_signup_success(self, mock_auth_service):
         """Test successful user signup."""
         # Arrange
@@ -49,26 +45,28 @@ class TestSignupEndpoint:
             firstname="Jane",
             lastname="Smith",
         )
-        
+
         # Mock service response
-        mock_auth_service.signup = AsyncMock(return_value={
-            "success": True,
-            "message": "User created successfully",
-            "user_id": "507f1f77bcf86cd799439011",
-            "access_token": "access_token_123",
-            "refresh_token": "refresh_token_456",
-        })
-        
+        mock_auth_service.signup = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "User created successfully",
+                "user_id": "507f1f77bcf86cd799439011",
+                "access_token": "access_token_123",
+                "refresh_token": "refresh_token_456",
+            }
+        )
+
         # Act
         response = await signup(request)
-        
+
         # Assert
         assert response.success is True
         assert response.message == "User created successfully"
         assert response.user_id == "507f1f77bcf86cd799439011"
         assert response.access_token == "access_token_123"
         assert response.refresh_token == "refresh_token_456"
-        
+
         # Verify service was called with correct args
         mock_auth_service.signup.assert_called_once_with(
             email=request.email,
@@ -77,9 +75,9 @@ class TestSignupEndpoint:
             firstname=request.firstname,
             lastname=request.lastname,
         )
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_signup_validation_failure(self, mock_auth_service):
         """Test signup with validation errors from workflow."""
         # Arrange - valid Pydantic schema but will fail workflow validation
@@ -90,19 +88,21 @@ class TestSignupEndpoint:
             firstname="Jane",
             lastname="Smith",
         )
-        
+
         # Mock service failure - duplicate email
-        mock_auth_service.signup = AsyncMock(return_value={
-            "success": False,
-            "message": "Email is already registered",
-            "user_id": None,
-            "access_token": None,
-            "refresh_token": None,
-        })
-        
+        mock_auth_service.signup = AsyncMock(
+            return_value={
+                "success": False,
+                "message": "Email is already registered",
+                "user_id": None,
+                "access_token": None,
+                "refresh_token": None,
+            }
+        )
+
         # Act
         response = await signup(request)
-        
+
         # Assert
         assert response.success is False
         assert "already registered" in response.message.lower()
@@ -112,9 +112,9 @@ class TestSignupEndpoint:
 
 class TestLoginEndpoint:
     """Test suite for login endpoint."""
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_login_with_email_success(
         self,
         mock_auth_service,
@@ -126,24 +126,26 @@ class TestLoginEndpoint:
             identifier="test@example.com",
             password="password123",
         )
-        
-        mock_auth_service.login = AsyncMock(return_value={
-            "success": True,
-            "message": "Login successful",
-            "access_token": "access_token",
-            "refresh_token": "refresh_token",
-            "user": {
-                "id": str(mock_user.id),
-                "email": mock_user.email,
-                "username": mock_user.username,
-                "firstname": mock_user.firstname,
-                "lastname": mock_user.lastname,
+
+        mock_auth_service.login = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "Login successful",
+                "access_token": "access_token",
+                "refresh_token": "refresh_token",
+                "user": {
+                    "id": str(mock_user.id),
+                    "email": mock_user.email,
+                    "username": mock_user.username,
+                    "firstname": mock_user.firstname,
+                    "lastname": mock_user.lastname,
+                },
             }
-        })
-        
+        )
+
         # Act
         response = await login(request)
-        
+
         # Assert
         assert response.success is True
         assert response.message == "Login successful"
@@ -152,14 +154,14 @@ class TestLoginEndpoint:
         assert response.user is not None
         assert response.user["email"] == mock_user.email
         assert response.user["username"] == mock_user.username
-        
+
         mock_auth_service.login.assert_called_once_with(
             identifier=request.identifier,
             password=request.password,
         )
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_login_with_username_success(
         self,
         mock_auth_service,
@@ -171,35 +173,37 @@ class TestLoginEndpoint:
             identifier="testuser",
             password="password123",
         )
-        
-        mock_auth_service.login = AsyncMock(return_value={
-            "success": True,
-            "message": "Login successful",
-            "access_token": "access_token",
-            "refresh_token": "refresh_token",
-            "user": {
-                "id": str(mock_user.id),
-                "email": mock_user.email,
-                "username": mock_user.username,
-                "firstname": mock_user.firstname,
-                "lastname": mock_user.lastname,
+
+        mock_auth_service.login = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "Login successful",
+                "access_token": "access_token",
+                "refresh_token": "refresh_token",
+                "user": {
+                    "id": str(mock_user.id),
+                    "email": mock_user.email,
+                    "username": mock_user.username,
+                    "firstname": mock_user.firstname,
+                    "lastname": mock_user.lastname,
+                },
             }
-        })
-        
+        )
+
         # Act
         response = await login(request)
-        
+
         # Assert
         assert response.success is True
         assert response.message == "Login successful"
-        
+
         mock_auth_service.login.assert_called_once_with(
             identifier=request.identifier,
             password=request.password,
         )
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_login_user_not_found(self, mock_auth_service):
         """Test login with non-existent user."""
         # Arrange
@@ -207,25 +211,27 @@ class TestLoginEndpoint:
             identifier="nonexistent@example.com",
             password="password123",
         )
-        
-        mock_auth_service.login = AsyncMock(return_value={
-            "success": False,
-            "message": "Invalid credentials",
-            "access_token": None,
-            "refresh_token": None,
-            "user": None,
-        })
-        
+
+        mock_auth_service.login = AsyncMock(
+            return_value={
+                "success": False,
+                "message": "Invalid credentials",
+                "access_token": None,
+                "refresh_token": None,
+                "user": None,
+            }
+        )
+
         # Act
         response = await login(request)
-        
+
         # Assert
         assert response.success is False
         assert response.message == "Invalid credentials"
         assert response.access_token is None
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_login_invalid_password(
         self,
         mock_auth_service,
@@ -237,18 +243,20 @@ class TestLoginEndpoint:
             identifier="test@example.com",
             password="wrongpassword",
         )
-        
-        mock_auth_service.login = AsyncMock(return_value={
-            "success": False,
-            "message": "Invalid credentials",
-            "access_token": None,
-            "refresh_token": None,
-            "user": None,
-        })
-        
+
+        mock_auth_service.login = AsyncMock(
+            return_value={
+                "success": False,
+                "message": "Invalid credentials",
+                "access_token": None,
+                "refresh_token": None,
+                "user": None,
+            }
+        )
+
         # Act
         response = await login(request)
-        
+
         # Assert
         assert response.success is False
         assert response.message == "Invalid credentials"
@@ -257,9 +265,9 @@ class TestLoginEndpoint:
 
 class TestRefreshTokenEndpoint:
     """Test suite for refresh token endpoint."""
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_refresh_token_success(
         self,
         mock_auth_service,
@@ -268,48 +276,52 @@ class TestRefreshTokenEndpoint:
         """Test successful token refresh."""
         # Arrange
         request = RefreshTokenRequest(refresh_token="valid_refresh_token")
-        
-        mock_auth_service.refresh_token = AsyncMock(return_value={
-            "success": True,
-            "message": "Token refreshed successfully",
-            "access_token": "new_access_token",
-        })
-        
+
+        mock_auth_service.refresh_token = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "Token refreshed successfully",
+                "access_token": "new_access_token",
+            }
+        )
+
         # Act
         response = await refresh_token(request)
-        
+
         # Assert
         assert response.success is True
         assert response.message == "Token refreshed successfully"
         assert response.access_token == "new_access_token"
-        
+
         mock_auth_service.refresh_token.assert_called_once_with(
             refresh_token=request.refresh_token
         )
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_refresh_token_invalid(self, mock_auth_service):
         """Test refresh with invalid token."""
         # Arrange
         request = RefreshTokenRequest(refresh_token="invalid_token")
-        
-        mock_auth_service.refresh_token = AsyncMock(return_value={
-            "success": False,
-            "message": "Invalid or expired refresh token",
-            "access_token": None,
-        })
-        
+
+        mock_auth_service.refresh_token = AsyncMock(
+            return_value={
+                "success": False,
+                "message": "Invalid or expired refresh token",
+                "access_token": None,
+            }
+        )
+
         # Act
         response = await refresh_token(request)
-        
+
         # Assert
         assert response.success is False
         assert response.message == "Invalid or expired refresh token"
         assert response.access_token is None
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_refresh_token_user_not_found(
         self,
         mock_auth_service,
@@ -317,16 +329,18 @@ class TestRefreshTokenEndpoint:
         """Test refresh when user no longer exists."""
         # Arrange
         request = RefreshTokenRequest(refresh_token="valid_refresh_token")
-        
-        mock_auth_service.refresh_token = AsyncMock(return_value={
-            "success": False,
-            "message": "User not found",
-            "access_token": None,
-        })
-        
+
+        mock_auth_service.refresh_token = AsyncMock(
+            return_value={
+                "success": False,
+                "message": "User not found",
+                "access_token": None,
+            }
+        )
+
         # Act
         response = await refresh_token(request)
-        
+
         # Assert
         assert response.success is False
         assert response.message == "User not found"
@@ -335,9 +349,9 @@ class TestRefreshTokenEndpoint:
 
 class TestAuthEndpointIntegration:
     """Integration tests for auth endpoint workflows."""
-    
+
     @pytest.mark.asyncio
-    @patch('src.app.api.v1.auth.auth_service')
+    @patch("src.app.api.v1.auth.auth_service")
     async def test_signup_then_login_workflow(
         self,
         mock_auth_service,
@@ -352,42 +366,46 @@ class TestAuthEndpointIntegration:
             firstname="Jane",
             lastname="Smith",
         )
-        
-        mock_auth_service.signup = AsyncMock(return_value={
-            "success": True,
-            "message": "User created successfully",
-            "user_id": str(mock_user.id),
-            "access_token": "signup_access_token",
-            "refresh_token": "signup_refresh_token",
-        })
-        
+
+        mock_auth_service.signup = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "User created successfully",
+                "user_id": str(mock_user.id),
+                "access_token": "signup_access_token",
+                "refresh_token": "signup_refresh_token",
+            }
+        )
+
         signup_response = await signup(signup_request)
-        
+
         assert signup_response.success is True
         assert signup_response.access_token == "signup_access_token"
-        
+
         # Login
         login_request = LoginRequest(
             identifier="newuser@example.com",
             password="SecurePass123!",
         )
-        
-        mock_auth_service.login = AsyncMock(return_value={
-            "success": True,
-            "message": "Login successful",
-            "access_token": "login_access_token",
-            "refresh_token": "login_refresh_token",
-            "user": {
-                "id": str(mock_user.id),
-                "email": mock_user.email,
-                "username": mock_user.username,
-                "firstname": mock_user.firstname,
-                "lastname": mock_user.lastname,
+
+        mock_auth_service.login = AsyncMock(
+            return_value={
+                "success": True,
+                "message": "Login successful",
+                "access_token": "login_access_token",
+                "refresh_token": "login_refresh_token",
+                "user": {
+                    "id": str(mock_user.id),
+                    "email": mock_user.email,
+                    "username": mock_user.username,
+                    "firstname": mock_user.firstname,
+                    "lastname": mock_user.lastname,
+                },
             }
-        })
-        
+        )
+
         login_response = await login(login_request)
-        
+
         assert login_response.success is True
         assert login_response.access_token == "login_access_token"
         assert login_response.user["email"] == mock_user.email

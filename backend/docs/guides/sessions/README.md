@@ -227,62 +227,62 @@ from abc import ABC, abstractmethod
 
 class BaseSessionRepository(ABC):
     """Base class for session repositories."""
-    
+
     def __init__(self, connection_type: ConnectionType):
         """Initialize with connection type (MONGODB or POSTGRES)."""
         self.connection_type = connection_type
         self._connection_manager = None
         self._connection = None
         self.load_and_validate_connection()
-    
+
     async def _ensure_connection(self):
         """Ensure connection is established and tables exist."""
         pass
-    
+
     # Abstract methods that implementations must provide
     @abstractmethod
     def create_session(self, user_id: str, session_data: dict) -> str:
         pass
-    
+
     @abstractmethod
     async def get_session_history(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         session_id: str
     ) -> List[ChatMessage]:
         pass
-    
+
     @abstractmethod
     def update_session(
-        self, 
-        user_id: str, 
-        session_id: str, 
+        self,
+        user_id: str,
+        session_id: str,
         data: dict
     ) -> bool:
         pass
-    
+
     @abstractmethod
     def list_paginated_sessions(
-        self, 
-        user_id: str, 
-        page: int = 0, 
+        self,
+        user_id: str,
+        page: int = 0,
         limit: int = 10
     ) -> List[ChatSession]:
         pass
-    
+
     @abstractmethod
     def delete_session(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         session_id: str
     ) -> bool:
         pass
-    
+
     @abstractmethod
     async def add_message(
-        self, 
-        session_id: str, 
-        role: str, 
+        self,
+        session_id: str,
+        role: str,
         content: str
     ) -> str:
         pass
@@ -307,7 +307,7 @@ async def _ensure_connection(self):
             self._connection = await self._connection_manager.connect()
         else:
             self._connection = self._connection_manager.connect()
-        
+
         # Auto-detect async vs sync table creation
         if inspect.iscoroutinefunction(self._create_tables_if_not_exist):
             await self._create_tables_if_not_exist()
@@ -374,7 +374,7 @@ async def get_session_history(self, user_id: str, session_id: str):
 
 ```python
 from app.sessions.repositories.session_repository_factory import (
-    SessionRepositoryFactory, 
+    SessionRepositoryFactory,
     SessionRepositoryType
 )
 
@@ -444,19 +444,19 @@ MongoDB repository uses thread pools to run sync PyMongo operations in async con
 ```python
 async def get_session_history(self, user_id: str, session_id: str):
     await self._ensure_connection()
-    
+
     # Define sync operation
     def get_session_and_messages():
         # Sync PyMongo operations
         session = self._sessions_collection.find_one(...)
         messages = self._messages_collection.find(...)
         return messages
-    
+
     # Run in thread pool
     import concurrent.futures
     with concurrent.futures.ThreadPoolExecutor() as executor:
         return await asyncio.get_event_loop().run_in_executor(
-            executor, 
+            executor,
             get_session_and_messages
         )
 ```
@@ -519,7 +519,7 @@ CREATE INDEX IF NOT EXISTS idx_messages_session_id ON chat_messages(session_id);
 
 ```python
 from app.sessions.repositories.session_repository_factory import (
-    SessionRepositoryFactory, 
+    SessionRepositoryFactory,
     SessionRepositoryType
 )
 
@@ -823,7 +823,7 @@ recent_messages = repo.get_session_messages(
 
 # Count user messages for title generation
 user_message_count = sum(
-    1 for msg in messages 
+    1 for msg in messages
     if msg.role == "user"
 )
 ```
@@ -938,10 +938,10 @@ class ChatService:
         # Auto-generate session if not provided
         if session_id is None:
             session_id = str(uuid.uuid4())
-        
+
         # Get session repository
         session_repo = SessionRepositoryFactory.get_default_repository()
-        
+
         # Create agent with session support
         agent = await AgentFactory.create_agent(
             agent_type=self._agent_type,
@@ -950,14 +950,14 @@ class ChatService:
             session_repository=session_repo,  # Pass repository to agent
             verbose=self.agent_verbose
         )
-        
+
         # Execute with context
         context = AgentContext(
             user_id=user_id,
             session_id=session_id,
             metadata={"protocol": protocol}
         )
-        
+
         response = await agent.execute(message, context)
         return response
 ```
@@ -994,19 +994,19 @@ from app.connections.base import ConnectionType
 @register_repository(SessionRepositoryType.REDIS)
 class RedisSessionRepository(BaseSessionRepository):
     """Redis implementation using sorted sets for message ordering."""
-    
+
     def __init__(self):
         super().__init__(ConnectionType.REDIS)
-    
+
     def _create_tables_if_not_exist(self):
         """No table creation needed for Redis."""
         pass
-    
+
     def create_session(self, user_id: str, session_data: dict) -> str:
         """Create session in Redis."""
         import uuid
         session_id = str(uuid.uuid4())
-        
+
         # Store session metadata as hash
         session_key = f"session:{session_id}"
         self._connection.hset(session_key, mapping={
@@ -1017,33 +1017,33 @@ class RedisSessionRepository(BaseSessionRepository):
             "updated_at": datetime.utcnow().isoformat(),
             "metadata": json.dumps(session_data.get("metadata", {}))
         })
-        
+
         # Add to user's session list
         user_sessions_key = f"user:{user_id}:sessions"
         self._connection.zadd(
             user_sessions_key,
             {session_id: datetime.utcnow().timestamp()}
         )
-        
+
         return session_id
-    
+
     async def get_session_history(
-        self, 
-        user_id: str, 
+        self,
+        user_id: str,
         session_id: str
     ) -> List[ChatMessage]:
         """Get message history from Redis sorted set."""
         # Verify session ownership
         session_key = f"session:{session_id}"
         session_user = self._connection.hget(session_key, "user_id")
-        
+
         if session_user != user_id:
             return []
-        
+
         # Get messages from sorted set (ordered by timestamp)
         messages_key = f"session:{session_id}:messages"
         messages_data = self._connection.zrange(messages_key, 0, -1)
-        
+
         messages = []
         for msg_json in messages_data:
             msg_dict = json.loads(msg_json)
@@ -1054,19 +1054,19 @@ class RedisSessionRepository(BaseSessionRepository):
                 content=msg_dict["content"],
                 timestamp=datetime.fromisoformat(msg_dict["timestamp"])
             ))
-        
+
         return messages
-    
+
     async def add_message(
-        self, 
-        session_id: str, 
-        role: str, 
+        self,
+        session_id: str,
+        role: str,
         content: str
     ) -> str:
         """Add message to Redis sorted set."""
         message_id = str(uuid.uuid4())
         timestamp = datetime.utcnow()
-        
+
         message_data = {
             "message_id": message_id,
             "session_id": session_id,
@@ -1074,16 +1074,16 @@ class RedisSessionRepository(BaseSessionRepository):
             "content": content,
             "timestamp": timestamp.isoformat()
         }
-        
+
         # Add to sorted set with timestamp as score
         messages_key = f"session:{session_id}:messages"
         self._connection.zadd(
             messages_key,
             {json.dumps(message_data): timestamp.timestamp()}
         )
-        
+
         return message_id
-    
+
     # Implement other abstract methods...
 ```
 
@@ -1188,7 +1188,7 @@ sessions = repo.list_paginated_sessions(
 async def cleanup_old_sessions(user_id: str, keep_last_n: int = 50):
     """Keep only last N sessions for user."""
     sessions = repo.list_paginated_sessions(user_id, page=0, limit=1000)
-    
+
     # Delete sessions beyond keep_last_n
     for session in sessions[keep_last_n:]:
         repo.delete_session(user_id, session.session_id)
@@ -1222,7 +1222,7 @@ session_data = {"title": "New Chat"}
 ```python
 class BaseSessionRepository(ABC):
     def __init__(self, connection_type: ConnectionType)
-    
+
     # Core operations
     def create_session(user_id: str, session_data: dict) -> str
     def get_session(user_id: str, session_id: str) -> ChatSession  # Get single session
@@ -1232,11 +1232,11 @@ class BaseSessionRepository(ABC):
     def list_paginated_sessions(user_id: str, page: int, limit: int) -> List[ChatSession]
     def delete_session(user_id: str, session_id: str) -> bool
     async def add_message(session_id: str, role: str, content: str) -> str
-    
+
     # Connection management
     async def _ensure_connection()
     def load_and_validate_connection()
-    
+
     # Template method
     @abstractmethod
     def _create_tables_if_not_exist()
@@ -1249,7 +1249,7 @@ class MongoSessionRepository(BaseSessionRepository):
     # Additional async methods
     async def create_session_async(user_id: str, session_data: dict) -> str
     async def ensure_session_exists(session_id: str, user_id: str, session_data: dict) -> bool
-    
+
     # Resilience (all async methods have retry)
     MONGODB_RETRY_CONFIG = RetryConfig(
         max_attempts=3,
@@ -1266,10 +1266,10 @@ class MongoSessionRepository(BaseSessionRepository):
 class SessionRepositoryFactory:
     @staticmethod
     def create_repository(repo_type: SessionRepositoryType) -> BaseSessionRepository
-    
+
     @staticmethod
     def get_default_repository() -> BaseSessionRepository
-    
+
     @staticmethod
     def list_repositories() -> List[SessionRepositoryType]
 ```
@@ -1280,10 +1280,10 @@ class SessionRepositoryFactory:
 class SessionRepositoryRegistry:
     @classmethod
     def register_repository(cls, repo_type: SessionRepositoryType)
-    
+
     @classmethod
     def get_repository_class(cls, repo_type: SessionRepositoryType) -> Type[BaseSessionRepository]
-    
+
     @classmethod
     def list_repositories(cls) -> List[SessionRepositoryType]
 ```
@@ -1422,8 +1422,8 @@ await repo.add_message(session_id, "user", "Hello")
 
 ---
 
-**Last Updated**: January 10, 2026  
-**Version**: 1.0  
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Session Management, Chat History, Conversation Persistence
 
 ---
@@ -1449,4 +1449,4 @@ Want to contribute a new session repository backend?
 
 ---
 
-Thank you for using AgentHub's session management system! 
+Thank you for using AgentHub's session management system!

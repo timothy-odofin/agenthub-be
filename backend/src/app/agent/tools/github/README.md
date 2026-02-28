@@ -5,7 +5,7 @@ Professional GitHub integration for agenthub with multi-repository support throu
 ## Architecture
 
 - **GitHubConnectionManager**: GitHub App authentication with repository discovery
-- **GitHubToolFactory**: Dynamic tool creation using LangChain GitHubToolkit 
+- **GitHubToolFactory**: Dynamic tool creation using LangChain GitHubToolkit
 - **GitHubToolsProvider**: Main provider class with multi-repository support
 - **Configuration-driven**: Clean separation of tool definitions from connection credentials
 
@@ -47,7 +47,7 @@ export GITHUB_API_KEY="your_personal_access_token"
 4. **Configure Environment Variables**:
 ```bash
 export GITHUB_APP_ID="123456" # From step 1
-export GITHUB_PRIVATE_KEY_PATH="/path/to/your-app.private-key.pem" # From step 1 
+export GITHUB_PRIVATE_KEY_PATH="/path/to/your-app.private-key.pem" # From step 1
 export GITHUB_INSTALLATION_ID="87654321" # From step 3 (optional)
 ```
 - Update `resources/application-external.yaml`:
@@ -80,7 +80,7 @@ description: "Create a new file in the repository"
 category: "file_management"
 get_issue:
 enabled: true
-langchain_name: "get_issue" 
+langchain_name: "get_issue"
 description: "Retrieve information about a specific issue"
 category: "issue_management"
 ```
@@ -119,7 +119,7 @@ The tool factory creates repository-scoped tools to prevent conflicts:
 
 - **No inner imports**: All imports at module level
 - **File-based configuration**: Private keys read from files
-- **Clean separation**: Tools/connections/configuration separated 
+- **Clean separation**: Tools/connections/configuration separated
 - **Error handling**: Comprehensive error handling and logging
 - **Pattern consistency**: Follows existing Atlassian tools pattern
 - **Documentation**: Comprehensive documentation and examples

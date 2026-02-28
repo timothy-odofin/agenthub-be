@@ -29,7 +29,7 @@ settings = Settings.instance()
 
 # Get entire profiles as dictionaries
 llm_config = settings.llm          # All LLM settings
-db_config = settings.db            # All database settings  
+db_config = settings.db            # All database settings
 vector_config = settings.vector    # All vector store settings
 
 # Access nested values
@@ -164,11 +164,11 @@ response = await llm.generate(
 
 ### Key Features
 
-**Flexible Access**: Use `settings.llm` (dict) OR `settings.llm.temperature` (dot notation)  
-**Auto Environment Variables**: `${VAR_NAME}` automatically resolved from environment  
-**Default Values**: `${VAR_NAME:default}` provides fallback if not set  
-**No Boilerplate**: Just add YAML file, access immediately  
-**Type Safe**: Values validated at load time  
+**Flexible Access**: Use `settings.llm` (dict) OR `settings.llm.temperature` (dot notation)
+**Auto Environment Variables**: `${VAR_NAME}` automatically resolved from environment
+**Default Values**: `${VAR_NAME:default}` provides fallback if not set
+**No Boilerplate**: Just add YAML file, access immediately
+**Type Safe**: Values validated at load time
 
 **Complete Guide**: See [Resources Directory Guide](../guides/configuration/resources-directory.md) for 40+ examples
 
@@ -239,21 +239,21 @@ app:
   version: "1.0.0"
   environment: "${APP_ENV:dev}"  # dev, test, prod
   debug: ${DEBUG:false}
-  
+
   # Server settings
   server:
     host: "0.0.0.0"
     port: 8000
     reload: ${RELOAD:false}
     workers: ${WORKERS:1}
-  
+
   # Logging configuration
   logging:
     level: "${LOG_LEVEL:INFO}"
     format: "json"  # json or text
     output: "stdout"  # stdout or file
     file_path: "logs/app.log"
-  
+
   # CORS settings
   cors:
     enabled: true
@@ -267,7 +267,7 @@ app:
       - "DELETE"
     allowed_headers:
       - "*"
-  
+
   # Profiles for different environments
   profiles:
     dev:
@@ -277,7 +277,7 @@ app:
         workers: 1
       logging:
         level: "DEBUG"
-    
+
     test:
       debug: false
       server:
@@ -285,7 +285,7 @@ app:
         workers: 1
       logging:
         level: "INFO"
-    
+
     prod:
       debug: false
       server:
@@ -304,7 +304,7 @@ app:
 llm:
   # Default provider
   default_provider: "${LLM_PROVIDER:openai}"
-  
+
   # OpenAI configuration
   openai:
     api_key: "${OPENAI_API_KEY}"
@@ -315,7 +315,7 @@ llm:
     temperature: 0.7
     max_tokens: 4000
     timeout: 60
-  
+
   # Azure OpenAI configuration
   azure:
     api_key: "${AZURE_OPENAI_API_KEY}"
@@ -326,14 +326,14 @@ llm:
       embeddings: "text-embedding-ada-002"
     temperature: 0.7
     max_tokens: 4000
-  
+
   # Anthropic configuration
   anthropic:
     api_key: "${ANTHROPIC_API_KEY}"
     model: "claude-3-opus-20240229"
     max_tokens: 4000
     temperature: 0.7
-  
+
   # Fallback configuration
   fallback:
     enabled: true
@@ -342,18 +342,18 @@ llm:
       - azure
       - anthropic
     retry_delay: 2.0
-  
+
   # Rate limiting
   rate_limit:
     requests_per_minute: 60
     tokens_per_minute: 90000
-  
+
   # Caching
   cache:
     enabled: true
     ttl: 3600
     backend: "redis"  # redis or memory
-  
+
   # Profiles
   profiles:
     dev:
@@ -362,7 +362,7 @@ llm:
           chat: "gpt-3.5-turbo"
       cache:
         backend: "memory"
-    
+
     prod:
       fallback:
         enabled: true
@@ -383,7 +383,7 @@ database:
     pool_timeout: 30
     pool_recycle: 3600
     echo: ${DB_ECHO:false}
-  
+
   # MongoDB configuration
   mongodb:
     url: "${MONGODB_URL}"
@@ -394,7 +394,7 @@ database:
       users: "users"
     pool_size: 100
     max_idle_time: 10000
-  
+
   # Redis configuration
   redis:
     url: "${REDIS_URL:redis://localhost:6379}"
@@ -403,7 +403,7 @@ database:
     socket_timeout: 5
     socket_connect_timeout: 5
     decode_responses: true
-  
+
   # Profiles
   profiles:
     dev:
@@ -414,7 +414,7 @@ database:
         url: "mongodb://localhost:27017"
       redis:
         url: "redis://localhost:6379"
-    
+
     test:
       postgres:
         url: "postgresql://postgres:postgres@localhost:5432/agenthub_test"
@@ -422,7 +422,7 @@ database:
         database: "agenthub_test"
       redis:
         db: 1
-    
+
     prod:
       postgres:
         pool_size: 50
@@ -445,7 +445,7 @@ external:
     api_token: "${JIRA_API_TOKEN}"
     default_project: "${JIRA_PROJECT:}"
     timeout: 30
-  
+
   # Confluence configuration
   confluence:
     enabled: ${CONFLUENCE_ENABLED:false}
@@ -454,7 +454,7 @@ external:
     api_token: "${CONFLUENCE_API_TOKEN}"
     default_space: "${CONFLUENCE_SPACE:}"
     timeout: 30
-  
+
   # Datadog configuration
   datadog:
     enabled: ${DATADOG_ENABLED:false}
@@ -462,7 +462,7 @@ external:
     app_key: "${DATADOG_APP_KEY}"
     site: "${DATADOG_SITE:datadoghq.com}"
     timeout: 30
-  
+
   # Slack configuration
   slack:
     enabled: ${SLACK_ENABLED:false}
@@ -477,7 +477,7 @@ external:
 vector:
   # Default vector store
   default_store: "${VECTOR_STORE:pinecone}"
-  
+
   # Pinecone configuration
   pinecone:
     api_key: "${PINECONE_API_KEY}"
@@ -486,14 +486,14 @@ vector:
     dimension: 1536
     metric: "cosine"
     namespace: "default"
-  
+
   # Weaviate configuration
   weaviate:
     url: "${WEAVIATE_URL:http://localhost:8080}"
     api_key: "${WEAVIATE_API_KEY:}"
     class_name: "Document"
     timeout: 30
-  
+
   # Qdrant configuration
   qdrant:
     url: "${QDRANT_URL:http://localhost:6333}"
@@ -521,13 +521,13 @@ context:
     claude-3-opus:
       max_tokens: 200000
       reserved_output: 4000
-  
+
   # Truncation strategy
   truncation:
     strategy: "sliding_window"  # sliding_window, summarize, remove_oldest
     keep_system: true
     keep_recent: 5
-  
+
   # Summarization (when strategy is 'summarize')
   summarization:
     enabled: true
@@ -546,27 +546,27 @@ prompts:
       You are a helpful AI assistant powered by AgentHub.
       You have access to various tools to help users.
       Always be concise, accurate, and helpful.
-    
+
     conversational: |
       You are a friendly AI assistant in a conversation.
       Ask clarifying questions when needed.
       Maintain context throughout the conversation.
-  
+
   # Task-specific prompts
   tasks:
     jira_ticket:
       template: |
         Based on the user's description:
         "{user_input}"
-        
+
         Generate a Jira ticket with:
         - Summary (concise title)
         - Description (detailed)
         - Issue Type (Bug/Task/Story)
         - Priority (High/Medium/Low)
-        
+
         Return as JSON.
-      
+
       output_schema:
         type: object
         properties:
@@ -580,7 +580,7 @@ prompts:
           priority:
             type: string
             enum: ["High", "Medium", "Low"]
-    
+
     code_review:
       template: |
         Review the following code for:
@@ -588,12 +588,12 @@ prompts:
         2. Potential bugs
         3. Performance issues
         4. Security concerns
-        
+
         Code:
         ```{language}
         {code}
         ```
-        
+
         Provide constructive feedback.
 ```
 
@@ -624,7 +624,7 @@ class ServerSettings(BaseSettings):
     port: int = Field(default=8000, gt=0, lt=65536)
     reload: bool = Field(default=False)
     workers: int = Field(default=1, gt=0)
-    
+
     @validator('port')
     def validate_port(cls, v):
         if v < 1024 and v != 8000:
@@ -637,7 +637,7 @@ class LoggingSettings(BaseSettings):
     format: str = Field(default="json")
     output: str = Field(default="stdout")
     file_path: Optional[str] = None
-    
+
     @validator('level')
     def validate_level(cls, v):
         valid_levels = ["DEBUG", "INFO", "WARNING", "ERROR", "CRITICAL"]
@@ -660,11 +660,11 @@ class AppSettings(BaseSettings):
     version: str = Field(default="1.0.0")
     environment: Environment = Field(default=Environment.DEV)
     debug: bool = Field(default=False)
-    
+
     server: ServerSettings = Field(default_factory=ServerSettings)
     logging: LoggingSettings = Field(default_factory=LoggingSettings)
     cors: CORSSettings = Field(default_factory=CORSSettings)
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -677,7 +677,7 @@ class LLMProviderSettings(BaseSettings):
     temperature: float = Field(default=0.7, ge=0.0, le=2.0)
     max_tokens: int = Field(default=4000, gt=0)
     timeout: int = Field(default=60, gt=0)
-    
+
     @validator('api_key')
     def validate_api_key(cls, v):
         if not v or v == "":
@@ -690,7 +690,7 @@ class LLMSettings(BaseSettings):
     openai: Optional[LLMProviderSettings] = None
     azure: Optional[Dict] = None
     anthropic: Optional[Dict] = None
-    
+
     @validator('default_provider')
     def validate_provider(cls, v, values):
         valid_providers = ["openai", "azure", "anthropic"]
@@ -703,13 +703,13 @@ class DatabaseSettings(BaseSettings):
     postgres_url: str = Field(..., alias="DATABASE_URL")
     mongodb_url: str = Field(..., alias="MONGODB_URL")
     redis_url: str = Field(default="redis://localhost:6379")
-    
+
     @validator('postgres_url')
     def validate_postgres_url(cls, v):
         if not v.startswith('postgresql://'):
             raise ValueError("Invalid PostgreSQL URL")
         return v
-    
+
     @validator('mongodb_url')
     def validate_mongodb_url(cls, v):
         if not v.startswith('mongodb://'):
@@ -721,7 +721,7 @@ class Settings(BaseSettings):
     app: AppSettings = Field(default_factory=AppSettings)
     llm: LLMSettings = Field(default_factory=LLMSettings)
     database: DatabaseSettings = Field(default_factory=DatabaseSettings)
-    
+
     class Config:
         env_file = ".env"
         case_sensitive = False
@@ -759,19 +759,19 @@ Profiles allow environment-specific configuration without code changes.
 app:
   name: "agenthub"
   debug: false
-  
+
   # Profile-specific overrides
   profiles:
     dev:
       debug: true
       logging:
         level: "DEBUG"
-    
+
     test:
       debug: false
       logging:
         level: "INFO"
-    
+
     prod:
       debug: false
       logging:
@@ -789,15 +789,15 @@ from typing import Dict, Any
 
 class ConfigLoader:
     """Load and merge configuration with profile support."""
-    
+
     def __init__(self, config_dir: str = "resources"):
         self.config_dir = config_dir
         self.environment = os.getenv("APP_ENV", "dev")
-    
+
     def load(self) -> Dict[str, Any]:
         """Load configuration with profile merging."""
         config = {}
-        
+
         # Load all YAML files
         for file in os.listdir(self.config_dir):
             if file.endswith('.yaml'):
@@ -805,15 +805,15 @@ class ConfigLoader:
                 with open(file_path) as f:
                     data = yaml.safe_load(f)
                     config = self._deep_merge(config, data)
-        
+
         # Apply profile overrides
         config = self._apply_profile(config, self.environment)
-        
+
         # Replace environment variables
         config = self._substitute_env_vars(config)
-        
+
         return config
-    
+
     def _apply_profile(
         self,
         config: Dict[str, Any],
@@ -821,18 +821,18 @@ class ConfigLoader:
     ) -> Dict[str, Any]:
         """Apply profile-specific overrides."""
         result = config.copy()
-        
+
         for key, value in config.items():
             if isinstance(value, dict) and 'profiles' in value:
                 profiles = value.pop('profiles')
-                
+
                 if environment in profiles:
                     # Merge profile config
                     profile_config = profiles[environment]
                     result[key] = self._deep_merge(value, profile_config)
-        
+
         return result
-    
+
     def _deep_merge(
         self,
         base: Dict[str, Any],
@@ -840,15 +840,15 @@ class ConfigLoader:
     ) -> Dict[str, Any]:
         """Deep merge two dictionaries."""
         result = base.copy()
-        
+
         for key, value in override.items():
             if key in result and isinstance(result[key], dict) and isinstance(value, dict):
                 result[key] = self._deep_merge(result[key], value)
             else:
                 result[key] = value
-        
+
         return result
-    
+
     def _substitute_env_vars(self, config: Any) -> Any:
         """Replace ${VAR:default} with environment values."""
         if isinstance(config, dict):
@@ -861,14 +861,14 @@ class ConfigLoader:
         elif isinstance(config, str) and config.startswith('${'):
             # Extract variable name and default
             var_spec = config[2:-1]  # Remove ${ and }
-            
+
             if ':' in var_spec:
                 var_name, default = var_spec.split(':', 1)
             else:
                 var_name, default = var_spec, None
-            
+
             return os.getenv(var_name, default)
-        
+
         return config
 ```
 
@@ -975,7 +975,7 @@ from typing import Callable
 
 class ConfigWatcher(FileSystemEventHandler):
     """Watch configuration files for changes."""
-    
+
     def __init__(
         self,
         config_dir: str,
@@ -983,7 +983,7 @@ class ConfigWatcher(FileSystemEventHandler):
     ):
         self.config_dir = config_dir
         self.on_change = on_change
-    
+
     def on_modified(self, event):
         """Handle file modification."""
         if event.src_path.endswith('.yaml'):
@@ -996,7 +996,7 @@ async def watch_config(config_dir: str, reload_callback: Callable):
     observer = Observer()
     observer.schedule(event_handler, config_dir, recursive=False)
     observer.start()
-    
+
     try:
         while True:
             await asyncio.sleep(1)
@@ -1030,38 +1030,38 @@ from pydantic import ValidationError
 
 class ConfigValidator:
     """Validate configuration at startup."""
-    
+
     @staticmethod
     def validate_settings(settings: Settings) -> Tuple[bool, List[str]]:
         """
         Validate all settings.
-        
+
         Returns:
             (is_valid, errors)
         """
         errors = []
-        
+
         # Check required API keys
         if settings.llm.default_provider == "openai":
             if not settings.llm.openai or not settings.llm.openai.api_key:
                 errors.append("OpenAI API key is required")
-        
+
         # Check database connections
         if not settings.database.postgres_url:
             errors.append("PostgreSQL URL is required")
-        
+
         if not settings.database.mongodb_url:
             errors.append("MongoDB URL is required")
-        
+
         # Check external services
         if settings.external.jira.enabled:
             if not settings.external.jira.api_token:
                 errors.append("Jira API token required when Jira is enabled")
-        
+
         # Validate port ranges
         if settings.app.server.port < 1024 and settings.app.server.port != 8000:
             errors.append("Avoid using privileged ports")
-        
+
         return (len(errors) == 0, errors)
 
 # In main.py
@@ -1270,6 +1270,6 @@ FileNotFoundError: resources/application-llm.yaml
 
 ---
 
-**Last Updated**: January 8, 2026  
-**Maintainer**: AgentHub Team  
+**Last Updated**: January 8, 2026
+**Maintainer**: AgentHub Team
 **Status**: Production configuration system

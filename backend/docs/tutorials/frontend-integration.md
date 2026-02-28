@@ -25,7 +25,7 @@ Build Intelligent AI Agents in Minutes, Not Months
 
 **Subheadline:**
 ```
-Open-source platform for creating production-ready AI agents with built-in LLM integration, 
+Open-source platform for creating production-ready AI agents with built-in LLM integration,
 conversation management, and enterprise features. No complex setup required.
 ```
 
@@ -40,32 +40,32 @@ conversation management, and enterprise features. No complex setup required.
 **Section Title:** "Everything You Need for AI Agent Development"
 
 **Feature 1: Conversational Interfaces**
-- **Icon:** 
+- **Icon:**
 - **Title:** "Natural Language Signup"
 - **Description:** "Experience our intelligent conversational signup. No forms - just chat naturally. Our AI understands your intent and guides you through account creation."
 
 **Feature 2: LLM Integration**
-- **Icon:** 
+- **Icon:**
 - **Title:** "Multi-Provider LLM Support"
 - **Description:** "Built-in support for OpenAI, Anthropic, and more. Switch providers seamlessly with factory pattern design. Context-aware conversation management included."
 
 **Feature 3: Enterprise Ready**
-- **Icon:** 
+- **Icon:**
 - **Title:** "Production-Grade Security"
 - **Description:** "Redis session management, password hashing, JWT authentication, and MongoDB integration. Built for scale from day one."
 
 **Feature 4: Vector Search**
-- **Icon:** 
+- **Icon:**
 - **Title:** "RAG & Knowledge Bases"
 - **Description:** "Integrated vector databases (Qdrant, ChromaDB, PgVector) for retrieval-augmented generation. Build agents with long-term memory."
 
 **Feature 5: Workflow Orchestration**
-- **Icon:** 
+- **Icon:**
 - **Title:** "YAML-Based Workflows"
 - **Description:** "Define complex workflows in simple YAML files. Built-in approval flows, signup workflows, and custom workflow support."
 
 **Feature 6: External Integrations**
-- **Icon:** 
+- **Icon:**
 - **Title:** "Connect Everything"
 - **Description:** "Pre-built integrations with GitHub, Jira, Datadog, and more. RESTful API design makes adding new integrations simple."
 
@@ -96,8 +96,8 @@ conversation management, and enterprise features. No complex setup required.
 
 **Intro Text:**
 ```
-Experience our intelligent conversational signup - no traditional forms, 
-just natural conversation. Click "Get Started" below to see how AI can 
+Experience our intelligent conversational signup - no traditional forms,
+just natural conversation. Click "Get Started" below to see how AI can
 make user onboarding effortless.
 ```
 
@@ -119,7 +119,7 @@ make user onboarding effortless.
 When user clicks "Get Started", the chat interface opens with:
 
 ```
-Bot: Welcome! Let's create your account. 
+Bot: Welcome! Let's create your account.
 
 To get started, you can:
 • Type "yes" or "let's go" to begin
@@ -135,12 +135,12 @@ Bot: Hi there! Ready to create your account?
 
 I'll need 5 quick pieces of information:
 Email address
-Username 
+Username
 Password
 First name
 Last name
 
-The whole process takes less than a minute! 
+The whole process takes less than a minute!
 
 Would you like to get started? (Just say "yes" or ask me anything)
 ```
@@ -153,25 +153,25 @@ Would you like to get started? (Just say "yes" or ask me anything)
 
 **Use Case 1: Customer Support Agent**
 ```
-Build intelligent support bots that understand context, search knowledge 
+Build intelligent support bots that understand context, search knowledge
 bases, and escalate to humans when needed. Reduce support tickets by 70%.
 ```
 
 **Use Case 2: Data Analysis Agent**
 ```
-Create agents that query databases, generate reports, and visualize data 
+Create agents that query databases, generate reports, and visualize data
 based on natural language requests. No SQL required for end users.
 ```
 
 **Use Case 3: Workflow Automation**
 ```
-Orchestrate complex business workflows with AI decision-making. Approval 
+Orchestrate complex business workflows with AI decision-making. Approval
 routing, document processing, and task assignment - all conversational.
 ```
 
 **Use Case 4: Integration Hub**
 ```
-Connect Jira, GitHub, Slack, and internal tools through a single 
+Connect Jira, GitHub, Slack, and internal tools through a single
 conversational interface. "Create a ticket" works across all platforms.
 ```
 
@@ -256,9 +256,9 @@ You can now access the full platform.
 Bot: Welcome! Let's create your account. What's your email address?
 User: What do you need my email for?
 
-Bot: Great question! Your email serves as your unique login identifier. 
-We'll also use it to send important account notifications and 
-password reset links if you ever need them. Your email is kept 
+Bot: Great question! Your email serves as your unique login identifier.
+We'll also use it to send important account notifications and
+password reset links if you ever need them. Your email is kept
 secure and never shared with third parties.
 
 What's your email address?
@@ -267,9 +267,9 @@ User: john@example.com
 Bot: Great! Now choose a username (3-30 characters, letters, numbers, _ or -).
 User: What's the difference between email and username?
 
-Bot: Good question! Your email is for logging in and communication, 
-while your username is how you'll appear to other users on the 
-platform - think of it as your public identity. For example, 
+Bot: Good question! Your email is for logging in and communication,
+while your username is how you'll appear to other users on the
+platform - think of it as your public identity. For example,
 you could use "john_dev" or "johndoe123".
 
 What username would you like?
@@ -287,7 +287,7 @@ User: What do I need in order to create an account?
 Bot: To create an account, you'll need 5 things:
 
 Email address - Your login and contact method
-Username - Your public identity (3-30 characters) 
+Username - Your public identity (3-30 characters)
 Password - A secure password (min 8 chars, mixed case, numbers)
 First name - How we'll greet you
 Last name - Completes your profile
@@ -438,16 +438,16 @@ isBot: boolean;
 timestamp: Date;
 }
 
-export const ChatMessage: React.FC<ChatMessageProps> = ({ 
-message, 
-isBot, 
-timestamp 
+export const ChatMessage: React.FC<ChatMessageProps> = ({
+message,
+isBot,
+timestamp
 }) => {
 return (
 <div className={`flex ${isBot ? 'justify-start' : 'justify-end'} mb-4`}>
 <div className={`max-w-[70%] ${
-isBot 
-? 'bg-gray-100 text-gray-900' 
+isBot
+? 'bg-gray-100 text-gray-900'
 : 'bg-blue-600 text-white'
 } rounded-lg px-4 py-2 shadow-sm`}>
 {isBot && <div className="text-xs text-gray-500 mb-1">AgentHub</div>}
@@ -475,8 +475,8 @@ disabled?: boolean;
 placeholder?: string;
 }
 
-export const ChatInput: React.FC<ChatInputProps> = ({ 
-onSend, 
+export const ChatInput: React.FC<ChatInputProps> = ({
+onSend,
 disabled = false,
 placeholder = "Type your message..."
 }) => {
@@ -521,9 +521,9 @@ progress: number;
 fieldsRemaining: number;
 }
 
-export const SignupProgress: React.FC<SignupProgressProps> = ({ 
-progress, 
-fieldsRemaining 
+export const SignupProgress: React.FC<SignupProgressProps> = ({
+progress,
+fieldsRemaining
 }) => {
 return (
 <div className="mb-4">
@@ -532,7 +532,7 @@ return (
 <span>{fieldsRemaining} fields remaining</span>
 </div>
 <div className="w-full bg-gray-200 rounded-full h-2">
-<div 
+<div
 className="bg-blue-600 h-2 rounded-full transition-all duration-300"
 style={{ width: `${progress}%` }}
 />
@@ -706,9 +706,9 @@ Chat with our AI assistant to complete your signup - no forms required!
 {/* Progress */}
 {!state.isComplete && (
 <div className="bg-white rounded-lg shadow-lg p-4 mb-4">
-<SignupProgress 
-progress={state.progress} 
-fieldsRemaining={state.fieldsRemaining} 
+<SignupProgress
+progress={state.progress}
+fieldsRemaining={state.fieldsRemaining}
 />
 </div>
 )}
@@ -787,7 +787,7 @@ return (
 Build Intelligent AI Agents in Minutes, Not Months
 </h1>
 <p className="text-xl text-gray-600 mb-8 max-w-3xl mx-auto">
-Open-source platform for creating production-ready AI agents with built-in 
+Open-source platform for creating production-ready AI agents with built-in
 LLM integration, conversation management, and enterprise features.
 </p>
 <div className="flex gap-4 justify-center">

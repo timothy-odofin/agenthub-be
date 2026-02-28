@@ -26,12 +26,12 @@ tools:
   web:
     enabled: true
     cache_ttl: 3600  # Cache content for 1 hour (in seconds)
-    
+
     # Content chunking configuration
     chunking:
       chunk_size: 1000      # Maximum characters per chunk
       chunk_overlap: 200    # Overlap between chunks to maintain context
-    
+
     available_tools:
       # Static URL tools
       documentation:
@@ -40,13 +40,13 @@ tools:
           url: "https://docs.python.org/3/"
           description: "Search official Python documentation"
           max_content_length: 50000
-        
+
         read_fastapi_docs:
           enabled: true
           url: "https://fastapi.tiangolo.com/"
           description: "Search FastAPI documentation"
           max_content_length: 50000
-      
+
       # Generic URL reader
       generic:
         read_web_url:
@@ -457,7 +457,7 @@ Potential improvements:
 ```python
 class WebContentChunker:
     """Fetch and chunk web content."""
-    
+
     def __init__(
         self,
         chunk_size: int = 1000,
@@ -465,7 +465,7 @@ class WebContentChunker:
         cache_provider: Optional[BaseCacheProvider] = None,
         cache_ttl: int = 3600
     )
-    
+
     async def fetch_and_chunk(
         self,
         url: str,
@@ -480,16 +480,16 @@ class WebContentChunker:
 @ToolRegistry.register("web", "web")
 class WebTools:
     """Web content reading tools."""
-    
+
     def get_tools(self) -> List[StructuredTool]
-    
+
     async def _read_static_url(
         self,
         url: str,
         query: str,
         max_content_length: Optional[int] = None
     ) -> str
-    
+
     async def _read_dynamic_url(
         self,
         url: str,

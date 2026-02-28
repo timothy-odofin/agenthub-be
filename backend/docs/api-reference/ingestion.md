@@ -6,7 +6,7 @@
 
 The Ingestion API allows you to upload and process documents, files, and data sources for use in AI-powered retrieval and question-answering.
 
-**Base Path**: `/api/v1/ingest/` 
+**Base Path**: `/api/v1/ingest/`
 **Authentication**: Required (JWT Bearer token)
 
 ---
@@ -569,7 +569,7 @@ return results
 
 ---
 
-**Last Updated**: January 10, 2026 
+**Last Updated**: January 10, 2026
 **Status**: Beta (Production-ready for file ingestion)
 
 ---

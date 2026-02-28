@@ -34,7 +34,7 @@ User Confirms/Cancels
 
 ## Why It Matters
 
-### Without Confirmation Workflow 
+### Without Confirmation Workflow
 ```
 User: "Tag @john on SCRUM-2 to provide user stories"
 Agent: [Calls add_jira_comment directly]
@@ -42,7 +42,7 @@ Agent: "Done - I mentioned John on SCRUM-2"
 User: "Wait, I wanted to review the message first!"
 ```
 
-### With Confirmation Workflow 
+### With Confirmation Workflow
 ```
 User: "Tag @john on SCRUM-2 to provide user stories"
 Agent: [Calls prepare_action]
@@ -156,7 +156,7 @@ user_id="user_123"
 
 ## Risk Levels
 
-### High Risk 
+### High Risk
 **Impact**: Significant, hard to reverse
 - Creating GitHub pull requests (triggers CI/CD, notifies teams)
 - Updating files in repositories (affects codebase)
@@ -165,7 +165,7 @@ user_id="user_123"
 
 **Expiration**: 5 minutes
 
-### Medium Risk 
+### Medium Risk
 **Impact**: Moderate, some reversibility
 - Adding comments to issues (can be edited/deleted)
 - Updating issue status
@@ -173,7 +173,7 @@ user_id="user_123"
 
 **Expiration**: 5 minutes
 
-### Low Risk 
+### Low Risk
 **Impact**: Limited, easily reversible
 - Reading data
 - Searching
@@ -369,7 +369,7 @@ The confirmation service uses:
 
 **Cause**: Agent is calling mutating tools directly instead of using prepare_action
 
-**Solution**: 
+**Solution**:
 1. Check agent prompt includes strict prohibitions against direct tool calls
 2. Verify `CRITICAL RULE` and `STRICTLY PROHIBITED` sections are in system prompt
 3. Review agent logs to see which tool was called

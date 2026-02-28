@@ -6,10 +6,10 @@ for mutating actions that require user approval.
 """
 
 from .confirmation_tools import (
-    prepare_action,
-    confirm_action,
     cancel_action,
+    confirm_action,
     list_pending_actions,
+    prepare_action,
 )
 
 __all__ = [

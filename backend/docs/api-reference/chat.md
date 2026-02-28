@@ -6,7 +6,7 @@
 
 The Chat API enables real-time conversations with AI agents, persistent session management, and full conversation history tracking.
 
-**Base Path**: `/api/v1/chat/`  
+**Base Path**: `/api/v1/chat/`
 **Authentication**: Required (JWT Bearer token)
 
 ---
@@ -104,13 +104,13 @@ class ChatClient:
         self.base_url = "http://localhost:8000"
         self.access_token = access_token
         self.session_id = None
-    
+
     def send_message(self, message):
         """Send a message and maintain session."""
         payload = {"message": message}
         if self.session_id:
             payload["session_id"] = self.session_id
-        
+
         response = requests.post(
             f"{self.base_url}/api/v1/chat/message",
             headers={
@@ -119,7 +119,7 @@ class ChatClient:
             },
             json=payload
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.session_id = data["session_id"]
@@ -237,26 +237,26 @@ def get_all_sessions(access_token):
     """Fetch all sessions with pagination."""
     base_url = "http://localhost:8000"
     headers = {"Authorization": f"Bearer {access_token}"}
-    
+
     all_sessions = []
     page = 1
-    
+
     while True:
         response = requests.get(
             f"{base_url}/api/v1/chat/sessions?page={page}&page_size=20",
             headers=headers
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             all_sessions.extend(data["sessions"])
-            
+
             if not data["has_more"]:
                 break
             page += 1
         else:
             raise Exception(f"Failed to fetch sessions: {response.json()}")
-    
+
     return all_sessions
 ```
 
@@ -346,15 +346,15 @@ def get_session_history(access_token, session_id, limit=50):
         headers={"Authorization": f"Bearer {access_token}"},
         params={"limit": limit}
     )
-    
+
     if response.status_code == 200:
         data = response.json()
-        
+
         # Format conversation
         for msg in data["messages"]:
             role = "You" if msg["role"] == "user" else "AI"
             print(f"{role}: {msg['content']}\n")
-        
+
         return data
     else:
         raise Exception(f"Failed to fetch history: {response.json()}")
@@ -377,7 +377,7 @@ class AgentHubChat:
             "Content-Type": "application/json"
         }
         self.current_session = None
-    
+
     def create_session(self, title=None):
         """Create a new chat session."""
         response = requests.post(
@@ -385,49 +385,49 @@ class AgentHubChat:
             headers=self.headers,
             json={"title": title or f"Chat {datetime.now().strftime('%Y-%m-%d %H:%M')}"}
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.current_session = data["session_id"]
             return data
         else:
             raise Exception(f"Session creation failed: {response.json()}")
-    
+
     def send(self, message):
         """Send a message in the current session."""
         payload = {"message": message}
         if self.current_session:
             payload["session_id"] = self.current_session
-        
+
         response = requests.post(
             f"{self.base_url}/api/v1/chat/message",
             headers=self.headers,
             json=payload
         )
-        
+
         if response.status_code == 200:
             data = response.json()
             self.current_session = data["session_id"]
             return data
         else:
             raise Exception(f"Message failed: {response.json()}")
-    
+
     def get_history(self, limit=50):
         """Get current session history."""
         if not self.current_session:
             raise Exception("No active session")
-        
+
         response = requests.get(
             f"{self.base_url}/api/v1/chat/sessions/{self.current_session}/messages",
             headers=self.headers,
             params={"limit": limit}
         )
-        
+
         if response.status_code == 200:
             return response.json()
         else:
             raise Exception(f"History fetch failed: {response.json()}")
-    
+
     def list_sessions(self, page=1, page_size=20):
         """List all user sessions."""
         response = requests.get(
@@ -435,12 +435,12 @@ class AgentHubChat:
             headers=self.headers,
             params={"page": page, "page_size": page_size}
         )
-        
+
         if response.status_code == 200:
             return response.json()
         else:
             raise Exception(f"Session list failed: {response.json()}")
-    
+
     def switch_session(self, session_id):
         """Switch to an existing session."""
         self.current_session = session_id
@@ -599,7 +599,7 @@ sessions = fetch_page(1)["sessions"]
 
 ## Rate Limiting
 
-**Current Status**: Not implemented  
+**Current Status**: Not implemented
 **Planned**:
 - 60 messages per minute per user
 - 100 session creations per hour per user
@@ -630,7 +630,7 @@ ws://localhost:8000/api/v1/chat/ws/{session_id}
 
 ---
 
-**Last Updated**: January 10, 2026  
+**Last Updated**: January 10, 2026
 **Status**: Production Ready
 
 ---

@@ -130,7 +130,7 @@ Bot: "Welcome aboard, Timothy! Your account has been created!"
 [Returns access_token, refresh_token, user_id]
 ```
 
-**Progress Tracking:** START (0%) → EMAIL (20%) → USERNAME (40%) → PASSWORD (60%) → FIRSTNAME (80%) → LASTNAME (100%) → COMPLETE 
+**Progress Tracking:** START (0%) → EMAIL (20%) → USERNAME (40%) → PASSWORD (60%) → FIRSTNAME (80%) → LASTNAME (100%) → COMPLETE
 
 ---
 
@@ -604,7 +604,7 @@ Invalid? → Ask again with helpful error
 - **Configuration-Driven**: All prompts live in `resources/application-prompt.yaml`
 - **LLM Agnostic**: Works with OpenAI, Groq, Anthropic, etc.
 - **Cost-Effective**: ~$0.0015 per signup (5 LLM calls)
-- **Fallback**: Returns original input if extraction fails 
+- **Fallback**: Returns original input if extraction fails
 
 ---
 
@@ -856,22 +856,22 @@ assert response.next_step == "username"
 
 ## FAQ
 
-**Q: Can I still use traditional signup?** 
+**Q: Can I still use traditional signup?**
 A: Yes! `POST /api/v1/auth/signup` still works for standard forms.
 
-**Q: What if the user refreshes mid-signup?** 
+**Q: What if the user refreshes mid-signup?**
 A: Session data is not persisted server-side. Use frontend state management (sessionStorage/Redux).
 
-**Q: Can I customize bot messages without code changes?** 
+**Q: Can I customize bot messages without code changes?**
 A: Yes! Edit `resources/application-prompt.yaml` and restart the service.
 
-**Q: What LLM providers are supported?** 
+**Q: What LLM providers are supported?**
 A: All providers in your LLM factory (OpenAI, Groq, Anthropic, Azure, etc.).
 
-**Q: How accurate is the extraction?** 
+**Q: How accurate is the extraction?**
 A: 99%+ for valid inputs. Falls back to original message if extraction fails.
 
-**Q: Can I skip the LLM and use regex only?** 
+**Q: Can I skip the LLM and use regex only?**
 A: Not currently. LLM extraction is core to the smart experience.
 
 ---

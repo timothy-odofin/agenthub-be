@@ -100,13 +100,13 @@ from app.agent import AgentFactory
 
 async def get_or_create_agent(provider: str, model: str):
     """Get cached agent or create new one."""
-    
+
     # Build cache key
     cache_key = f"{provider}:{model}"
-    
+
     # Try cache first
     agent = await agent_cache.get(cache_key)
-    
+
     if agent is not None:
         # Cache hit
         stats = agent_cache.get_stats()
@@ -115,13 +115,13 @@ async def get_or_create_agent(provider: str, model: str):
             f"(hit_rate: {stats.get('hit_rate', 'N/A')})"
         )
         return agent
-    
+
     # Cache miss - create new agent
     logger.info(f"Cache miss for {cache_key}, creating new agent")
-    
+
     # Get LLM instance (also cached)
     llm = await LLMFactory.get_llm_by_name(provider, model)
-    
+
     # Create agent
     agent = await AgentFactory.create_agent(
         agent_type=AgentType.REACT,
@@ -130,11 +130,11 @@ async def get_or_create_agent(provider: str, model: str):
         session_repository=session_repo,
         verbose=False
     )
-    
+
     # Cache the agent
     await agent_cache.set(cache_key, agent)
     logger.info(f"Cached new agent for {cache_key}")
-    
+
     return agent
 ```
 

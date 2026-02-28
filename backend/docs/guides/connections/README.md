@@ -1036,7 +1036,7 @@ self._es_client: Optional[AsyncElasticsearch] = None
 def get_connection_name(self) -> str:
 """Return the configuration name for Elasticsearch."""
 return ConnectionType.ELASTICSEARCH.value
-    
+
 def get_config_category(self) -> str:
 """Return the configuration category for databases."""
 return "db"  # or "vector" or "external" based on your service type
@@ -1070,7 +1070,7 @@ await self.disconnect()
 
 try:
 config_dict = self._get_config_dict()  # Get config as dictionary
-            
+
 # Create client
 self._es_client = AsyncElasticsearch(
 hosts=config_dict['hosts'],
@@ -1534,11 +1534,11 @@ Understanding the connection lifecycle helps with proper resource management.
 │ UNHEALTHY │ │ DISCONNECTED │
 │ (Needs reconnect) │ │ (Cleanly closed) │
 └─────┬───────────────┘ └─────────────────────┘
-│ 
-│ reconnect() called 
-│ - Disconnects 
-│ - Connects again 
-│ 
+│
+│ reconnect() called
+│ - Disconnects
+│ - Connects again
+│
 └────────────► CONNECTED
 ```
 
@@ -2043,8 +2043,8 @@ await manager.connect() # Use await
 
 ---
 
-**Last Updated**: January 10, 2026 
-**Version**: 1.0 
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Connection Management, Database Integration, External Services
 
 ---
@@ -2084,4 +2084,4 @@ Want to contribute a new connection manager? We welcome contributions!
 
 ---
 
-Thank you for using and contributing to AgentHub! 
+Thank you for using and contributing to AgentHub!

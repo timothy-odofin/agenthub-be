@@ -1,61 +1,61 @@
 from abc import abstractmethod
-from typing import Set, Dict, Any, Optional
+from typing import Any, Dict, Optional, Set
+
 from langchain.agents import AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
-from app.core.enums import AgentCapability, AgentType, AgentFramework
+
 from app.agent.base.base_agent import BaseAgent
-from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
 from app.agent.tools import ToolRegistry
+from app.core.enums import AgentCapability, AgentFramework, AgentType
+from app.infrastructure.llm.base.base_llm_provider import BaseLLMProvider
 from app.sessions.repositories.base_session_repository import BaseSessionRepository
 
 
 class LangChainAgent(BaseAgent):
-    
+
     def __init__(
         self,
         agent_type: AgentType,
         llm_provider: BaseLLMProvider,
         session_repository: Optional[BaseSessionRepository] = None,
         verbose: bool = False,
-        config: Optional[Dict[str, Any]] = None
+        config: Optional[Dict[str, Any]] = None,
     ):
         super().__init__(agent_type, AgentFramework.LANGCHAIN)
         self.llm_provider = llm_provider
         self.session_repository = session_repository
         self.verbose = verbose
         self.config = config or {}
-        
+
         self.llm = None
         self.tools = []
         self.prompt = None
         self.agent = None
         self.executor = None
-    
+
     async def initialize(self) -> None:
         # Ensure LLM provider is initialized before accessing client
         await self.llm_provider._ensure_initialized()
-        
+
         # Get the LangChain client (needed for bind_tools)
         self.llm = self.llm_provider.client
-        
+
         self.tools = ToolRegistry.get_instantiated_tools()
         self.prompt = self._create_prompt_template()
         self.agent = self._create_agent_runnable()
         self.executor = AgentExecutor(
-            agent=self.agent,
-            tools=self.tools,
-            verbose=self.verbose
+            agent=self.agent, tools=self.tools, verbose=self.verbose
         )
         self._initialized = True
-    
+
     @abstractmethod
     def _create_prompt_template(self) -> ChatPromptTemplate:
         pass
-    
+
     @abstractmethod
     def _create_agent_runnable(self):
         pass
-    
+
     def get_framework_capabilities(self) -> Set[AgentCapability]:
         return {
             AgentCapability.TOOL_CALLING,
@@ -64,5 +64,5 @@ class LangChainAgent(BaseAgent):
             AgentCapability.STREAMING,
             AgentCapability.ASYNC_PROCESSING,
             AgentCapability.MULTI_TURN_CONVERSATION,
-            AgentCapability.API_INTEGRATION
+            AgentCapability.API_INTEGRATION,
         }

@@ -162,14 +162,14 @@ def clear_all_caches():
     """Clear all caches before each test."""
     # Disable tool caching
     ToolRegistry.set_cache_enabled(False)
-    
+
     # Clear existing caches
     ConnectionFactory.clear_cache()
     ToolRegistry.clear_tool_cache()
     GitHubConnectionManager.clear_repo_cache()
-    
+
     yield
-    
+
     # Re-enable caching after test
     ToolRegistry.set_cache_enabled(True)
 ```
@@ -203,14 +203,14 @@ logger = logging.getLogger(__name__)
 def warm_caches():
     """Warm up caches on application startup."""
     logger.info("Warming up caches...")
-    
+
     # Warm connection managers
     ConnectionFactory.get_connection_manager(ConnectionType.MONGODB)
     ConnectionFactory.get_connection_manager(ConnectionType.REDIS)
-    
+
     # Warm tool registry (most expensive)
     ToolRegistry.get_instantiated_tools()
-    
+
     logger.info("✅ Caches warmed successfully")
 ```
 
@@ -297,7 +297,7 @@ ToolRegistry.set_cache_enabled(True)
 
 ### Cache Persistence
 
-**Current:** In-memory (cleared on restart)  
+**Current:** In-memory (cleared on restart)
 **Upgrade Path:** Use Redis for persistence across restarts
 
 ```python
@@ -315,8 +315,8 @@ If running multiple application instances:
 
 ### Cache Invalidation Strategy
 
-**Development:** Manual clearing via API  
-**Production:** 
+**Development:** Manual clearing via API
+**Production:**
 - GitHub repos: 10-minute TTL (automatic)
 - Tools: Manual clearing on deployment
 - Connections: Persist until restart
@@ -331,5 +331,5 @@ If running multiple application instances:
 
 ---
 
-**Last Updated:** February 25, 2026  
+**Last Updated:** February 25, 2026
 **Status:** Production Ready

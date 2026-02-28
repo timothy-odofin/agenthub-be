@@ -59,20 +59,20 @@ class CacheType(str, Enum):
 # 2. Base abstract class
 class BaseCacheProvider(ABC):
     @abstractmethod
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None, 
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None,
                   indexes: Optional[Dict[str, str]] = None) -> bool:
         pass
-    
+
     @abstractmethod
     async def get(self, key: str, deserialize: bool = True) -> Optional[Any]:
         pass
-    
+
     # ... other methods
 
 # 3. Registry
 class CacheRegistry:
     _registry: Dict[CacheType, Type[BaseCacheProvider]] = {}
-    
+
     @classmethod
     def register(cls, cache_type: CacheType):
         def decorator(cache_class):
@@ -103,27 +103,27 @@ class CacheFactory:
         """Create cache provider instance"""
         if cache_type is None:
             cache_type = CacheType(settings.cache.default_provider)
-        
+
         cache_class = CacheRegistry.get_cache_class(cache_type)
         return cache_class(namespace=namespace, default_ttl=default_ttl)
 
 # 6. Convenience Wrapper
 class CacheService:
     """Convenience wrapper around CacheFactory for dependency injection"""
-    def __init__(self, namespace: str, default_ttl: int = 900, 
+    def __init__(self, namespace: str, default_ttl: int = 900,
                  cache_type: Optional[CacheType] = None):
         self._provider = CacheFactory.create_cache(
             cache_type=cache_type,
             namespace=namespace,
             default_ttl=default_ttl
         )
-    
+
     async def set(self, key: str, value: Any, **kwargs) -> bool:
         return await self._provider.set(key, value, **kwargs)
-    
+
     async def get(self, key: str, **kwargs) -> Optional[Any]:
         return await self._provider.get(key, **kwargs)
-    
+
     # ... delegate all methods to provider
 
 # 7. Pre-configured instances
@@ -275,7 +275,7 @@ I **strongly recommend the Registry Pattern** for these reasons:
      - Valkey (Redis fork) for licensing concerns
      - AWS ElastiCache with specific features
      - Custom enterprise caching solutions
-   
+
 3. **Competitive Advantage**
    - Marketing: "Flexible caching with Redis, Memcached, and custom providers"
    - vs. "Redis-only caching"
@@ -345,22 +345,22 @@ from typing import Any, Dict, List, Optional, Set
 
 class BaseCacheProvider(ABC):
     """Base class for all cache providers."""
-    
+
     def __init__(self, namespace: str, default_ttl: int = 900):
         self.namespace = namespace
         self.default_ttl = default_ttl
-    
+
     @abstractmethod
-    async def set(self, key: str, value: Any, ttl: Optional[int] = None, 
+    async def set(self, key: str, value: Any, ttl: Optional[int] = None,
                   indexes: Optional[Dict[str, str]] = None) -> bool:
         """Store value with optional TTL and indexes."""
         pass
-    
+
     @abstractmethod
     async def get(self, key: str, deserialize: bool = True) -> Optional[Any]:
         """Retrieve value."""
         pass
-    
+
     # ... all other methods from RedisCacheService
 ```
 
@@ -368,7 +368,7 @@ class BaseCacheProvider(ABC):
 ```python
 class CacheRegistry:
     _registry: Dict[CacheType, Type[BaseCacheProvider]] = {}
-    
+
     @classmethod
     def register(cls, cache_type: CacheType):
         def decorator(cache_class):
@@ -376,7 +376,7 @@ class CacheRegistry:
             logger.info(f"Registered cache provider: {cache_type} -> {cache_class.__name__}")
             return cache_class
         return decorator
-    
+
     # ... rest like ConnectionRegistry
 ```
 
@@ -392,7 +392,7 @@ class CacheFactory:
         # Auto-detect from config if not specified
         if cache_type is None:
             cache_type = CacheType(settings.cache.provider)
-        
+
         cache_class = CacheRegistry.get_cache_class(cache_type)
         return cache_class(namespace=namespace, default_ttl=default_ttl)
 ```

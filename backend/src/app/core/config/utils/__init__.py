@@ -9,5 +9,5 @@ conversion, validation, and other config-related operations.
 from .config_converter import dynamic_config_to_dict
 
 __all__ = [
-    'dynamic_config_to_dict',
+    "dynamic_config_to_dict",
 ]

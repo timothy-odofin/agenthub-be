@@ -160,13 +160,13 @@ username_exists = await repo.check_username_exists("johndoe")
 ```python
 class UserRepository:
     """Repository for User model operations in MongoDB."""
-    
+
     # Collection name
     COLLECTION_NAME = "users"
-    
+
     # Constructor
     def __init__(self, db: Optional[Database] = None)
-    
+
     # CRUD operations
     async def create_user(
         self,
@@ -176,22 +176,22 @@ class UserRepository:
         lastname: str,
         password_hash: str
     ) -> Optional[UserInDB]
-    
+
     async def get_user_by_email(self, email: str) -> Optional[UserInDB]
-    
+
     async def get_user_by_username(self, username: str) -> Optional[UserInDB]
-    
+
     async def get_user_by_id(self, user_id: str) -> Optional[UserInDB]
-    
+
     async def update_user(
         self,
         user_id: str,
         update_data: Dict[str, Any]
     ) -> bool
-    
+
     # Duplicate checking
     async def check_email_exists(self, email: str) -> bool
-    
+
     async def check_username_exists(self, username: str) -> bool
 ```
 
@@ -242,7 +242,7 @@ user = User(
 
 **Validation Rules**:
 - **Email**: Must be valid email format (uses Pydantic EmailStr)
-- **Username**: 
+- **Username**:
   - 3-30 characters
   - Alphanumeric + underscores
   - Must start with letter
@@ -374,42 +374,42 @@ exists = await repo.session_exists(session_id)
 ```python
 class SignupSessionRepository:
     """Repository for managing temporary signup sessions in Redis."""
-    
+
     # Configuration
     KEY_PREFIX = "signup"
     SESSION_TTL = 300  # 5 minutes
-    
+
     # Constructor
     def __init__(self)
-    
+
     # Session operations
     async def create_session(
-        self, 
-        session_id: str, 
+        self,
+        session_id: str,
         initial_data: Optional[Dict[str, Any]] = None
     ) -> bool
-    
+
     async def get_session(self, session_id: str) -> Optional[Dict[str, Any]]
-    
+
     async def update_session(
-        self, 
-        session_id: str, 
+        self,
+        session_id: str,
         update_data: Dict[str, Any]
     ) -> bool
-    
+
     async def update_field(
-        self, 
-        session_id: str, 
-        field: str, 
+        self,
+        session_id: str,
+        field: str,
         value: Any
     ) -> bool
-    
+
     async def delete_session(self, session_id: str) -> bool
-    
+
     async def session_exists(self, session_id: str) -> bool
-    
+
     async def increment_attempt(self, session_id: str) -> int
-    
+
     async def refresh_ttl(self, session_id: str) -> bool
 ```
 
@@ -442,44 +442,44 @@ from abc import ABC, abstractmethod
 
 class VectorDB(ABC):
     """Abstract base class for vector database implementations."""
-    
+
     @abstractmethod
     def get_vector_db_config(self) -> Dict[str, Any]:
         """Get configuration for this vector database."""
         pass
-    
+
     @abstractmethod
     async def _create_connection(self):
         """Create connection to vector database."""
         pass
-    
+
     @abstractmethod
     async def save_and_embed(
-        self, 
-        embedding_type: EmbeddingType, 
+        self,
+        embedding_type: EmbeddingType,
         docs: List[Document]
     ) -> List[str]:
         """Save documents and generate embeddings."""
         pass
-    
+
     @abstractmethod
     async def update_document(
-        self, 
-        document_id: str, 
-        updated_doc: Document, 
+        self,
+        document_id: str,
+        updated_doc: Document,
         embedding_type: EmbeddingType
     ) -> bool:
         """Update an existing document."""
         pass
-    
+
     @abstractmethod
     async def delete_by_document_id(self, document_id: str) -> bool:
         """Delete document by ID."""
         pass
-    
+
     @abstractmethod
     async def get_document_metadata(
-        self, 
+        self,
         document_id: str
     ) -> Optional[DocumentMetadata]:
         """Get document metadata."""
@@ -494,23 +494,23 @@ Metadata tracking for documents:
 @dataclass
 class DocumentMetadata:
     """Metadata for tracking documents in vector store."""
-    
+
     document_id: str
     source_path: str
     file_type: str
     embedded_at: datetime
     custom_metadata: Dict[str, Any]
-    
+
     @classmethod
     def create_hash(cls, content: str) -> str:
         """Create SHA-256 hash for change detection."""
         pass
-    
+
     @classmethod
     def get_change_detection_info(cls, source_path: str) -> Dict[str, Any]:
         """Get file metadata for change detection (fast)."""
         pass
-    
+
     @classmethod
     def generate_document_id(cls, source_path: str) -> str:
         """Generate deterministic document ID."""
@@ -657,8 +657,8 @@ CREATE TABLE documents (
 );
 
 -- Create IVFFlat index for fast similarity search
-CREATE INDEX documents_embedding_idx 
-ON documents 
+CREATE INDEX documents_embedding_idx
+ON documents
 USING ivfflat (embedding vector_cosine_ops)
 WITH (lists = 100);
 ```
@@ -833,24 +833,24 @@ logger = get_logger(__name__)
 class {Entity}Repository:
     """
     Repository for {Entity} model operations.
-    
+
     Supports both dependency injection and automatic connection management.
     """
-    
+
     COLLECTION_NAME = "{collection_name}"
     _instance: Optional['{Entity}Repository'] = None
-    
+
     def __init__(self, db: Optional[Database] = None):
         """
         Initialize the repository.
-        
+
         Args:
             db: Database instance (optional - will auto-connect if not provided)
         """
         self._db = db
         self._collection = None
         self._indexes_ensured = False
-    
+
     @property
     def db(self) -> Database:
         """Get database instance, connecting if necessary."""
@@ -863,7 +863,7 @@ class {Entity}Repository:
             self._db = connection_manager.get_database()
             logger.info(f"Auto-connected to MongoDB for {self.__class__.__name__}")
         return self._db
-    
+
     @property
     def collection(self):
         """Get collection, ensuring indexes on first access."""
@@ -873,7 +873,7 @@ class {Entity}Repository:
                 self._ensure_indexes()
                 self._indexes_ensured = True
         return self._collection
-    
+
     def _ensure_indexes(self):
         """Create indexes if they don't exist."""
         try:
@@ -882,7 +882,7 @@ class {Entity}Repository:
             logger.info(f"{self.COLLECTION_NAME} indexes ensured")
         except Exception as e:
             logger.error(f"Failed to create indexes: {e}", exc_info=True)
-    
+
     # Add your CRUD methods here
 ```
 
@@ -901,21 +901,21 @@ from datetime import datetime
 
 class Product(BaseModel):
     """Product model."""
-    
+
     name: str = Field(..., min_length=1, max_length=100)
     description: str
     price: float = Field(..., gt=0)
     category: str
     created_at: datetime = Field(default_factory=datetime.utcnow)
     updated_at: datetime = Field(default_factory=datetime.utcnow)
-    
+
     def to_dict(self) -> dict:
         """Convert to dictionary."""
         return self.model_dump()
 
 class ProductInDB(Product):
     """Product with MongoDB ID."""
-    
+
     _id: str = Field(..., alias="_id")
 ```
 
@@ -935,14 +935,14 @@ logger = get_logger(__name__)
 
 class ProductRepository:
     """Repository for Product model operations."""
-    
+
     COLLECTION_NAME = "products"
-    
+
     def __init__(self, db: Optional[Database] = None):
         self._db = db
         self._collection = None
         self._indexes_ensured = False
-    
+
     @property
     def db(self) -> Database:
         """Get database instance, connecting if necessary."""
@@ -955,7 +955,7 @@ class ProductRepository:
             self._db = connection_manager.get_database()
             logger.info("Auto-connected to MongoDB for ProductRepository")
         return self._db
-    
+
     @property
     def collection(self):
         """Get collection, ensuring indexes."""
@@ -965,7 +965,7 @@ class ProductRepository:
                 self._ensure_indexes()
                 self._indexes_ensured = True
         return self._collection
-    
+
     def _ensure_indexes(self):
         """Create indexes."""
         try:
@@ -974,7 +974,7 @@ class ProductRepository:
             logger.info("Product collection indexes ensured")
         except PyMongoError as e:
             logger.error(f"Failed to create indexes: {e}", exc_info=True)
-    
+
     async def create_product(
         self,
         name: str,
@@ -990,32 +990,32 @@ class ProductRepository:
                 price=price,
                 category=category
             )
-            
+
             product_dict = product.to_dict()
             result = self.collection.insert_one(product_dict)
-            
+
             product_dict["_id"] = str(result.inserted_id)
             return ProductInDB(**product_dict)
-            
+
         except Exception as e:
             logger.error(f"Error creating product: {e}", exc_info=True)
             raise
-    
+
     async def get_product_by_id(self, product_id: str) -> Optional[ProductInDB]:
         """Get product by ID."""
         try:
             from bson import ObjectId
             product_dict = self.collection.find_one({"_id": ObjectId(product_id)})
-            
+
             if product_dict:
                 product_dict["_id"] = str(product_dict["_id"])
                 return ProductInDB(**product_dict)
             return None
-            
+
         except Exception as e:
             logger.error(f"Error retrieving product: {e}", exc_info=True)
             raise
-    
+
     async def list_products(
         self,
         category: Optional[str] = None,
@@ -1026,16 +1026,16 @@ class ProductRepository:
             query = {}
             if category:
                 query["category"] = category
-            
+
             cursor = self.collection.find(query).limit(limit)
             products = []
-            
+
             for product_dict in cursor:
                 product_dict["_id"] = str(product_dict["_id"])
                 products.append(ProductInDB(**product_dict))
-            
+
             return products
-            
+
         except Exception as e:
             logger.error(f"Error listing products: {e}", exc_info=True)
             raise
@@ -1144,7 +1144,7 @@ collection.insert_one(user_dict)
 ```python
 class UserRepository:
     COLLECTION_NAME = "users"
-    
+
     async def create_user(...) -> Optional[UserInDB]
     async def get_user_by_email(email: str) -> Optional[UserInDB]
     async def get_user_by_username(username: str) -> Optional[UserInDB]
@@ -1160,7 +1160,7 @@ class UserRepository:
 class SignupSessionRepository:
     KEY_PREFIX = "signup"
     SESSION_TTL = 300  # seconds
-    
+
     async def create_session(session_id: str, initial_data: Dict) -> bool
     async def get_session(session_id: str) -> Optional[Dict]
     async def update_session(session_id: str, update_data: Dict) -> bool
@@ -1177,23 +1177,23 @@ class SignupSessionRepository:
 class VectorDB(ABC):
     @abstractmethod
     def get_vector_db_config() -> Dict[str, Any]
-    
+
     @abstractmethod
     async def save_and_embed(
-        embedding_type: EmbeddingType, 
+        embedding_type: EmbeddingType,
         docs: List[Document]
     ) -> List[str]
-    
+
     @abstractmethod
     async def update_document(
-        document_id: str, 
+        document_id: str,
         updated_doc: Document,
         embedding_type: EmbeddingType
     ) -> bool
-    
+
     @abstractmethod
     async def delete_by_document_id(document_id: str) -> bool
-    
+
     @abstractmethod
     async def get_document_metadata(document_id: str) -> Optional[DocumentMetadata]
 ```
@@ -1204,7 +1204,7 @@ class VectorDB(ABC):
 class EmbeddingFactory:
     @classmethod
     def register(cls, name: EmbeddingType)
-    
+
     @classmethod
     def get_embedding_model(
         cls,
@@ -1227,7 +1227,7 @@ The database layer is functional but has areas for enhancement:
 ```python
 class PostgresRepository:
     """Base repository for PostgreSQL operations."""
-    
+
     def __init__(self, connection_manager=None):
         self._connection_manager = connection_manager or \
             ConnectionFactory.get_connection_manager(ConnectionType.POSTGRES)
@@ -1284,7 +1284,7 @@ class CreateUsersTable(Migration):
     def up(self):
         self.create_collection("users")
         self.create_index("users", "email", unique=True)
-    
+
     def down(self):
         self.drop_collection("users")
 ```
@@ -1321,7 +1321,7 @@ async def delete_user(self, user_id: str, soft: bool = True):
 ```python
 class AuditedRepository(BaseRepository):
     """Repository with automatic audit logging."""
-    
+
     async def create(self, data: dict):
         result = await super().create(data)
         await self._log_audit("CREATE", result)
@@ -1336,10 +1336,10 @@ class AuditedRepository(BaseRepository):
 ```python
 class UnifiedVectorStore:
     """Unified interface for all vector databases."""
-    
+
     def __init__(self, backend: VectorDBType):
         self._backend = VectorDBRegistry.get(backend)
-    
+
     async def add(self, documents: List[Document]):
         return await self._backend.add_documents(documents)
 ```
@@ -1352,11 +1352,11 @@ class UnifiedVectorStore:
 ```python
 class RepositoryPool:
     """Connection pool for repositories."""
-    
+
     async def __aenter__(self):
         self._connection = await self._pool.acquire()
         return self
-    
+
     async def __aexit__(self, *args):
         await self._pool.release(self._connection)
 ```
@@ -1371,8 +1371,8 @@ class RepositoryPool:
 
 ---
 
-**Last Updated**: January 10, 2026  
-**Version**: 1.0  
+**Last Updated**: January 10, 2026
+**Version**: 1.0
 **Related**: Database Layer, Repository Pattern, MongoDB, Redis, Vector Stores
 
 ---
@@ -1398,4 +1398,4 @@ Contributions to improve the database layer are welcome!
 
 ---
 
-Thank you for using AgentHub's database layer! 
+Thank you for using AgentHub's database layer!

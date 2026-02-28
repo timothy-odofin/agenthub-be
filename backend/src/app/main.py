@@ -13,6 +13,7 @@ Environment Configuration:
 
     If not specified, defaults to .env file.
 """
+
 import os
 import sys
 
@@ -31,19 +32,21 @@ env = initialize_environment(env_file)
 # APPLICATION IMPORTS (After environment is initialized)
 # ============================================================================
 from fastapi import FastAPI
-from fastapi.middleware.cors import CORSMiddleware
 from fastapi.exceptions import RequestValidationError
+from fastapi.middleware.cors import CORSMiddleware
 from starlette.exceptions import HTTPException as StarletteHTTPException
 
-from app.api.v1 import chat, health, ingest_data as ingest, auth, conversational_auth, resilience, llm
-from app.core.middleware import RequestContextMiddleware
+from app.api.v1 import auth, chat, conversational_auth, health
+from app.api.v1 import ingest_data as ingest
+from app.api.v1 import llm, resilience
+from app.core.exceptions import BaseAppException
 from app.core.handlers import (
     base_app_exception_handler,
-    validation_error_handler,
-    http_exception_handler,
     generic_exception_handler,
+    http_exception_handler,
+    validation_error_handler,
 )
-from app.core.exceptions import BaseAppException
+from app.core.middleware import RequestContextMiddleware
 from app.core.utils.logger import get_logger
 
 logger = get_logger(__name__)
@@ -55,7 +58,7 @@ allow_credentials = env.get_bool("ALLOW_CREDENTIALS", default=True)
 app = FastAPI(
     title="AgentHub API",
     version="1.0.0",
-    description="AI-powered agent hub with multi-provider LLM support"
+    description="AI-powered agent hub with multi-provider LLM support",
 )
 
 # ============================================================================
@@ -98,7 +101,9 @@ logger.info("Exception handlers registered successfully")
 # ROUTERS
 # ============================================================================
 app.include_router(auth.router, prefix="/api/v1/auth", tags=["authentication"])
-app.include_router(conversational_auth.router, prefix="/api/v1/auth", tags=["conversational-auth"])
+app.include_router(
+    conversational_auth.router, prefix="/api/v1/auth", tags=["conversational-auth"]
+)
 app.include_router(chat.router, prefix="/api/v1/chat", tags=["chat"])
 app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(ingest.router, prefix="/api/v1/data", tags=["ingest"])
@@ -112,13 +117,10 @@ def root():
         "status": "ok",
         "message": "AgentHub API is running",
         "version": "1.0.0",
-        "docs": "/docs"
+        "docs": "/docs",
     }
 
 
 @app.get("/health")
 def health_check():
-    return {
-        "status": "healthy",
-        "version": "1.0.0"
-    }
+    return {"status": "healthy", "version": "1.0.0"}

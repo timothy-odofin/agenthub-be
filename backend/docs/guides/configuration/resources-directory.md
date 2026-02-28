@@ -300,7 +300,7 @@ from app.core.config import Settings
 
 settings = Settings.instance()
 
-# Access with dot notation 
+# Access with dot notation
 provider = settings.llm.default_provider       # 'openai'
 temperature = settings.llm.temperature         # 0.1
 api_key = settings.llm.providers.openai.api_key
@@ -347,14 +347,14 @@ llm:
   default_provider: "openai"
   temperature: 0.1
   max_tokens: 1000
-  
+
   providers:
     openai:
       api_key: "${OPENAI_API_KEY}"
       model: "${OPENAI_MODEL:gpt-4}"
       temperature: "${OPENAI_TEMPERATURE:0.1}"
       max_tokens: "${OPENAI_MAX_TOKENS:1000}"
-    
+
     anthropic:
       api_key: "${ANTHROPIC_API_KEY}"
       model: "${ANTHROPIC_MODEL:claude-2}"
@@ -392,12 +392,12 @@ db:
     password: "${POSTGRES_PASSWORD:postgres}"
     pool_size: 10
     max_overflow: 20
-  
+
   mongodb:
     host: "${MONGODB_HOST:localhost}"
     port: "${MONGODB_PORT:27017}"
     database: "${MONGODB_DB:agenthub}"
-  
+
   redis:
     host: "${REDIS_HOST:localhost}"
     port: "${REDIS_PORT:6379}"
@@ -428,7 +428,7 @@ redis_url = f"redis://{redis['host']}:{redis['port']}/{redis['db']}"
 ```yaml
 vector:
   default_provider: "pgvector"
-  
+
   pgvector:
     collection_name: "documents"
     embedding_dimension: 1536
@@ -462,11 +462,11 @@ await vector_db.save_and_embed(docs=documents)
 ```yaml
 embeddings:
   default_type: "openai"
-  
+
   openai:
     model: "text-embedding-ada-002"
     dimensions: 1536
-  
+
   huggingface:
     model: "sentence-transformers/all-MiniLM-L6-v2"
     dimensions: 384
@@ -497,7 +497,7 @@ embedding_model = EmbeddingFactory.get_embedding_model(default_type)
 prompt:
   temperature: 0.7
   max_tokens: 2000
-  
+
   templates:
     system: "You are a helpful AI assistant."
     rag_query: "Based on the following context, answer the question..."
@@ -549,7 +549,7 @@ app:
   environment: "${APP_ENV:development}"
   debug: "${DEBUG:false}"
   log_level: "${LOG_LEVEL:INFO}"
-  
+
   api:
     host: "0.0.0.0"
     port: 8000
@@ -574,7 +574,7 @@ port = api['port']
 
 ## Configuration Files
 
-### Automatic Environment Variable Detection 
+### Automatic Environment Variable Detection
 
 **AgentHub automatically detects and resolves environment variables** anywhere in your YAML configuration files using the `${VARIABLE_NAME}` syntax!
 
@@ -613,11 +613,11 @@ Step 3: Value automatically injected
 
 #### Features
 
-**Works Everywhere**: Use in any YAML file, any key, any nesting level  
-**Automatic Detection**: No special code needed  
-**Type Preservation**: Strings stay strings, numbers stay numbers  
-**Default Values**: Optional fallback with `:default` syntax  
-**Error Handling**: Clear error if required variable missing  
+**Works Everywhere**: Use in any YAML file, any key, any nesting level
+**Automatic Detection**: No special code needed
+**Type Preservation**: Strings stay strings, numbers stay numbers
+**Default Values**: Optional fallback with `:default` syntax
+**Error Handling**: Clear error if required variable missing
 
 #### Syntax Options
 
@@ -634,7 +634,7 @@ database:
   connection:
     host: "${DB_HOST:localhost}"
     port: "${DB_PORT:5432}"
-    
+
 # Option 4: Multiple variables in same file
 llm:
   api_key: "${OPENAI_API_KEY}"
@@ -688,35 +688,35 @@ llm:
   temperature: 0.1
   max_tokens: 1000
   timeout: 30
-  
+
   # Provider-specific configurations
   providers:
     openai:
       # Required: Will error if OPENAI_API_KEY not set
       api_key: "${OPENAI_API_KEY}"
-      
+
       # Optional: Falls back to gpt-4 if not set
       model: "${OPENAI_MODEL:gpt-4}"
       temperature: "${OPENAI_TEMPERATURE:0.1}"
       max_tokens: "${OPENAI_MAX_TOKENS:1000}"
       timeout: "${OPENAI_TIMEOUT:30}"
-    
+
     anthropic:
       api_key: "${ANTHROPIC_API_KEY}"
       model: "${ANTHROPIC_MODEL:claude-2}"
       temperature: "${ANTHROPIC_TEMPERATURE:0.1}"
       max_tokens: "${ANTHROPIC_MAX_TOKENS:1000}"
-    
+
     groq:
       api_key: "${GROQ_API_KEY}"
       model: "${GROQ_MODEL:mixtral-8x7b-32768}"
       temperature: "${GROQ_TEMPERATURE:0.7}"
-    
+
     google:
       api_key: "${GOOGLE_API_KEY}"
       model: "${GOOGLE_MODEL:gemini-pro}"
       temperature: "${GOOGLE_TEMPERATURE:0.7}"
-    
+
     azure_openai:
       api_key: "${AZURE_OPENAI_API_KEY}"
       endpoint: "${AZURE_OPENAI_ENDPOINT}"
@@ -857,16 +857,16 @@ if environment == 'production':
     # Production settings
     debug = False
     log_level = 'WARNING'
-    
+
     # Use production LLM provider
     llm_config = settings.llm
     provider = llm_config['providers']['azure_openai']  # Enterprise
-    
+
 elif environment == 'development':
     # Development settings
     debug = True
     log_level = 'DEBUG'
-    
+
     # Use local LLM provider
     llm_config = settings.llm
     provider = llm_config['providers']['ollama']  # Local
@@ -883,7 +883,7 @@ custom:
     enable_caching: true
     enable_monitoring: true
     enable_rate_limiting: false
-  
+
   api:
     rate_limit: 100
     cache_ttl: 3600
@@ -945,7 +945,7 @@ llm:
       api_key: "..."
       model: "..."
       temperature: 0.1
-    
+
     anthropic:
       api_key: "..."
       model: "..."
@@ -965,10 +965,10 @@ anthropic_model: "..."
 llm:
   # Default LLM provider (openai, anthropic, groq, etc.)
   default_provider: "openai"
-  
+
   # Temperature controls randomness (0.0 = deterministic, 2.0 = very random)
   temperature: 0.1
-  
+
   # Maximum tokens in response (limits output length and cost)
   max_tokens: 1000
 ```
@@ -1082,23 +1082,23 @@ from .framework.settings import Settings
 @dataclass
 class DatabaseConfig:
     """Database configuration with type safety."""
-    
+
     def __init__(self):
         settings = Settings.instance()
         self._config = settings.db
-    
+
     @property
     def postgres_host(self) -> str:
         return self._config['postgres']['host']
-    
+
     @property
     def postgres_port(self) -> int:
         return self._config['postgres']['port']
-    
+
     @property
     def postgres_database(self) -> str:
         return self._config['postgres']['database']
-    
+
     def get_connection_string(self) -> str:
         """Build PostgreSQL connection string."""
         pg = self._config['postgres']
@@ -1112,23 +1112,23 @@ from .framework.settings import Settings
 @dataclass
 class LLMConfig:
     """LLM configuration with type safety."""
-    
+
     def __init__(self):
         settings = Settings.instance()
         self._config = settings.llm
-    
+
     @property
     def default_provider(self) -> str:
         return self._config['default_provider']
-    
+
     @property
     def temperature(self) -> float:
         return self._config.get('temperature', 0.7)
-    
+
     @property
     def max_tokens(self) -> int:
         return self._config.get('max_tokens', 1000)
-    
+
     def get_provider_config(self, provider: str) -> Dict[str, Any]:
         """Get configuration for a specific provider."""
         return self._config['providers'][provider]
@@ -1189,7 +1189,7 @@ class UserService:
     def __init__(self, db_config: DatabaseConfig, llm_config: LLMConfig):
         self.db = db_config
         self.llm = llm_config
-    
+
     def create_user(self, user_data: dict):
         # Type-safe config access
         conn_string = self.db.get_connection_string()
@@ -1343,5 +1343,5 @@ profiles = settings.list_sections()
 
 ---
 
-**Last Updated**: January 8, 2026  
+**Last Updated**: January 8, 2026
 **Related**: Configuration System, Settings, Environment Variables

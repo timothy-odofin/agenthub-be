@@ -12,7 +12,7 @@ AgentHub provides AI agents with access to various external tools and services t
 
 ## Safety & Confirmation
 
-### **[Confirmation Workflow](./confirmation-workflow.md)** 
+### **[Confirmation Workflow](./confirmation-workflow.md)**
 Two-phase confirmation protocol for mutating actions.
 
 **Key Features:**
@@ -45,7 +45,7 @@ Two-phase confirmation protocol for mutating actions.
 
 ### Atlassian Tools
 
-#### **[Confluence Tools](./confluence-tools.md)** 
+#### **[Confluence Tools](./confluence-tools.md)**
 Real-time access to Confluence spaces, pages, and content.
 
 **Key Features:**
@@ -69,7 +69,7 @@ Real-time access to Confluence spaces, pages, and content.
 
 ---
 
-#### **[Jira Tools](./jira-tools.md)** 
+#### **[Jira Tools](./jira-tools.md)**
 Issue tracking and project management with Jira.
 
 **Key Features:**
@@ -94,7 +94,7 @@ Issue tracking and project management with Jira.
 
 ### Monitoring & Observability
 
-#### **[Datadog Tools](./datadog-tools.md)** 
+#### **[Datadog Tools](./datadog-tools.md)**
 System monitoring and performance metrics from Datadog.
 
 **Key Features:**
@@ -113,7 +113,7 @@ System monitoring and performance metrics from Datadog.
 
 ### Version Control
 
-#### **GitHub Tools** 
+#### **GitHub Tools**
 *(Documentation to be added)*
 
 Access to GitHub repositories, issues, and pull requests.
@@ -128,7 +128,7 @@ Access to GitHub repositories, issues, and pull requests.
 
 ### Knowledge Management
 
-#### **[Vector Store Tools](./vector-store-tools.md)** 
+#### **[Vector Store Tools](./vector-store-tools.md)**
 Semantic search across your embedded knowledge base.
 
 **Key Features:**

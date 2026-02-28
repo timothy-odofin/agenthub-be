@@ -7,24 +7,30 @@ from app.db.vector import VectorDB
 
 logger = get_logger(__name__)
 
+
 class VectorDBRegistry:
     """Central registry that keeps track of all available Vector Database providers."""
+
     _registry = {}
 
     @classmethod
     def register(cls, name):
         """Decorator to register a class under a given name."""
+
         def decorator(processor_cls):
             cls._registry[name] = processor_cls
             logger.debug(f"Registered vector DB provider: {name}")
             return processor_cls
+
         return decorator
 
     @classmethod
     def get_class(cls, name):
         """Get a registered processor class by name."""
         if name not in cls._registry:
-            raise ValueError(f"Processor '{name}' not found in registry. Available: {list(cls._registry.keys())}")
+            raise ValueError(
+                f"Processor '{name}' not found in registry. Available: {list(cls._registry.keys())}"
+            )
         return cls._registry[name]
 
     @classmethod
@@ -36,7 +42,7 @@ class VectorDBRegistry:
 class VectorStoreFactory:
     """Factory class for creating vector store instances."""
 
-    _instance: Optional['VectorStoreFactory'] = None
+    _instance: Optional["VectorStoreFactory"] = None
 
     def __new__(cls):
         if cls._instance is None:

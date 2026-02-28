@@ -126,12 +126,12 @@ class ConnectionType(str, Enum):
     POSTGRES = "postgres"
     MONGODB = "mongodb"
     REDIS = "redis"
-    
+
     # Vector Stores
     QDRANT = "qdrant"
     PGVECTOR = "pgvector"
     CHROMADB = "chromadb"
-    
+
     # External Services
     CONFLUENCE = "confluence"
     JIRA = "jira"
@@ -228,7 +228,7 @@ class BaseInfrastructure(ABC):
 ```python
 class InfrastructureRegistry:
     _registry: Dict[InfrastructureType, Type[BaseInfrastructure]] = {}
-    
+
     @classmethod
     def register(cls, infra_type: InfrastructureType):
         def decorator(infra_class):
@@ -285,10 +285,10 @@ from unittest.mock import AsyncMock, patch
 async def test_cache_service(mock_factory):
     mock_provider = AsyncMock()
     mock_factory.return_value = mock_provider
-    
+
     cache = CacheService("test")
     await cache.set("key", "value")
-    
+
     mock_provider.set.assert_called_once()
 ```
 
@@ -300,10 +300,10 @@ from app.infrastructure.cache import CacheService, CacheType
 
 async def test_cache_integration():
     cache = CacheService("test", cache_type=CacheType.IN_MEMORY)
-    
+
     await cache.set("key", "value")
     result = await cache.get("key")
-    
+
     assert result == "value"
 ```
 

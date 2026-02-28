@@ -37,7 +37,7 @@ This document describes the enterprise-grade caching implementation that reflect
 ```python
 class LRUCache:
     """Thread-safe LRU cache with size limit and TTL support."""
-    
+
     def __init__(self, max_size: int = 50, ttl_seconds: Optional[int] = None):
         self.max_size = max_size
         self.ttl_seconds = ttl_seconds
@@ -74,18 +74,18 @@ stats = cache.stats()
 class AgentCache:
     """
     Thread-safe LRU cache for agent instances with proper lifecycle management.
-    
+
     Uses OrderedDict for efficient LRU eviction.
     Max size of 10 prevents memory bloat (agents hold LLM clients + tools).
     """
-    
+
     def __init__(self, max_size: int = 10):
         self.max_size = max_size
         self.cache: OrderedDict = OrderedDict()  # ← LRU ordering
         self.lock = threading.RLock()  # ← Thread safety
         self.hits = 0
         self.misses = 0
-    
+
     def set(self, key, agent):
         with self.lock:
             if len(self.cache) >= self.max_size:
@@ -109,7 +109,7 @@ _llm_provider_cache = LRUCache(max_size=20, ttl_seconds=None)
 
 def get_llm_by_name(provider_name, model, use_cache=True):
     cache_key = (provider_name, validated_model)
-    
+
     # Thread-safe cache lookup
     cached_provider = _llm_provider_cache.get(cache_key)
     if cached_provider is not None:
@@ -118,14 +118,14 @@ def get_llm_by_name(provider_name, model, use_cache=True):
             f"(hit_rate: {_llm_provider_cache.stats()['hit_rate']})"
         )
         return cached_provider
-    
+
     # Create NEW instance (no shared state)
     provider_class = LLMRegistry.get_provider_class(provider)
     llm_provider = provider_class()
-    
+
     # Configure BEFORE caching (immutable after)
     llm_provider.config['model'] = validated_model
-    
+
     # Thread-safe cache insert
     _llm_provider_cache.set(cache_key, llm_provider)
     return llm_provider
@@ -272,13 +272,13 @@ def warm_caches():
     """Warm critical caches on startup."""
     from app.infrastructure.llm.factory.llm_factory import LLMFactory
     from app.agent.tools.base.registry import ToolRegistry
-    
+
     # Warm default LLM provider
     LLMFactory.get_llm_by_name('openai', 'gpt-4o-mini')
-    
+
     # Warm tool registry (most expensive)
     ToolRegistry.get_instantiated_tools()
-    
+
     logger.info("✅ Caches warmed successfully")
 
 # Call from app startup (FastAPI lifespan)
@@ -316,17 +316,17 @@ import concurrent.futures
 def test_concurrent_cache_access():
     """Verify thread safety under concurrent load."""
     from app.infrastructure.llm.factory.llm_factory import LLMFactory
-    
+
     def get_llm_concurrent():
         for _ in range(100):
             llm = LLMFactory.get_llm_by_name('openai', 'gpt-4o-mini')
             assert llm is not None
-    
+
     # 10 threads, 100 requests each = 1000 concurrent requests
     with concurrent.futures.ThreadPoolExecutor(max_workers=10) as executor:
         futures = [executor.submit(get_llm_concurrent) for _ in range(10)]
         concurrent.futures.wait(futures)
-    
+
     stats = LLMFactory.get_llm_cache_stats()
     print(f"Hit rate: {stats['hit_rate']}")  # Should be >99%
     print(f"Total requests: {stats['total_hits'] + stats['total_misses']}")
@@ -346,7 +346,7 @@ def get_llm(provider, model):
     key = (provider, model)
     if key in _cache:  # ← Race condition!
         return _cache[key]
-    
+
     llm = create_llm()
     _cache[key] = llm  # ← Race condition!
     return llm
@@ -366,19 +366,19 @@ _cache = LRUCache(max_size=20)
 
 def get_llm(provider, model):
     cache_key = (provider, model)
-    
+
     # Thread-safe get
     cached = _cache.get(cache_key)
     if cached:
         return cached
-    
+
     # Create fresh instance
     llm = create_llm()
     llm.config['model'] = model  # Configure before caching
-    
+
     # Thread-safe set with LRU eviction
     _cache.set(cache_key, llm)
-    
+
     # Telemetry
     logger.info(f"Cache stats: {_cache.stats()}")
     return llm
@@ -461,7 +461,7 @@ class AdaptiveLRUCache(LRUCache):
     def __init__(self, target_memory_mb: int = 500):
         self.target_memory_mb = target_memory_mb
         self.max_size = self._calculate_max_size()
-    
+
     def _calculate_max_size(self):
         """Calculate max entries based on available memory."""
         available_memory = psutil.virtual_memory().available / (1024 ** 2)
@@ -493,7 +493,7 @@ async def warm_production_caches():
 
 ---
 
-**Author:** Senior Backend Engineer (18+ years experience)  
-**Date:** February 25, 2026  
-**Status:** Production-Ready ✅  
+**Author:** Senior Backend Engineer (18+ years experience)
+**Date:** February 25, 2026
+**Status:** Production-Ready ✅
 **Code Review:** Approved for deployment

@@ -6,8 +6,8 @@
 
 AgentHub integrates with external services to provide seamless access to organizational data through AI agents. Currently supports Atlassian products (Jira, Confluence).
 
-**Base Path**: `/api/v1/external/` 
-**Authentication**: Required (JWT Bearer token) 
+**Base Path**: `/api/v1/external/`
+**Authentication**: Required (JWT Bearer token)
 **Status**: Planned (configuration ready)
 
 ---
@@ -485,7 +485,7 @@ AI Agent:
 - Retrieves issue details
 - Checks recent comments
 - Reviews linked issues
-- Responds: "PROJ-123 is In Progress. Last updated by Jane Smith 2 hours ago. 
+- Responds: "PROJ-123 is In Progress. Last updated by Jane Smith 2 hours ago.
 She added: 'Login endpoint complete, working on token refresh.'"
 ```
 
@@ -659,7 +659,7 @@ channels:
 
 ---
 
-**Last Updated**: January 10, 2026 
+**Last Updated**: January 10, 2026
 **Status**: Configuration Ready (Endpoints Planned)
 
 ---
