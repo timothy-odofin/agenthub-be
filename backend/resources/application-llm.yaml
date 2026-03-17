@@ -143,7 +143,7 @@ azure:
 #       gpt-4o-mini, and claude-3-x-sonnet. Use those as your default for agents.
 github_copilot:
   api_key: "${GITHUB_TOKEN}"                                        # GitHub PAT or App token
-  base_url: "${GITHUB_COPILOT_BASE_URL}"
+  base_url: "${GITHUB_COPILOT_BASE_URL:https://models.inference.ai.azure.com}"
   model: "${GITHUB_COPILOT_MODEL:gpt-4o}"                          # Default: gpt-4o (tool-calling ✅)
   temperature: "${GITHUB_COPILOT_TEMPERATURE:0.7}"
   max_tokens: "${GITHUB_COPILOT_MAX_TOKENS:4096}"
