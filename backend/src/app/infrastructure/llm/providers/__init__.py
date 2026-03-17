@@ -13,6 +13,7 @@ PROVIDER_MODULES = [
     ("huggingface_provider", "HuggingFaceLLM"),
     ("ollama_provider", "OllamaLLM"),
     ("google_provider", "GoogleLLM"),
+    ("github_copilot_provider", "GitHubCopilotLLM"),
 ]
 
 # Import providers using the generic utility

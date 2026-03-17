@@ -109,6 +109,7 @@ class LLMProvider(str, Enum):
     OLLAMA = "ollama"
     GOOGLE = "google"
     LOCAL = "local"
+    GITHUB_COPILOT = "github_copilot"
 
 
 class LLMCapability(str, Enum):
