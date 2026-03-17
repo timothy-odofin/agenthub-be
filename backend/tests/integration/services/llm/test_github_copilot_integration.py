@@ -17,9 +17,6 @@ Run:
     pytest tests/integration/services/llm/test_github_copilot_integration.py -v -s --no-cov
 """
 
-import sys
-from pathlib import Path
-
 import pytest
 from langchain_core.messages import HumanMessage
 from langchain_core.tools import tool
@@ -30,16 +27,9 @@ from app.core.constants import LLMCapability, LLMProvider
 from app.infrastructure.llm.base.base_llm_provider import LLMResponse
 from app.infrastructure.llm.base.llm_registry import LLMRegistry
 from app.infrastructure.llm.factory.llm_factory import LLMFactory
-from app.infrastructure.llm.providers import (  # noqa: F401 — also triggers all @register decorators via __init__.py
-    GitHubCopilotLLM,
-)
 from app.infrastructure.llm.providers.github_copilot_provider import GitHubCopilotLLM
 from app.services.llm_service import LLMService
 
-# Ensure src/ is on the path regardless of how pytest is invoked
-_SRC = Path(__file__).resolve().parents[5] / "src"
-if str(_SRC) not in sys.path:
-    sys.path.insert(0, str(_SRC))
 # ---------------------------------------------------------------------------
 # Fixtures
 # ---------------------------------------------------------------------------
