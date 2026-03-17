@@ -85,13 +85,29 @@ class TestGitHubCopilotProviderSetup:
             "${"
         ), f"api_key was not resolved by settings: {api_key!r}"
 
-    def test_provider_config_has_resolved_base_url(self, provider: GitHubCopilotLLM):
-        """base_url must resolve to the GitHub Models endpoint."""
-        base_url = provider.config.get("base_url", "")
-        assert base_url and not base_url.startswith(
-            "${"
-        ), f"base_url was not resolved by settings: {base_url!r}"
-        assert "models.inference.ai.azure.com" in base_url
+    def test_provider_config_has_resolved_base_url(
+        self, initialised_provider: GitHubCopilotLLM
+    ):
+        """
+        base_url config, if set, must be resolved, and the effective client base
+        URL must point to the GitHub Models endpoint.
+        """
+        # Config-level base_url may legitimately be None if the env var is unset
+        # and the provider falls back internally during initialization.
+        base_url = initialised_provider.config.get("base_url")
+        if base_url is not None:
+            assert base_url and not base_url.startswith(
+                "${"
+            ), f"base_url was not resolved by settings: {base_url!r}"
+            assert "models.inference.ai.azure.com" in base_url
+
+        # Regardless of the config value, the initialized client must have the
+        # correct effective base URL.
+        client_base_url = getattr(
+            getattr(initialised_provider, "client", None), "openai_api_base", None
+        )
+        assert client_base_url, "GitHubCopilotLLM client has no base URL configured"
+        assert "models.inference.ai.azure.com" in client_base_url
 
     def test_provider_default_model_is_set(self, provider: GitHubCopilotLLM):
         """A default model must be present in config."""
