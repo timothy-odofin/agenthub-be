@@ -124,14 +124,23 @@ class GitHubCopilotLLM(BaseLLMProvider):
         if temperature is not None:
             try:
                 temp_float = float(temperature)
-                if temp_float < 0 or temp_float > 2:
-                    raise ValueError(
-                        "GitHub Copilot temperature must be between 0 and 2"
-                    )
             except (TypeError, ValueError) as exc:
-                if "between" in str(exc):
-                    raise
-                logger.warning(f"Could not validate temperature value: {temperature}")
+                raise ValueError(
+                    "GitHub Copilot temperature must be a numeric value"
+                ) from exc
+            if temp_float < 0 or temp_float > 2:
+                raise ValueError("GitHub Copilot temperature must be between 0 and 2")
+
+        max_tokens = self.config.get("max_tokens")
+        if max_tokens is not None:
+            try:
+                max_tokens_int = int(max_tokens)
+            except (TypeError, ValueError) as exc:
+                raise ValueError(
+                    "GitHub Copilot max_tokens must be a positive integer"
+                ) from exc
+            if max_tokens_int <= 0:
+                raise ValueError("GitHub Copilot max_tokens must be a positive integer")
 
         logger.info("GitHub Copilot provider configuration validated successfully")
 
