@@ -31,6 +31,7 @@ Complete REST API documentation with examples:
 - **[Chat API](./api-reference/chat.md)** - Conversational AI, sessions
 - **[Conversational Auth API](./api-reference/conversational-auth.md)** - Chatbot signup
 - **[Ingestion API](./api-reference/ingestion.md)** - Document processing
+- **[Route Sync API](./api-reference/routes.md)** - Route sync & navigation actions
 - **[Health API](./api-reference/health.md)** - System monitoring
 - **[External Services API](./api-reference/external-services.md)** - Jira, Confluence
 
@@ -59,6 +60,7 @@ In-depth guides for core features:
 #### **Tools & Integrations**
 - **[Agent Frameworks Guide](./guides/agent-frameworks/README.md)** - LangGraph, CrewAI
 - **[Tools Guide](./guides/tools/README.md)** - Custom tools, integrations
+- **[Navigation Tools](./guides/tools/navigation-tools.md)** - Voice & route navigation
 
 ---
 
@@ -66,6 +68,8 @@ In-depth guides for core features:
 System design and patterns:
 
 - **[Architecture Overview](./architecture/overview.md)** - System components, data flow
+- **[Voice & Navigation Architecture](./architecture/VOICE-NAVIGATION-ARCHITECTURE.md)** - ⭐ NEW! Auto-sync route navigation
+- **[Prompt Optimization](./architecture/PROMPT-OPTIMIZATION-2026-04-07.md)** - ⭐ NEW! 90% prompt reduction, intent classifier
 - **[Infrastructure Layer](./architecture/infrastructure-layer.md)** - ⭐ NEW! Unified infrastructure patterns
 - **[Architecture Diagrams](./architecture/overview.md#architecture-diagrams)** - Visual system diagrams (SVG)
 - **[Design Patterns](./architecture/design-patterns.md)** - Factory, Repository, Strategy, Registry

@@ -35,6 +35,10 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 │ ┌──────────────┐ ┌──────────────┐ ┌────────────────────┐ │
 │ │ Agent Core │ │ Tool System │ │ Agent Framework │ │
 │ └──────────────┘ └──────────────┘ └────────────────────┘ │
+│ ┌──────────────┐ ┌──────────────┐ │
+│ │ Navigation │ │ Intent │ │
+│ │ Tools │ │ Classifier │ │
+│ └──────────────┘ └──────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 │
 ┌─────────────────────────────────────────────────────────────────┐
@@ -44,6 +48,11 @@ AgentHub follows a **modular, layered architecture** designed for flexibility, m
 │ │ (OpenAI, │ │ (Redis/Memory│ │ (DB, Vector, │ │
 │ │ Groq, etc.) │ │ with Factory)│ │ External APIs) │ │
 │ └──────────────┘ └──────────────┘ └────────────────────┘ │
+│ ┌──────────────┐ │
+│ │ File Storage │ │
+│ │ (Routes, │ │
+│ │ JSON Config) │ │
+│ └──────────────┘ │
 └─────────────────────────────────────────────────────────────────┘
 ```
 
@@ -383,6 +392,7 @@ Extensible tool system for agent capabilities with dynamic registration.
 - **Database Tools**: Query execution, schema inspection
 - **File Operations**: Read, write, search files
 - **Web Search**: Internet search capabilities
+- **Navigation Tools**: Navigate to frontend routes, list available pages
 
 **Tool Registration:**
 ```python
@@ -429,6 +439,26 @@ Pre-built connectors for popular enterprise tools.
 - Health checks
 - Retry with exponential backoff
 - Circuit breaker pattern
+
+### 7. **Route Navigation & File Storage**
+
+Frontend route awareness and action dispatch system. The frontend syncs its routes to the backend, and the agent can navigate users to pages via tool calls.
+
+**Key Components:**
+- **Route Registry**: Stores frontend routes in JSON file storage
+- **File Storage Service**: Persistent JSON-based storage for routes and config
+- **Navigation Tools**: `navigate_to_route`, `list_available_routes`
+- **Action Executor**: Frontend component that executes agent actions (navigation, UI actions)
+- **Intent Classifier**: Routes user requests to the appropriate tool category
+
+**Flow:**
+```
+Frontend boots → syncs routes to backend → stored in file storage
+User says "go to settings" → Intent Classifier → Navigation tools
+Agent returns action payload → Frontend Action Executor → router.navigate()
+```
+
+**See:** [Voice & Navigation Architecture](./VOICE-NAVIGATION-ARCHITECTURE.md) for full details.
 
 ---
 
@@ -514,21 +544,23 @@ Code is written for humans:
 ↓
 4. Service Layer (AgentService)
 ↓
-5. Session Manager (load conversation history)
+5. Intent Classification (select tool category)
 ↓
-6. LLM Factory (get configured LLM)
+6. Session Manager (load conversation history)
 ↓
-7. Agent Framework (process with tools)
+7. LLM Factory (get configured LLM)
 ↓
-8. Tool Execution (if needed - Jira, Datadog, etc.)
+8. Agent Framework (process with filtered tools)
 ↓
-9. LLM Generation (call provider API)
+9. Tool Execution (if needed - Jira, Navigation, etc.)
 ↓
-10. Response Processing (format, validate)
+10. LLM Generation (call provider API)
 ↓
-11. Session Update (save history)
+11. Response Processing (format, extract actions)
 ↓
-12. Client Response (WebSocket or REST)
+12. Session Update (save history)
+↓
+13. Client Response (with optional action payload)
 ```
 
 ### Example: RAG Query Flow

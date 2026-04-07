@@ -3,7 +3,7 @@ from typing import Optional
 
 from app.core.constants import VectorDBType
 from app.core.utils.logger import get_logger
-from app.db.vector import VectorDB
+from app.db.vector.base import VectorDB
 
 logger = get_logger(__name__)
 

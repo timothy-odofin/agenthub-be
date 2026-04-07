@@ -70,6 +70,46 @@ def is_tool_enabled(category: str, tool_name: str) -> bool:
         return True  # Default to enabled if config unavailable
 
 
+def is_category_enabled(category: str) -> bool:
+    """
+    Check if an entire tool category is enabled.
+
+    This is used to skip provider instantiation entirely when a category
+    is disabled, avoiding expensive operations like GitHub API connections.
+
+    Args:
+        category: The tool category (e.g., 'github', 'jira')
+
+    Returns:
+        True if category is enabled, False otherwise
+    """
+    try:
+        tools_config = getattr(settings, "tools", None)
+        if not tools_config:
+            return True
+
+        if hasattr(tools_config, "tools"):
+            tools_config = tools_config.tools
+
+        category_config = getattr(tools_config, category, None)
+        if not category_config:
+            return True
+
+        if hasattr(category_config, "enabled") and not category_config.enabled:
+            logger.info(
+                f"Category '{category}' is disabled — skipping provider instantiation"
+            )
+            return False
+
+        return True
+
+    except Exception as e:
+        logger.warning(
+            f"Could not check category '{category}' enabled state: {e}. Defaulting to enabled."
+        )
+        return True
+
+
 class ToolRegistry:
     """Registry for tool provider classes organized by categories."""
 
@@ -169,11 +209,12 @@ class ToolRegistry:
     def get_instantiated_tools(
         cls,
         category: Optional[str] = None,
+        categories: Optional[List[str]] = None,
         config: Optional[Dict[str, Any]] = None,
         use_cache: bool = True,
     ) -> List:
         """
-        Get instantiated Tool objects for a category or all categories.
+        Get instantiated Tool objects for a category, multiple categories, or all.
         Filters tools based on configuration settings.
 
         Implements aggressive caching to avoid expensive tool initialization,
@@ -181,12 +222,24 @@ class ToolRegistry:
 
         Args:
             category: Optional specific category to get tools for
+            categories: Optional list of categories to get tools for (e.g., ["navigation", "jira"])
             config: Optional configuration to pass to tool classes
             use_cache: If True, uses cached tools. Set False to force reload.
 
         Returns:
             List of enabled LangChain Tool objects
         """
+        # If multiple categories requested, aggregate from per-category caches
+        if categories:
+            all_tools = []
+            for cat in categories:
+                cat_tools = cls.get_instantiated_tools(
+                    category=cat, config=config, use_cache=use_cache
+                )
+                all_tools.extend(cat_tools)
+            logger.info(f"Loaded {len(all_tools)} tools for categories: {categories}")
+            return all_tools
+
         # Generate cache key
         cache_key = f"category:{category or 'all'}"
 
@@ -224,6 +277,15 @@ class ToolRegistry:
                 if not tool_category:
                     logger.warning(
                         f"Could not determine category for tool {tool_class.__name__}"
+                    )
+                    continue
+
+                # Skip entire provider if category is disabled — avoids expensive
+                # initialization (e.g., GitHub API connection ~7s)
+                if not is_category_enabled(tool_category):
+                    logger.info(
+                        f"Skipping provider {tool_class.__name__} — "
+                        f"category '{tool_category}' is disabled"
                     )
                     continue
 

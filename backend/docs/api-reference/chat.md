@@ -51,10 +51,40 @@ Content-Type: application/json
   "processing_time_ms": 245.3,
   "tools_used": ["web_search", "code_analyzer"],
   "errors": null,
+  "action": null,
   "metadata": {
     "model": "gpt-4",
     "tokens_used": 150,
     "confidence": 0.95
+  }
+}
+```
+
+**Success Response with Navigation Action** (200 OK):
+
+When the agent determines the user wants to navigate to a page, the response includes an `action` payload that the frontend should execute:
+
+```json
+{
+  "success": true,
+  "message": "I'll take you to the Settings page now.",
+  "session_id": "550e8400-e29b-41d4-a716-446655440000",
+  "user_id": "507f1f77bcf86cd799439011",
+  "timestamp": "2026-04-07T10:15:00Z",
+  "processing_time_ms": 312.1,
+  "tools_used": ["navigate_to_route"],
+  "errors": null,
+  "action": {
+    "type": "NAVIGATE",
+    "payload": {
+      "route": "/settings",
+      "label": "Settings"
+    }
+  },
+  "metadata": {
+    "model": "gpt-5-mini",
+    "tokens_used": 85,
+    "confidence": 0.98
   }
 }
 ```
@@ -71,7 +101,19 @@ Content-Type: application/json
 | `processing_time_ms` | float | Time taken to process |
 | `tools_used` | array | Tools invoked (e.g., web_search) |
 | `errors` | array | Any errors encountered |
+| `action` | object \| null | Action for frontend to execute (see below) |
 | `metadata` | object | Additional context (model, tokens) |
+
+**Action Object** (when present):
+
+| Field | Type | Description |
+|-------|------|-------------|
+| `type` | string | Action type: `NAVIGATE` or `UI_ACTION` |
+| `payload` | object | Action-specific data |
+| `payload.route` | string | Route path to navigate to (for `NAVIGATE`) |
+| `payload.label` | string | Human-readable route label |
+
+> **Frontend Implementation:** When `action` is present in the response, the frontend should execute the action using the Action Executor. For `NAVIGATE` actions, call `router.navigate(action.payload.route)`. See the [Route Sync API](./routes.md) and [Voice & Navigation Architecture](../architecture/VOICE-NAVIGATION-ARCHITECTURE.md) for details.
 
 **Example Requests**:
 

@@ -1,6 +1,6 @@
-import { useEffect, useState, useRef } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
-import { Bot, User, Loader2, ArrowRight, Sparkles } from "lucide-react";
+import { Bot, User, Loader2, ArrowRight, Sparkles, Mic, MicOff } from "lucide-react";
 import { SignupProgress } from "@/components/SignupProgress";
 import { startConversationAuth, conversationalAuth } from "@/api/auth";
 
@@ -32,6 +32,13 @@ export default function ConversationalSignup() {
   const [isLoading, setIsLoading] = useState<boolean>(false);
   const [isTyping, setIsTyping] = useState<boolean>(false);
   const [isInitializing, setIsInitializing] = useState<boolean>(true);
+
+  // Voice input state
+  const [isListening, setIsListening] = useState(false);
+  const [isVoiceSupported, setIsVoiceSupported] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+  const submitRef = useRef<((text: string) => void) | null>(null);
+
   const [conversationState, setConversationState] = useState<ConversationState>({
     sessionId: null,
     currentStep: "start",
@@ -180,6 +187,116 @@ export default function ConversationalSignup() {
     if (e.key === "Enter" && !e.shiftKey) {
       e.preventDefault();
       handleSubmit(e);
+    }
+  };
+
+  // Voice input: auto-submit spoken text (skip for password step)
+  const submitVoiceInput = useCallback(
+    (text: string) => {
+      if (!text.trim() || isLoading || conversationState.currentStep === "password") return;
+      setInput("");
+      // Simulate form submission with voice text
+      addUserMessage(text.trim());
+      setIsLoading(true);
+
+      const payload = {
+        message: text.trim(),
+        session_id: conversationState.sessionId,
+        current_step: conversationState.currentStep,
+      };
+
+      conversationalAuth(payload)
+        .then((res) => {
+          const data = res.data;
+          setConversationState({
+            sessionId: data.session_id,
+            currentStep: data.next_step,
+            nextStep: data.next_step,
+            progress: data.progress_percentage || 0,
+            fieldsRemaining: data.fields_remaining || 0,
+            isValid: data.is_valid ?? true,
+            validationError: data.validation_error || null,
+          });
+          addBotMessage(data.message);
+          if (data.next_step === "complete" && data.access_token) {
+            setTimeout(() => {
+              localStorage.setItem("access_token", data.access_token);
+              localStorage.setItem("refresh_token", data.refresh_token);
+              localStorage.setItem("user", JSON.stringify({ user_id: data.user_id }));
+              navigate("/main-dashboard");
+            }, 2000);
+          }
+          setIsLoading(false);
+        })
+        .catch((err: any) => {
+          console.error("Failed to send voice message:", err);
+          const errorMessage =
+            err.response?.data?.message || "Something went wrong. Please try again.";
+          addBotMessage(errorMessage);
+          setIsLoading(false);
+        });
+    },
+    [isLoading, conversationState.sessionId, conversationState.currentStep, navigate]
+  );
+
+  // Keep submitRef in sync
+  useEffect(() => {
+    submitRef.current = submitVoiceInput;
+  }, [submitVoiceInput]);
+
+  // Initialize Web Speech API
+  useEffect(() => {
+    const SpeechRecognitionApi =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognitionApi) return;
+
+    setIsVoiceSupported(true);
+
+    const recognition = new SpeechRecognitionApi();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = "en-US";
+
+    recognition.onstart = () => setIsListening(true);
+
+    recognition.onresult = (e: SpeechRecognitionEvent) => {
+      const transcript = Array.from({ length: e.results.length })
+        .map((_, i) => e.results[i][0].transcript)
+        .join("");
+
+      setIsListening(false);
+      recognition.stop();
+
+      // Put transcript in input and auto-send
+      setInput(transcript);
+      if (transcript.trim() && submitRef.current) {
+        setTimeout(() => submitRef.current?.(transcript), 300);
+      }
+    };
+
+    recognition.onerror = () => setIsListening(false);
+    recognition.onend = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+
+    return () => {
+      recognitionRef.current?.abort();
+    };
+  }, []);
+
+  const stopListening = () => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  };
+
+  const toggleListening = () => {
+    if (isLoading) return;
+    // Don't allow voice for password step
+    if (conversationState.currentStep === "password") return;
+    if (isListening) {
+      stopListening();
+    } else {
+      recognitionRef.current?.start();
     }
   };
 
@@ -354,15 +471,44 @@ export default function ConversationalSignup() {
                 ref={inputRef}
                 type={conversationState.currentStep === "password" ? "password" : "text"}
                 value={input}
-                onChange={(e) => setInput(e.target.value)}
+                onChange={(e) => {
+                  if (isListening) stopListening();
+                  setInput(e.target.value);
+                }}
                 onKeyDown={handleKeyDown}
-                placeholder={getPlaceholder()}
+                placeholder={
+                  isListening
+                    ? "Listening... speak now"
+                    : getPlaceholder()
+                }
                 disabled={isLoading}
                 className="flex-1 bg-transparent outline-none text-gray-900 placeholder-gray-400 text-[15px] disabled:opacity-50"
               />
+
+              {/* Voice input button — hidden for password step */}
+              {isVoiceSupported && conversationState.currentStep !== "password" && (
+                <button
+                  type="button"
+                  onClick={toggleListening}
+                  disabled={isLoading}
+                  className={`flex-shrink-0 w-10 h-10 rounded-full flex items-center justify-center transition-all ${
+                    isListening
+                      ? "bg-red-50 text-red-500 animate-pulse hover:bg-red-100"
+                      : "text-gray-400 hover:text-gray-600 hover:bg-gray-100"
+                  } disabled:opacity-40 disabled:cursor-not-allowed`}
+                  title={isListening ? "Stop listening" : "Voice input"}
+                >
+                  {isListening ? (
+                    <MicOff className="w-5 h-5" />
+                  ) : (
+                    <Mic className="w-5 h-5" />
+                  )}
+                </button>
+              )}
+
               <button
                 type="submit"
-                disabled={!input.trim() || isLoading}
+                disabled={!input.trim() || isLoading || isListening}
                 className="flex-shrink-0 w-10 h-10 rounded-full bg-gradient-to-r from-blue-600 to-purple-600 flex items-center justify-center hover:shadow-lg transition-all disabled:opacity-40 disabled:cursor-not-allowed"
               >
                 {isLoading ? (
@@ -372,9 +518,32 @@ export default function ConversationalSignup() {
                 )}
               </button>
             </div>
-            <p className="text-xs text-gray-400 text-center mt-2">
-              Press Enter to send • Your data is encrypted and secure
-            </p>
+
+            {/* Listening indicator */}
+            {isListening && (
+              <div className="flex items-center justify-center gap-2 mt-2">
+                <span className="relative flex h-2.5 w-2.5">
+                  <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-red-400 opacity-75"></span>
+                  <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-red-500"></span>
+                </span>
+                <p className="text-xs text-red-500 font-medium">
+                  Listening... speak now
+                </p>
+                <button
+                  type="button"
+                  onClick={stopListening}
+                  className="text-xs text-red-500 hover:text-red-700 underline"
+                >
+                  Cancel
+                </button>
+              </div>
+            )}
+
+            {!isListening && (
+              <p className="text-xs text-gray-400 text-center mt-2">
+                Press Enter to send{isVoiceSupported && conversationState.currentStep !== "password" && " • Click 🎤 to speak"} • Your data is encrypted and secure
+              </p>
+            )}
           </form>
         </footer>
       )}

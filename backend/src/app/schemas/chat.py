@@ -20,6 +20,43 @@ class ChatRequest(BaseModel):
     )
 
 
+class ActionPayload(BaseModel):
+    """
+    Structured action payload returned when the agent wants the frontend
+    to perform a navigation or UI action (e.g., voice command "go to dashboard").
+
+    This follows the pattern from novitari-ai-service where the backend emits
+    action payloads that the frontend's action executor interprets and runs.
+
+    action_type:
+        - "NAVIGATE"   — Navigate to a different route/page
+        - "UI_ACTION"   — Perform an in-page action (new chat, show capabilities, etc.)
+        - "ERROR"       — The requested action could not be resolved
+
+    action:
+        - For NAVIGATE: { "route": "/path", "title": "Page Title", "protected": bool }
+        - For UI_ACTION: { "name": "NEW_CHAT", "title": "Start New Chat" }
+
+    message:
+        Human-readable description of the action for the chat message.
+    """
+
+    action_type: str = Field(
+        description="Type of action: NAVIGATE, UI_ACTION, or ERROR"
+    )
+    action: Dict[str, Any] = Field(
+        default_factory=dict,
+        description="Action details (route path, action name, etc.)",
+    )
+    message: str = Field(
+        description="Human-readable description of the action",
+    )
+    reason: Optional[str] = Field(
+        default=None,
+        description="Why the agent chose this action",
+    )
+
+
 class ChatResponse(BaseModel):
     success: bool
     message: str
@@ -30,6 +67,12 @@ class ChatResponse(BaseModel):
     tools_used: List[str] = []
     errors: List[str] = []
     metadata: Dict[str, Any] = {}
+    action: Optional[ActionPayload] = Field(
+        default=None,
+        description="Optional structured action for the frontend to execute "
+        "(e.g., navigation, UI action). Present when the agent uses "
+        "the navigate_to_route tool.",
+    )
 
 
 class CreateSessionRequest(BaseModel):

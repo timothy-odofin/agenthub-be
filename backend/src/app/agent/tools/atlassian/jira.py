@@ -128,7 +128,11 @@ class JiraTools:
             ),
             StructuredTool(
                 name="create_jira_issue",
-                description="Create a new Jira issue with project key, summary, description, and issue type.",
+                description=(
+                    "Create a new Jira issue with project key, summary, description, and issue type. "
+                    "Requires confirmation via prepare_action workflow. "
+                    "Common issue types: Bug, Task, Story, Epic."
+                ),
                 func=self._create_issue,
                 args_schema=CreateIssueInput,
             ),
@@ -140,19 +144,39 @@ class JiraTools:
             ),
             StructuredTool(
                 name="search_jira_issues",
-                description="Search Jira issues using JQL (Jira Query Language).",
+                description=(
+                    "Search Jira issues using JQL (Jira Query Language). "
+                    "Supports operators: =, !=, ~, IN, NOT IN, ORDER BY. "
+                    "Map user terms: 'tasks/tickets' → issues, 'pending/todo' → status='To Do', "
+                    "'in progress' → status='In Progress', 'done/completed' → status='Done'. "
+                    "Examples: 'project = PROJ AND status = Open', "
+                    "'assignee = currentUser() ORDER BY created DESC', "
+                    "'priority = High AND created >= -7d'."
+                ),
                 func=self._search_issues,
                 args_schema=SearchIssuesInput,
             ),
             StructuredTool(
                 name="add_jira_comment",
-                description="Add a comment to an existing Jira issue by its key.",
+                description=(
+                    "Add a comment to an existing Jira issue by its key. Supports plain text and ADF format for @mentions. "
+                    "MENTION WORKFLOW: 1) If user wants to tag someone, first use search_jira_users to find their accountId. "
+                    "2) If logged-in user's email exists in Jira, auto-use it — do NOT ask for display name. "
+                    "3) Only ask for display name if user search returns no match. "
+                    "PRIVACY: Never show accountId to users. Show only display names in previews. "
+                    "Requires confirmation via prepare_action workflow."
+                ),
                 func=self._add_comment,
                 args_schema=AddCommentInput,
             ),
             StructuredTool(
                 name="search_jira_users",
-                description="Search for Jira users by username, email, or display name to get their account IDs for mentions.",
+                description=(
+                    "Search for Jira users by username, email, or display name. "
+                    "Returns account IDs needed for @mentions in comments. "
+                    "Use this BEFORE add_jira_comment when the user wants to mention someone. "
+                    "If exactly one match is found, use it automatically without asking the user."
+                ),
                 func=self._search_users,
                 args_schema=SearchUsersInput,
             ),

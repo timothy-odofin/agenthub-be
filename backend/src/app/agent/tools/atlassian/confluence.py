@@ -89,7 +89,11 @@ class ConfluenceTools:
             ),
             StructuredTool(
                 name="get_confluence_page",
-                description="Get the full content and metadata of a specific Confluence page by its ID.",
+                description=(
+                    "Get the full content and metadata of a specific Confluence page by its ID. "
+                    "Use this when you already have a page ID from search results or user input. "
+                    "Returns the latest version of the page content."
+                ),
                 func=self._get_page,
                 args_schema=GetPageInput,
             ),
@@ -101,7 +105,11 @@ class ConfluenceTools:
             ),
             StructuredTool(
                 name="search_confluence_pages",
-                description="Search for Confluence pages by text query across titles and content. Optionally filter by space.",
+                description=(
+                    "Search for Confluence pages by text query across titles and content. Optionally filter by space. "
+                    "PREFERRED for real-time Confluence content — use this instead of vector store for documentation queries. "
+                    "Use vector store only when user explicitly asks for 'knowledge base' or needs cross-source semantic search."
+                ),
                 func=self._search_pages,
                 args_schema=SearchPagesInput,
             ),

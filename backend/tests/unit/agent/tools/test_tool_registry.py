@@ -14,6 +14,7 @@ from app.agent.tools.base.registry import (
     ToolRegistry,
     _packages,
     _tools,
+    is_category_enabled,
     is_tool_enabled,
 )
 
@@ -516,3 +517,119 @@ class TestToolRegistryIntegration:
             category="disabled_category"
         )
         assert len(disabled_category_tools) == 0
+
+
+class TestIsCategoryEnabled:
+    """Tests for the is_category_enabled helper function."""
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_enabled_category_returns_true(self, mock_settings_obj, mock_settings):
+        """Test that an enabled category returns True."""
+        for attr_name, attr_value in vars(mock_settings).items():
+            setattr(mock_settings_obj, attr_name, attr_value)
+
+        assert is_category_enabled("jira") is True
+        assert is_category_enabled("vector") is True
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_disabled_category_returns_false(self, mock_settings_obj, mock_settings):
+        """Test that a disabled category returns False."""
+        for attr_name, attr_value in vars(mock_settings).items():
+            setattr(mock_settings_obj, attr_name, attr_value)
+
+        assert is_category_enabled("disabled_category") is False
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_nonexistent_category_defaults_to_enabled(
+        self, mock_settings_obj, mock_settings
+    ):
+        """Test that a category not in config defaults to True."""
+        for attr_name, attr_value in vars(mock_settings).items():
+            setattr(mock_settings_obj, attr_name, attr_value)
+
+        assert is_category_enabled("nonexistent") is True
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_no_tools_config_defaults_to_enabled(self, mock_settings_obj):
+        """Test that missing tools config defaults to True."""
+        assert is_category_enabled("any_category") is True
+
+    @patch(
+        "app.agent.tools.base.registry.settings",
+        side_effect=Exception("Settings error"),
+    )
+    def test_exception_defaults_to_enabled(self, mock_settings_obj):
+        """Test that exceptions default to True."""
+        assert is_category_enabled("any_category") is True
+
+
+class TestProviderSkipOnDisabledCategory:
+    """Tests that disabled categories skip provider instantiation entirely."""
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_disabled_category_skips_provider_init(
+        self, mock_settings_obj, mock_settings
+    ):
+        """
+        Test that when a category is disabled, the provider class is NOT
+        instantiated at all — avoiding expensive operations like API connections.
+        """
+        for attr_name, attr_value in vars(mock_settings).items():
+            setattr(mock_settings_obj, attr_name, attr_value)
+
+        init_called = {"count": 0}
+
+        @ToolRegistry.register("disabled_category")
+        class ExpensiveProvider:
+            def __init__(self, config=None):
+                init_called["count"] += 1
+                # In real code, this would be a 7+ second GitHub API call
+                raise RuntimeError("Should never reach here for disabled category")
+
+            def get_tools(self):
+                return [
+                    Tool(
+                        name="expensive_tool",
+                        description="Should not be created",
+                        func=lambda x: "nope",
+                    )
+                ]
+
+        tools = ToolRegistry.get_instantiated_tools(category="disabled_category")
+
+        assert len(tools) == 0
+        assert (
+            init_called["count"] == 0
+        ), "Provider __init__ should NOT be called for disabled category"
+
+    @patch("app.agent.tools.base.registry.settings")
+    def test_enabled_category_does_instantiate_provider(
+        self, mock_settings_obj, mock_settings
+    ):
+        """Test that enabled categories DO instantiate their providers."""
+        for attr_name, attr_value in vars(mock_settings).items():
+            setattr(mock_settings_obj, attr_name, attr_value)
+
+        # Clear cache to ensure fresh instantiation
+        ToolRegistry.clear_tool_cache()
+
+        init_called = {"count": 0}
+
+        @ToolRegistry.register("jira")
+        class EnabledProvider:
+            def __init__(self, config=None):
+                init_called["count"] += 1
+
+            def get_tools(self):
+                return [
+                    Tool(
+                        name="mock_tool_1",
+                        description="Enabled tool",
+                        func=lambda x: "yes",
+                    )
+                ]
+
+        tools = ToolRegistry.get_instantiated_tools(category="jira", use_cache=False)
+
+        assert init_called["count"] == 1
+        assert len(tools) == 1

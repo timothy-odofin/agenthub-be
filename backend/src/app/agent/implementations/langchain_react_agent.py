@@ -70,11 +70,6 @@ class LangChainReactAgent(LangChainAgent):
         }
 
     def _create_prompt_template(self) -> ChatPromptTemplate:
-        available_tools = [f"- {tool.name}: {tool.description}" for tool in self.tools]
-        tools_description = (
-            "\n".join(available_tools) if available_tools else "No tools available"
-        )
-
         # Get system prompt from settings using dot notation
         # Example: 'agent.react_agent' -> settings.prompt.system.agent.react_agent
         prompt_path = self.agent_prompt_type.split(".")
@@ -82,8 +77,10 @@ class LangChainReactAgent(LangChainAgent):
         for key in prompt_path:
             system_prompt_obj = getattr(system_prompt_obj, key)
 
-        # Format the prompt with available tools
-        system_prompt = system_prompt_obj.format(available_tools=tools_description)
+        # System prompt is used as-is. Tool schemas are provided natively
+        # via bind_tools() in _create_agent_runnable() — the idiomatic OpenAI approach.
+        # No need to inject {available_tools} into the prompt text.
+        system_prompt = str(system_prompt_obj)
 
         return ChatPromptTemplate.from_messages(
             [
@@ -194,11 +191,34 @@ class LangChainReactAgent(LangChainAgent):
 
             if "intermediate_steps" in agent_response:
                 for step in agent_response["intermediate_steps"]:
-                    if hasattr(step, "tool") and step.tool:
+                    # Each step is a tuple of (AgentAction, observation_string).
+                    # The AgentAction (step[0]) has the .tool attribute.
+                    # The observation (step[1]) is the raw tool return value.
+                    if isinstance(step, tuple) and len(step) >= 1:
+                        action = step[0]
+                        if hasattr(action, "tool") and action.tool:
+                            response.tools_used.append(action.tool)
+                            # Capture the raw tool output for action extraction
+                            if len(step) >= 2:
+                                observation = step[1]
+                                if "tool_outputs" not in response.metadata:
+                                    response.metadata["tool_outputs"] = {}
+                                response.metadata["tool_outputs"][
+                                    action.tool
+                                ] = observation
+                    elif hasattr(step, "tool") and step.tool:
                         response.tools_used.append(step.tool)
 
-            # Add both user message and assistant response to session history AFTER processing
-            if self.session_repository and context.session_id:
+            # Add both user message and assistant response to session history AFTER processing.
+            # Skip saving for navigation/UI actions — they are transient commands
+            # (e.g., "go to dashboard", "log me out") that pollute chat history
+            # and waste context window tokens.
+            is_navigation_action = "navigate_to_route" in response.tools_used
+            if (
+                self.session_repository
+                and context.session_id
+                and not is_navigation_action
+            ):
                 # Add user message first
                 await self.session_repository.add_message(
                     context.session_id, "user", query

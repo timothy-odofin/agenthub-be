@@ -1,5 +1,5 @@
 from abc import ABC, abstractmethod
-from typing import Any, Dict, Set
+from typing import Any, Dict, List, Optional, Set
 
 from app.agent.models import AgentContext, AgentResponse
 from app.core.enums import AgentCapability, AgentFramework, AgentType
@@ -25,7 +25,7 @@ class BaseAgent(ABC):
         pass
 
     @abstractmethod
-    async def initialize(self) -> None:
+    async def initialize(self, tool_categories: Optional[List[str]] = None) -> None:
         pass
 
     @abstractmethod

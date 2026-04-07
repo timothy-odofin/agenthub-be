@@ -10,7 +10,7 @@ interface SidebarProps {
   isDeletingSession?: boolean;
 }
 
-import { Loader2, MessageSquare, Plus, Edit2, Share2, MoreVertical, LogOut, Trash2 } from "lucide-react";
+import { Loader2, MessageSquare, Plus, Edit2, Share2, LogOut, Trash2 } from "lucide-react";
 import { useState, useRef, useEffect } from "react";
 
 export default function Sidebar({
@@ -26,7 +26,6 @@ export default function Sidebar({
 }: SidebarProps) {
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState("");
-  const [menuOpenId, setMenuOpenId] = useState<string | null>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
   // Focus input when editing starts
@@ -41,7 +40,6 @@ export default function Sidebar({
     e.stopPropagation();
     setEditingId(session.session_id);
     setEditTitle(session.title || "Untitled Chat");
-    setMenuOpenId(null);
   };
 
   const handleSaveEdit = async (sessionId: string) => {
@@ -67,7 +65,6 @@ export default function Sidebar({
   const handleShare = (sessionId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     onShareSession(sessionId);
-    setMenuOpenId(null);
   };
 
   const handleDelete = (sessionId: string, e: React.MouseEvent) => {
@@ -75,12 +72,6 @@ export default function Sidebar({
     if (onDeleteSession) {
       onDeleteSession(sessionId);
     }
-    setMenuOpenId(null);
-  };
-
-  const toggleMenu = (sessionId: string, e: React.MouseEvent) => {
-    e.stopPropagation();
-    setMenuOpenId(menuOpenId === sessionId ? null : sessionId);
   };
 
   return (
@@ -129,122 +120,88 @@ export default function Sidebar({
                 sessions.map((s) => (
                   <div
                     key={s.session_id}
-                    className={`flex items-start gap-2 px-3 py-3 rounded-lg transition-all relative group ${
+                    className={`flex items-center px-3 py-3 rounded-lg transition-all relative group cursor-pointer ${
                       loadingSessionId === s.session_id
                         ? "bg-blue-50 opacity-60 cursor-wait"
                         : currentSession === s.session_id 
                         ? "bg-blue-50 hover:bg-blue-100 border-l-2 border-blue-600" 
                         : "hover:bg-gray-100 hover:border-l-2 hover:border-gray-300"
                     }`}
+                    onClick={() => {
+                      if (loadingSessionId === null && editingId !== s.session_id) {
+                        onSelectSession(s.session_id);
+                      }
+                    }}
                   >
-                    <button 
-                      className="flex items-start gap-3 flex-1 min-w-0 text-left"
-                      onClick={() => onSelectSession(s.session_id)}
-                      disabled={loadingSessionId !== null || editingId === s.session_id}
-                    >
-                      <div className="flex-1 min-w-0">
-                        {editingId === s.session_id ? (
-                          <input
-                            ref={inputRef}
-                            type="text"
-                            value={editTitle}
-                            onChange={(e) => setEditTitle(e.target.value)}
-                            onBlur={() => handleSaveEdit(s.session_id)}
-                            onKeyDown={(e) => handleKeyDown(e, s.session_id)}
-                            className="w-full px-2 py-1 text-sm font-medium border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
-                            onClick={(e) => e.stopPropagation()}
-                          />
-                        ) : (
-                          <p className={`text-sm font-medium truncate ${
+                    <div className="flex-1 min-w-0">
+                      {editingId === s.session_id ? (
+                        <input
+                          ref={inputRef}
+                          type="text"
+                          value={editTitle}
+                          onChange={(e) => setEditTitle(e.target.value)}
+                          onBlur={() => handleSaveEdit(s.session_id)}
+                          onKeyDown={(e) => handleKeyDown(e, s.session_id)}
+                          className="w-full px-2 py-1 text-sm font-medium border border-blue-500 rounded focus:outline-none focus:ring-2 focus:ring-blue-500"
+                          onClick={(e) => e.stopPropagation()}
+                        />
+                      ) : (
+                        <>
+                          <p className={`text-sm font-medium truncate pr-1 ${
                             currentSession === s.session_id ? "text-blue-900" : "text-gray-700"
                           }`}>
                             {s.title || "Untitled Chat"}
                           </p>
-                        )}
-                        
-                        {s.last_message_at && (
-                          <p className="text-xs text-gray-400 mt-1">
-                            {new Date(s.last_message_at).toLocaleDateString()}
-                          </p>
-                        )}
-                      </div>
-                    </button>
-
-                    {/* Actions Menu */}
-                    <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
-                      {loadingSessionId === s.session_id ? (
-                        <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
-                      ) : (
-                        <>
-                          <button
-                            onClick={(e) => handleStartEdit(s, e)}
-                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
-                            title="Rename"
-                          >
-                            <Edit2 className="w-3.5 h-3.5 text-gray-500 hover:text-blue-600" />
-                          </button>
-                          <button
-                            onClick={(e) => handleShare(s.session_id, e)}
-                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
-                            title="Share"
-                          >
-                            <Share2 className="w-3.5 h-3.5 text-gray-500 hover:text-green-600" />
-                          </button>
-                          <button
-                            onClick={(e) => handleDelete(s.session_id, e)}
-                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
-                            title="Delete"
-                            disabled={isDeletingSession && currentSession === s.session_id}
-                          >
-                            {isDeletingSession && currentSession === s.session_id ? (
-                              <Loader2 className="w-3.5 h-3.5 text-red-600 animate-spin" />
-                            ) : (
-                              <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
-                            )}
-                          </button>
-                          <button
-                            onClick={(e) => toggleMenu(s.session_id, e)}
-                            className="p-1.5 rounded hover:bg-white hover:shadow-sm transition-all"
-                            title="More"
-                          >
-                            <MoreVertical className="w-3.5 h-3.5 text-gray-500" />
-                          </button>
+                          {s.last_message_at && (
+                            <p className="text-xs text-gray-400 mt-0.5">
+                              {new Date(s.last_message_at).toLocaleDateString()}
+                            </p>
+                          )}
                         </>
                       )}
                     </div>
 
-                    {/* Dropdown Menu */}
-                    {menuOpenId === s.session_id && (
-                      <div className="absolute right-2 top-12 z-10 bg-white border border-gray-200 rounded-lg shadow-lg py-1 w-40">
-                        <button
-                          onClick={(e) => handleStartEdit(s, e)}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-                        >
-                          <Edit2 className="w-4 h-4" />
-                          Rename
-                        </button>
-                        <button
-                          onClick={(e) => handleShare(s.session_id, e)}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-gray-100 flex items-center gap-2"
-                        >
-                          <Share2 className="w-4 h-4" />
-                          Share
-                        </button>
-                        <div className="border-t border-gray-100 my-1"></div>
-                        <button
-                          onClick={(e) => handleDelete(s.session_id, e)}
-                          disabled={isDeletingSession && currentSession === s.session_id}
-                          className="w-full px-4 py-2 text-left text-sm hover:bg-red-50 flex items-center gap-2 text-red-600 disabled:opacity-50 disabled:cursor-not-allowed"
-                        >
-                          {isDeletingSession && currentSession === s.session_id ? (
-                            <Loader2 className="w-4 h-4 animate-spin" />
-                          ) : (
-                            <Trash2 className="w-4 h-4" />
-                          )}
-                          {isDeletingSession && currentSession === s.session_id ? "Deleting..." : "Delete"}
-                        </button>
+                    {/* Hover action buttons — positioned absolutely so they don't shrink the title */}
+                    <div className="absolute right-2 top-1/2 -translate-y-1/2 opacity-0 group-hover:opacity-100 transition-opacity">
+                      <div className={`flex items-center gap-0.5 rounded-md px-1 py-0.5 shadow-sm ${
+                        currentSession === s.session_id 
+                          ? "bg-blue-100/90 backdrop-blur-sm" 
+                          : "bg-gray-100/90 backdrop-blur-sm group-hover:bg-gray-200/90"
+                      }`}>
+                        {loadingSessionId === s.session_id ? (
+                          <Loader2 className="w-4 h-4 text-blue-600 animate-spin" />
+                        ) : (
+                          <>
+                            <button
+                              onClick={(e) => handleStartEdit(s, e)}
+                              className="p-1 rounded hover:bg-white hover:shadow-sm transition-all"
+                              title="Rename"
+                            >
+                              <Edit2 className="w-3.5 h-3.5 text-gray-500 hover:text-blue-600" />
+                            </button>
+                            <button
+                              onClick={(e) => handleShare(s.session_id, e)}
+                              className="p-1 rounded hover:bg-white hover:shadow-sm transition-all"
+                              title="Share"
+                            >
+                              <Share2 className="w-3.5 h-3.5 text-gray-500 hover:text-green-600" />
+                            </button>
+                            <button
+                              onClick={(e) => handleDelete(s.session_id, e)}
+                              className="p-1 rounded hover:bg-white hover:shadow-sm transition-all"
+                              title="Delete"
+                              disabled={isDeletingSession && currentSession === s.session_id}
+                            >
+                              {isDeletingSession && currentSession === s.session_id ? (
+                                <Loader2 className="w-3.5 h-3.5 text-red-600 animate-spin" />
+                              ) : (
+                                <Trash2 className="w-3.5 h-3.5 text-gray-500 hover:text-red-600" />
+                              )}
+                            </button>
+                          </>
+                        )}
                       </div>
-                    )}
+                    </div>
                   </div>
                 ))
               )}

@@ -1,6 +1,6 @@
 import uuid
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from langgraph.checkpoint.memory import MemorySaver
 from langgraph.graph import StateGraph
@@ -33,7 +33,7 @@ class LangGraphAgent(BaseAgent):
         self.compiled_graph = None
         self.memory = None
 
-    async def initialize(self) -> None:
+    async def initialize(self, tool_categories: Optional[List[str]] = None) -> None:
         # Ensure LLM provider is initialized before accessing client
         await self.llm_provider._ensure_initialized()
 

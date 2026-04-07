@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useParams, useNavigate } from "react-router-dom";
 import Sidebar from "@/components/chat/Sidebar";
 import MainChat from "@/components/chat/MainChatMessage";
@@ -8,6 +8,8 @@ import EnhancedShareModal from "@/components/modals/EnhancedShareModal";
 import AddPeopleModal from "@/components/modals/AddPeopleModal";
 import ConfirmationModal from "@/components/modals/ConfirmationModal";
 import ModelCapabilities from "../components/ModelCapabilities";
+import { executeAction } from "@/lib/actions/action-executor";
+import type { ActionHandlers } from "@/lib/actions/action-executor";
 
 import {
   getChatSessions,
@@ -57,6 +59,12 @@ export default function ChatLayout() {
   
   // Topbar state
   const [isPinned, setIsPinned] = useState<boolean>(false);
+
+  // Toast notification state for action executor feedback
+  const [toast, setToast] = useState<{
+    message: string;
+    type: "success" | "error" | "info";
+  } | null>(null);
 
   // LLM Providers state
   const [providers, setProviders] = useState<ModelVersion[]>([]);
@@ -156,6 +164,48 @@ export default function ChatLayout() {
     // Navigate to base dashboard URL (remove session ID from URL)
     navigate('/main-dashboard');
   };
+
+  // ─────────────────────────────────────────────────────────────────
+  // Toast / Action Executor helpers
+  // ─────────────────────────────────────────────────────────────────
+
+  /** Show a toast notification that auto-dismisses after 3 seconds */
+  const showToast = useCallback(
+    (message: string, type: "success" | "error" | "info" = "info") => {
+      setToast({ message, type });
+      setTimeout(() => setToast(null), 3000);
+    },
+    []
+  );
+
+  /**
+   * Action handlers passed to the action executor.
+   * These are the callbacks the executor uses to drive the UI when
+   * the agent returns a navigation or UI action.
+   */
+  const actionHandlers = useCallback(
+    (): ActionHandlers => ({
+      navigate,
+      startNewChat,
+      deleteSession: (sessionId: string) => {
+        // Trigger the delete confirmation flow
+        setSessionToDelete(sessionId);
+        setDeleteConfirmOpen(true);
+      },
+      shareSession: (sessionId: string) => {
+        handleShareSession(sessionId);
+      },
+      renameSession: (sessionId: string, newTitle: string) => {
+        handleRenameSession(sessionId, newTitle);
+      },
+      openSession: (sessionId: string) => {
+        openSession(sessionId);
+      },
+      getCurrentSessionId: () => currentSession,
+      showToast,
+    }),
+    [navigate, showToast, currentSession]
+  );
 
   const openSession = async (sessionId: string) => {
     try {
@@ -387,6 +437,19 @@ export default function ChatLayout() {
         };
         setMessages((prev) => [...prev, aiMessage]);
 
+        // ─── Action Executor: Voice/Text Navigation ────────────
+        // If the agent used the navigate_to_route tool, the response
+        // includes a structured `action` payload. Execute it now.
+        // This is where spoken commands like "go to dashboard" or
+        // "start a new chat" actually take effect in the UI.
+        if (res.data.action) {
+          // Small delay so the user sees the AI message first
+          setTimeout(() => {
+            executeAction(res.data.action, actionHandlers());
+          }, 800);
+        }
+        // ────────────────────────────────────────────────────────
+
         // Refresh session list if this was a new session
         if (isNewSession) {
           await loadSessions();
@@ -488,6 +551,32 @@ export default function ChatLayout() {
               <button
                 onClick={() => setError(null)}
                 className="text-red-600 hover:text-red-800 font-semibold"
+              >
+                ×
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Toast Notification — Action Executor feedback */}
+        {toast && (
+          <div
+            className={`fixed top-6 right-6 z-50 px-4 py-3 rounded-lg shadow-lg text-sm font-medium transition-all animate-in slide-in-from-top-2 ${
+              toast.type === "success"
+                ? "bg-green-50 border border-green-200 text-green-800 dark:bg-green-900/50 dark:border-green-700 dark:text-green-200"
+                : toast.type === "error"
+                ? "bg-red-50 border border-red-200 text-red-800 dark:bg-red-900/50 dark:border-red-700 dark:text-red-200"
+                : "bg-blue-50 border border-blue-200 text-blue-800 dark:bg-blue-900/50 dark:border-blue-700 dark:text-blue-200"
+            }`}
+          >
+            <div className="flex items-center gap-2">
+              <span>
+                {toast.type === "success" ? "✅" : toast.type === "error" ? "❌" : "ℹ️"}
+              </span>
+              <span>{toast.message}</span>
+              <button
+                onClick={() => setToast(null)}
+                className="ml-2 opacity-60 hover:opacity-100"
               >
                 ×
               </button>

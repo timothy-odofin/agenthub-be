@@ -2,7 +2,44 @@
 
 ## Recent Changes
 
-### Latest Updates - February 25, 2026
+### Latest Updates - April 7, 2026
+
+1. **[VOICE-NAVIGATION-ARCHITECTURE.md](./architecture/VOICE-NAVIGATION-ARCHITECTURE.md)** ⭐ **NEW - ARCHITECTURE**
+   - Voice input and auto-sync route navigation architecture
+   - Route Registry, Sync Hook, and Action Executor components
+   - Full flow from frontend route sync to LLM-driven navigation
+   - NAVIGATE and UI_ACTION action types
+   - Testing guide (10 direct + 7 LLM integration tests)
+
+2. **[PROMPT-OPTIMIZATION-2026-04-07.md](./architecture/PROMPT-OPTIMIZATION-2026-04-07.md)** ⭐ **NEW - OPTIMIZATION**
+   - System prompt reduced from 984 → 110 lines (89% reduction)
+   - Intent classifier reduces 86 tools → category-relevant subset (avg 23)
+   - Tool descriptions enhanced so LLM relies on them instead of prompt
+   - Category-level provider skip for unused integrations
+   - Temperature tuning (0.7 → 0.3) for deterministic tool calls
+
+3. **[Navigation Tools Guide](./guides/tools/navigation-tools.md)** ⭐ **NEW - GUIDE**
+   - `navigate_to_route` and `list_available_routes` tool reference
+   - Route sync mechanism and file storage
+   - Intent classification patterns for navigation
+   - Configuration and testing guide
+
+4. **[Route Sync API](./api-reference/routes.md)** ⭐ **NEW - API REFERENCE**
+   - GET /routes — list stored routes
+   - POST /routes/sync — frontend syncs routes to backend
+   - POST /routes/action-completed — frontend confirms action execution
+
+5. **Updated Existing Docs:**
+   - [Tools Guide](./guides/tools/README.md) — Added Navigation & Voice section, Intent Classifier config
+   - [Agent Frameworks Guide](./guides/agent-frameworks/README.md) — Added navigation tools, prompt optimization
+   - [Chat API](./api-reference/chat.md) — Added `action` field in response schema
+   - [API Reference](./api-reference/README.md) — Added Route Sync API to endpoint list
+   - [Frontend Integration](./tutorials/frontend-integration.md) — Added voice input & action executor sections
+   - [Architecture Overview](./architecture/overview.md) — Added navigation & file storage components
+
+---
+
+### Previous Updates - February 25, 2026
 
 1. **[CACHE-ARCHITECTURE-TWO-LAYER-DESIGN.md](./architecture/CACHE-ARCHITECTURE-TWO-LAYER-DESIGN.md)** ⭐ **NEW - ARCHITECTURE**
    - Explains why AgentHub uses two complementary caching layers
@@ -197,5 +234,5 @@ python scripts/test_doc_examples.py
 
 ---
 
-**Last Updated:** February 3, 2026
+**Last Updated:** April 7, 2026
 **Maintainer:** Development Team

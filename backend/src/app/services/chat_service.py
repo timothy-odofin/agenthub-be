@@ -8,6 +8,7 @@ This service abstracts the agent system and handles:
 - Error handling and logging
 - Performance monitoring
 - Automatic session title generation
+- Intent-based tool filtering for performance optimization
 """
 
 import asyncio
@@ -20,6 +21,7 @@ from app.core.constants import AgentFramework, AgentType
 from app.core.utils.logger import get_logger
 from app.core.utils.single_ton import SingletonMeta
 from app.infrastructure.cache.instances import agent_cache
+from app.services.intent_classifier import CATEGORY_TO_REGISTRY, classify_intent
 from app.services.session_title_service import SessionTitleService
 from app.sessions.repositories.session_repository_factory import (
     SessionRepositoryFactory,
@@ -214,6 +216,26 @@ class ChatService(metaclass=SingletonMeta):
                 session_id=session_id,
                 metadata={"protocol": protocol, **(metadata or {})},
             )
+
+            # ── Intent-based tool filtering ──────────────────────────────
+            # Classify the user's message to determine which tool categories
+            # are needed. This reduces tools from ~86 to ~1-23, cutting
+            # LLM inference time significantly.
+            # General queries get ~23 tools (excludes 63 GitHub tools).
+            # Specific intents get even fewer (e.g., navigation = ~2 tools).
+            intent_categories = classify_intent(enhanced_message)
+
+            registry_categories = [
+                CATEGORY_TO_REGISTRY[cat]
+                for cat in intent_categories
+                if cat in CATEGORY_TO_REGISTRY
+            ]
+            logger.info(
+                f"🎯 Intent filter: {len(registry_categories)} categories "
+                f"({registry_categories})"
+            )
+            if hasattr(agent, "reinitialize_with_tools"):
+                await agent.reinitialize_with_tools(registry_categories)
 
             response = await agent.execute(enhanced_message, context)
 
