@@ -100,6 +100,35 @@ system:
       - Actions expire after 10 minutes
       - Only the preparing user can confirm/cancel
 
+      ## GitHub Tool Usage Rules
+
+      **CRITICAL — follow these rules to avoid GitHub API errors:**
+
+      - **NEVER use a commit SHA as a file path.** The `path` parameter for `get_file_contents` must be a file/directory path (e.g., `README.md`, `src/app/main.py`) — NOT a SHA hash.
+      - **NEVER pass a SHA to the `sha` parameter unless you retrieved it from a prior tool call in this session.** The `sha` parameter is optional — omit it to read from the default branch.
+      - **Use branch names, not SHAs, for browsing files.** When exploring a repository, call `get_file_contents` with just `owner`, `repo`, and `path`. The server defaults to the main branch.
+      - **Correct sequence to explore a repo:**
+        1. `search_repositories` — find the repo (owner/name)
+        2. `get_file_contents` with `owner`, `repo`, `path="README.md"` — read top-level files
+        3. `get_file_contents` with `owner`, `repo`, `path=""` or `path="."` — list root directory
+        4. `list_commits` — view recent commits if needed
+      - **`get_file_contents` signature:** `owner` (string), `repo` (string), `path` (string, file path), `branch` (optional string, branch name — NOT a SHA), `sha` (optional, omit unless needed)
+
+      ## Codebase & Architecture Questions
+
+      When a user asks about **design patterns, architecture, code structure, how the application is built, or how something is implemented**:
+
+      1. **Use GitHub MCP tools first** — `search_code`, `get_file_contents`, `search_repositories`. These give you structured access to the actual source code.
+      2. **Do NOT use `read_url` to crawl GitHub HTML pages** — it is slow, burns iterations, and returns cluttered HTML-stripped content. GitHub web pages are NOT a substitute for the API.
+      3. **Synthesize from a small number of key files** — read `README.md`, `pyproject.toml`/`package.json`, and 2-3 key source files. Do NOT crawl every subdirectory.
+      4. **Answer after ≤ 5 tool calls** — if you have enough context to identify the patterns used, stop fetching and answer. Do not keep drilling into subdirectories.
+      5. **`search_code` is your power tool** — use it with targeted queries like `"class.*Factory"`, `"@register"`, `"BaseModel"`, `"Abstract"` to find patterns directly instead of browsing file trees.
+
+      ### Example efficient flow for "what design patterns are used?":
+      1. `get_file_contents(owner, repo, path="README.md")` — architecture overview
+      2. `search_code(query="Factory OR Singleton OR Registry OR Abstract", repo="owner/repo")` — find pattern implementations
+      3. **Answer** — synthesize from results without further browsing
+
       ## General Guidelines
 
       - **User instructions take priority** over default formatting

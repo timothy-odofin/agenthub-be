@@ -118,87 +118,98 @@ tools:
           description: "Semantic search across knowledge base using vector embeddings"
           category: "search"
 
-  # GitHub Integration Tools
+  # GitHub Integration Tools (via MCP - Model Context Protocol)
+  # Uses the official GitHub MCP server instead of custom tool code.
+  # The MCP server handles all GitHub API auth, pagination, and rate-limiting.
+  # See: https://github.com/github/github-mcp-server
   github:
     enabled: true
     display:
       title: "GitHub Integration"
-      description: "Search code, issues, pull requests, and repositories"
+      description: "Search code, issues, pull requests, and repositories via MCP"
       icon: "github"
-      tags: ["code", "version-control", "collaboration"]
+      tags: ["code", "version-control", "collaboration", "mcp"]
       example_prompts:
         - "Find the implementation of user authentication"
         - "Search for open issues related to performance"
         - "Show me recent pull requests"
         - "What repositories do we have?"
-    # Simplified GitHub tools configuration - direct tool name to boolean mapping
-    # Tool names match exactly with LangChain GitHubToolkit tool names
-    available_tools:
-      # Issues Management
-      "Get Issues": true
-      "Get Issue": true
-      "Comment on Issue":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "low"
-        confirmation_reason: "Adds a public comment to a GitHub issue"
-      "Create Issue":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "medium"
-        confirmation_reason: "Creates a new GitHub issue that notifies repository watchers"
 
-      # Pull Requests
-      "List open pull requests (PRs)": true
-      "Get Pull Request": true
-      "Create Pull Request":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "high"
-        confirmation_reason: "Creates a new pull request which may trigger CI/CD pipelines and notify reviewers"
-      "Create review request": true
-      "Overview of files included in PR": true
-      "List Pull Requests' Files": true
+    # MCP Server Transport Configuration
+    # "stdio" — spawns the MCP server as a subprocess (dev/local)
+    # "sse"   — connects to a remote MCP server via Server-Sent Events
+    # "http"  — connects via Streamable HTTP (GitHub's hosted endpoint)
+    transport: "${GITHUB_MCP_TRANSPORT:http}"
 
-      # File Operations
-      "Read File": true
-      "Update File":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "high"
-        confirmation_reason: "Modifies file content in the repository which may affect functionality"
-      "Create File":
-        enabled: false  # Disabled for safety
-        requires_confirmation: true
-        risk_level: "high"
-        confirmation_reason: "Creates a new file in the repository"
-      "Delete File":
-        enabled: false  # Disabled for safety
-        requires_confirmation: true
-        risk_level: "high"
-        confirmation_reason: "Permanently deletes a file from the repository"
+    # stdio transport settings (used when transport=stdio)
+    command: "${GITHUB_MCP_COMMAND:github-mcp-server}"
+    args: ["--stdio"]
 
-      # Repository Navigation
-      "Overview of existing files in Main branch": true
-      "Overview of files in current working branch": true
-      "Get files from a directory": true
+    # SSE/HTTP transport settings (used when transport=sse or transport=http)
+    # For GitHub's hosted MCP endpoint (default):
+    #   GITHUB_MCP_TRANSPORT=http (default)
+    #   GITHUB_MCP_URL=https://api.githubcopilot.com/mcp/ (default)
+    url: "${GITHUB_MCP_URL:https://api.githubcopilot.com/mcp/}"
+    headers:
+      Authorization: "Bearer ${GITHUB_TOKEN}"
 
-      # Search Capabilities
-      "Search issues and pull requests": true
-      "Search code": true
+    # Tool filter — restrict which MCP tools are exposed to the agent.
+    # The GitHub MCP server exposes ~30+ tools. Keeping only the 8 most useful
+    # reduces the LLM's decision space and cuts per-request token usage.
+    # Mutating tools (create_issue, create_pull_request, create_branch) are
+    # kept because they go through the confirmation workflow.
+    # Empty list = expose all tools (not recommended — too many choices).
+    tool_filter:
+      - search_code
+      - search_repositories
+      - get_file_contents
+      - list_issues
+      - get_issue
+      - list_pull_requests
+      - get_pull_request
+      - create_pull_request
+      - create_issue
+      - add_issue_comment
 
-      # Branch Management
-      "List branches in this repository": true
-      "Create a new branch":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "medium"
-        confirmation_reason: "Creates a new branch in the repository"
-      "Set active branch":
-        enabled: true
-        requires_confirmation: true
-        risk_level: "medium"
-        confirmation_reason: "Changes the active working branch for subsequent operations"
+    # Description overrides — replace the MCP server's verbose API-doc descriptions
+    # with concise, action-oriented descriptions that guide the LLM to pick the
+    # right tool efficiently and avoid wasteful directory-crawling patterns.
+    tool_descriptions:
+      search_code: >-
+        **START HERE for any codebase question.** Full-text search across all files in a
+        GitHub repository. Use targeted queries like class names, function names, decorators,
+        or patterns (e.g. "Factory", "@register", "BaseModel", "Abstract"). Returns matching
+        file paths and snippets — far faster than browsing directories with get_file_contents.
+        Always prefer this over get_file_contents when exploring or answering architecture questions.
+      search_repositories: >-
+        Search for GitHub repositories by name or topic. Use this first to find the owner/repo
+        slug before calling other tools. Returns repo names, descriptions, and URLs.
+      get_file_contents: >-
+        Read a specific file or list a directory in a GitHub repository. Requires a known
+        file path (e.g. "README.md", "src/app/main.py"). Do NOT use for exploring unknown
+        structure — use search_code instead. Do NOT pass a git SHA as the path.
+        Pass path="" or path="." to list the root directory.
+      list_issues: >-
+        List GitHub issues for a repository with optional filters (state, labels, assignee).
+        Use for "show me open bugs", "what issues are assigned to X", "list recent issues".
+      get_issue: >-
+        Get full details of a single GitHub issue by number, including body, comments,
+        labels, and assignees. Use after list_issues to read a specific issue.
+      list_pull_requests: >-
+        List pull requests for a repository with optional filters (state, base branch).
+        Use for "show me open PRs", "what was merged recently", "list PRs by X".
+      get_pull_request: >-
+        Get full details of a single pull request by number, including diff summary,
+        reviewers, and status checks. Use after list_pull_requests for a specific PR.
+      create_pull_request: >-
+        Create a new pull request. MUST go through prepare_action/confirm_action workflow first.
+        Risk level: high (triggers CI/CD pipelines).
+      create_issue: >-
+        Create a new GitHub issue. MUST go through prepare_action/confirm_action workflow first.
+        Risk level: medium.
+      add_issue_comment: >-
+        Add a comment to an existing GitHub issue. MUST go through prepare_action/confirm_action
+        workflow first. Risk level: low.
 
   # Datadog Monitoring and Observability Tools
   datadog:

@@ -158,18 +158,17 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
         self._is_connected = False
 
     def is_healthy(self) -> bool:
-        """Check if Redis connection is healthy."""
-        if not self._redis_client:
-            return False
+        """Sync health check — only verifies the client object exists.
 
-        try:
-            # This is a sync check - for async health check, use async_is_healthy()
-            return True  # Basic check - connection exists
-        except Exception:
-            return False
+        NOTE: This cannot detect stale connections (e.g. a client whose TCP
+        transport is bound to a different event loop).  Use
+        ``async_is_healthy()`` or ``ensure_connected()`` for real health
+        verification.
+        """
+        return bool(self._redis_client and self._connection_pool)
 
     async def async_is_healthy(self) -> bool:
-        """Async health check for Redis connection."""
+        """Async health check — performs a real PING against Redis."""
         if not self._redis_client:
             return False
 
@@ -178,6 +177,28 @@ class RedisConnectionManager(AsyncBaseConnectionManager):
             return True
         except Exception:
             return False
+
+    async def ensure_connected(self) -> Redis:
+        """Ensure an *alive* Redis connection is available.
+
+        Overrides the base-class implementation so that we perform a real
+        async PING instead of the sync ``is_healthy()`` stub.  This handles
+        the case where the client object exists but its TCP transport is bound
+        to a different event loop (e.g. after ``asyncio.run()`` in a
+        ThreadPoolExecutor thread creates a fresh loop).
+        """
+        if self._redis_client:
+            try:
+                await self._redis_client.ping()
+                return self._redis_client
+            except Exception:
+                logger.warning(
+                    "Redis ping failed on existing client — reconnecting "
+                    "(connection may be bound to a different event loop)."
+                )
+                await self.disconnect()
+
+        return await self.connect()
 
     # Redis-specific convenience methods
 

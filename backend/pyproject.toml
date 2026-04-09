@@ -46,7 +46,6 @@ docx2txt = "^0.8"
 python-docx = "^1.1.0"
 openpyxl = "^3.1.2"
 python-pptx = "^0.6.23"
-pygithub = "^2.8.1"
 
 # Monitoring and observability
 datadog-api-client = "^2.30.0"

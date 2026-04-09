@@ -53,6 +53,8 @@ class LangChainAgent(BaseAgent):
             tools=self.tools,
             verbose=self.verbose,
             return_intermediate_steps=True,
+            max_iterations=self.config.get("max_iterations", 15),
+            max_execution_time=self.config.get("max_execution_time", 120),
         )
         self._initialized = True
 
@@ -75,6 +77,8 @@ class LangChainAgent(BaseAgent):
             tools=self.tools,
             verbose=self.verbose,
             return_intermediate_steps=True,
+            max_iterations=self.config.get("max_iterations", 15),
+            max_execution_time=self.config.get("max_execution_time", 120),
         )
 
     @abstractmethod
