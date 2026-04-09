@@ -129,9 +129,7 @@ class GitHubCopilotLLM(BaseLLMProvider):
                     "GitHub Copilot temperature must be a numeric value"
                 ) from exc
             if temp_float < 0 or temp_float > 2:
-                raise ValueError(
-                    "GitHub Copilot temperature must be between 0 and 2"
-                )
+                raise ValueError("GitHub Copilot temperature must be between 0 and 2")
 
         max_tokens = self.config.get("max_tokens")
         if max_tokens is not None:
@@ -142,9 +140,7 @@ class GitHubCopilotLLM(BaseLLMProvider):
                     "GitHub Copilot max_tokens must be a positive integer"
                 ) from exc
             if max_tokens_int <= 0:
-                raise ValueError(
-                    "GitHub Copilot max_tokens must be a positive integer"
-                )
+                raise ValueError("GitHub Copilot max_tokens must be a positive integer")
 
         logger.info("GitHub Copilot provider configuration validated successfully")
 
