@@ -11,6 +11,8 @@ This guide provides comprehensive information for building the landing page and 
 4. [React Component Examples](#react-component-examples)
 5. [Error Handling](#error-handling)
 6. [Testing the Demo](#testing-the-demo)
+7. [Voice Input Integration](#voice-input-integration)
+8. [Route Sync & Action Executor](#route-sync--action-executor)
 
 ---
 
@@ -1018,6 +1020,203 @@ Questions? Issues?
 - GitHub Issues: [Create an issue](https://github.com/timothy-odofin/agenthub-be/issues)
 - Email: timothy.odofin@example.com
 - Documentation: [Full API Docs](http://localhost:8000/docs)
+
+---
+
+## Voice Input Integration
+
+AgentHub's frontend supports voice input via the Web Speech API, letting users interact with the agent hands-free.
+
+### How It Works
+
+The chat input component includes a microphone button. When clicked, the browser's `SpeechRecognition` API captures audio, transcribes it to text, and populates the chat input field. The user can then review and send.
+
+### Implementation
+
+```typescript
+// hooks/useVoiceInput.ts
+import { useState, useRef, useCallback } from 'react';
+
+export function useVoiceInput(onTranscript: (text: string) => void) {
+  const [isListening, setIsListening] = useState(false);
+  const recognitionRef = useRef<SpeechRecognition | null>(null);
+
+  const startListening = useCallback(() => {
+    const SpeechRecognition =
+      window.SpeechRecognition || window.webkitSpeechRecognition;
+    if (!SpeechRecognition) {
+      console.warn('Speech recognition not supported');
+      return;
+    }
+
+    const recognition = new SpeechRecognition();
+    recognition.continuous = false;
+    recognition.interimResults = false;
+    recognition.lang = 'en-US';
+
+    recognition.onresult = (event) => {
+      const transcript = event.results[0][0].transcript;
+      onTranscript(transcript);
+    };
+
+    recognition.onend = () => setIsListening(false);
+    recognition.onerror = () => setIsListening(false);
+
+    recognitionRef.current = recognition;
+    recognition.start();
+    setIsListening(true);
+  }, [onTranscript]);
+
+  const stopListening = useCallback(() => {
+    recognitionRef.current?.stop();
+    setIsListening(false);
+  }, []);
+
+  return { isListening, startListening, stopListening };
+}
+```
+
+### Using in Chat Input
+
+```tsx
+import { Mic, MicOff } from 'lucide-react';
+import { useVoiceInput } from '@/hooks/useVoiceInput';
+
+function ChatInput({ onSend }: { onSend: (msg: string) => void }) {
+  const [input, setInput] = useState('');
+  const { isListening, startListening, stopListening } = useVoiceInput(
+    (transcript) => setInput((prev) => prev + transcript)
+  );
+
+  return (
+    <div className="flex items-center gap-2">
+      <input value={input} onChange={(e) => setInput(e.target.value)} />
+      <button onClick={isListening ? stopListening : startListening}>
+        {isListening ? <MicOff className="text-red-500" /> : <Mic />}
+      </button>
+      <button onClick={() => { onSend(input); setInput(''); }}>Send</button>
+    </div>
+  );
+}
+```
+
+### Browser Support
+
+| Browser | Support |
+|---------|---------|
+| Chrome (Desktop & Android) | ✅ Full support |
+| Edge | ✅ Full support |
+| Safari (macOS & iOS) | ✅ With `webkitSpeechRecognition` |
+| Firefox | ❌ Not supported |
+
+> **Fallback:** When `SpeechRecognition` is unavailable, the microphone button is hidden automatically. Users can still type normally.
+
+---
+
+## Route Sync & Action Executor
+
+AgentHub features auto-sync route navigation, allowing the AI agent to navigate users to frontend pages.
+
+### Route Sync
+
+On app boot, the frontend extracts all React Router routes and syncs them to the backend. This gives the agent awareness of what pages exist.
+
+```typescript
+// hooks/useRouteSync.ts
+import { useEffect } from 'react';
+import { useLocation } from 'react-router-dom';
+import { chatApi } from '@/services/api';
+
+export function useRouteSync() {
+  useEffect(() => {
+    // Extract routes from React Router config
+    const routes = extractRoutes(); // walks router.routes tree
+    chatApi.syncRoutes(routes);
+  }, []);
+}
+
+// Call in App.tsx
+function App() {
+  useRouteSync();
+  return <RouterProvider router={router} />;
+}
+```
+
+### Action Executor
+
+When the agent's response contains an `action` field, the frontend's Action Executor processes it:
+
+```typescript
+// hooks/useActionExecutor.ts
+import { useNavigate } from 'react-router-dom';
+
+interface ActionPayload {
+  type: 'NAVIGATE' | 'UI_ACTION';
+  payload: {
+    route?: string;
+    label?: string;
+    action?: string;
+    target?: string;
+  };
+}
+
+export function useActionExecutor() {
+  const navigate = useNavigate();
+
+  const executeAction = (action: ActionPayload) => {
+    switch (action.type) {
+      case 'NAVIGATE':
+        if (action.payload.route) {
+          navigate(action.payload.route);
+        }
+        break;
+      case 'UI_ACTION':
+        // Handle UI actions (open modals, toggle sidebar, etc.)
+        handleUIAction(action.payload);
+        break;
+    }
+  };
+
+  return { executeAction };
+}
+```
+
+### Using in Chat Component
+
+```tsx
+function ChatPanel() {
+  const { executeAction } = useActionExecutor();
+
+  const handleAgentResponse = (response: ChatResponse) => {
+    // Display the message
+    addMessage(response.message);
+
+    // Execute action if present
+    if (response.action) {
+      executeAction(response.action);
+      // Optionally confirm completion to backend
+      chatApi.confirmActionCompleted(response.session_id, response.action);
+    }
+  };
+}
+```
+
+### Supported Actions
+
+| Action Type | Description | Example User Request |
+|-------------|-------------|---------------------|
+| `NAVIGATE` | Navigate to a route | "Go to settings", "Open the dashboard" |
+| `UI_ACTION` | Trigger a UI interaction | "Open the sidebar", "Show notifications" |
+
+### API Endpoints
+
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| `POST` | `/api/v1/routes/sync` | Sync frontend routes to backend |
+| `GET` | `/api/v1/routes` | List stored routes |
+| `POST` | `/api/v1/routes/action-completed` | Confirm action execution |
+
+> **See also:** [Route Sync API Reference](../api-reference/routes.md) | [Voice & Navigation Architecture](../architecture/VOICE-NAVIGATION-ARCHITECTURE.md)
 
 ---
 

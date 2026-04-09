@@ -22,7 +22,7 @@ logger = get_logger(__name__)
 
 # Global cache for repository discovery (in-memory, persists across requests)
 _repo_discovery_cache: Dict[str, tuple] = {}  # {installation_id: (repos, timestamp)}
-_CACHE_TTL_SECONDS = 600  # 10 minutes - repos don't change frequently
+_CACHE_TTL_SECONDS = 3600  # 1 hour - repos don't change frequently (was 10 min)
 
 
 class GitHubRepository:

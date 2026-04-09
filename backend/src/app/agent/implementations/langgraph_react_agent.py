@@ -160,11 +160,8 @@ class LangGraphReactAgent(LangGraphAgent):
             # Add current user message
             messages.append(HumanMessage(content=query))
 
-            # Save user message to session
-            if self.session_repository and context.session_id:
-                await self.session_repository.add_message(
-                    context.session_id, "user", query
-                )
+            # Note: session saving is deferred until after execution
+            # so we can check if navigation tools were used (transient commands).
 
             # Prepare graph input
             graph_input = {"messages": messages}
@@ -210,8 +207,18 @@ class LangGraphReactAgent(LangGraphAgent):
                         tools_used.append(step.tool)
                 response.tools_used = tools_used
 
-            # Save assistant response
-            if self.session_repository and context.session_id:
+            # Save both user message and assistant response to session history.
+            # Skip for navigation/UI actions — they are transient commands
+            # (e.g., "go to dashboard", "log me out") that pollute chat history.
+            is_navigation_action = "navigate_to_route" in response.tools_used
+            if (
+                self.session_repository
+                and context.session_id
+                and not is_navigation_action
+            ):
+                await self.session_repository.add_message(
+                    context.session_id, "user", query
+                )
                 await self.session_repository.add_message(
                     context.session_id, "assistant", response.content
                 )

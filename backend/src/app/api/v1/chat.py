@@ -1,3 +1,5 @@
+import json
+import logging
 from datetime import datetime
 from typing import Optional
 
@@ -8,6 +10,7 @@ from app.core.exceptions import InternalError, ServiceUnavailableError
 from app.core.security import get_current_user
 from app.db.models.user import UserInDB
 from app.schemas.chat import (
+    ActionPayload,
     ChatRequest,
     ChatResponse,
     CreateSessionRequest,
@@ -22,8 +25,79 @@ from app.schemas.chat import (
 )
 from app.services.chat_service import ChatService
 
+logger = logging.getLogger(__name__)
+
 router = APIRouter()
 chat_service = ChatService()
+
+
+def _extract_action_from_response(
+    response_text: str,
+    tools_used: list,
+    tool_outputs: Optional[dict] = None,
+) -> Optional[ActionPayload]:
+    """
+    Extract a structured action payload from the agent's response.
+
+    When the agent uses the navigate_to_route tool, the tool returns a JSON
+    payload with action_type, action, and message. This function extracts
+    that payload so the frontend can execute the action.
+
+    Strategy:
+      1. First, check the raw tool output (most reliable — it's the exact
+         JSON our tool returned, unmodified by the LLM)
+      2. Fall back to parsing JSON from the LLM's text response (the LLM
+         sometimes embeds the JSON, but often reformulates it as prose)
+    """
+    # Only check if navigation tool was actually used
+    if "navigate_to_route" not in tools_used:
+        return None
+
+    # Strategy 1: Use raw tool output (captured from intermediate_steps)
+    if tool_outputs and "navigate_to_route" in tool_outputs:
+        try:
+            raw_output = tool_outputs["navigate_to_route"]
+            if isinstance(raw_output, str):
+                action_data = json.loads(raw_output)
+            elif isinstance(raw_output, dict):
+                action_data = raw_output
+            else:
+                action_data = None
+
+            if action_data and "action_type" in action_data:
+                logger.info(
+                    f"Action extracted from tool output: {action_data.get('action_type')}"
+                )
+                return ActionPayload(**action_data)
+        except (json.JSONDecodeError, ValueError, KeyError) as e:
+            logger.warning(f"Failed to parse action from tool output: {e}")
+
+    # Strategy 2: Fall back to parsing JSON from response text
+    try:
+        start_markers = ['{"action_type":', '{ "action_type":']
+        for marker in start_markers:
+            idx = response_text.find(marker)
+            if idx != -1:
+                # Find the matching closing brace
+                brace_count = 0
+                for i in range(idx, len(response_text)):
+                    if response_text[i] == "{":
+                        brace_count += 1
+                    elif response_text[i] == "}":
+                        brace_count -= 1
+                        if brace_count == 0:
+                            json_str = response_text[idx : i + 1]
+                            action_data = json.loads(json_str)
+                            return ActionPayload(**action_data)
+                break
+
+    except (json.JSONDecodeError, ValueError, KeyError) as e:
+        logger.warning(f"Failed to parse action from response text: {e}")
+
+    logger.warning(
+        "navigate_to_route was used but action payload could not be extracted"
+    )
+    return None
 
 
 @router.post("/message", response_model=ChatResponse)
@@ -42,6 +116,8 @@ async def send_message(
     - **metadata**: Optional metadata for context (e.g., capability selection)
 
     Returns the agent's response with metadata.
+    When the agent uses the navigate_to_route tool, the response includes an
+    `action` field with a structured payload for the frontend to execute.
 
     Note: Provider/model parameters are reserved for future use. Currently uses system defaults.
     """
@@ -55,6 +131,18 @@ async def send_message(
         metadata=req.metadata,
     )
 
+    # Extract navigation/UI action from response if the agent used navigation tools
+    tools_used = response.get("tools_used", [])
+    metadata = response.get("metadata", {})
+    tool_outputs = metadata.get("tool_outputs")
+    action = _extract_action_from_response(
+        response["message"], tools_used, tool_outputs
+    )
+
+    # Remove tool_outputs from metadata before sending to frontend (internal only)
+    if "tool_outputs" in metadata:
+        metadata = {k: v for k, v in metadata.items() if k != "tool_outputs"}
+
     return ChatResponse(
         success=response["success"],
         message=response["message"],
@@ -62,9 +150,10 @@ async def send_message(
         user_id=response["user_id"],
         timestamp=response["timestamp"],
         processing_time_ms=response["processing_time_ms"],
-        tools_used=response.get("tools_used", []),
+        tools_used=tools_used,
         errors=response.get("errors", []),
-        metadata=response.get("metadata", {}),
+        metadata=metadata,
+        action=action,
     )
 
 

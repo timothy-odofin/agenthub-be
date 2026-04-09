@@ -126,6 +126,29 @@ Access to GitHub repositories, issues, and pull requests.
 
 ---
 
+### Navigation & Voice
+
+#### **[Navigation Tools](./navigation-tools.md)** ⭐ **NEW**
+LLM-driven voice/text navigation with auto-synced routes.
+
+**Key Features:**
+- Navigate to pages via voice or text ("go to dashboard")
+- Trigger UI actions ("delete this chat", "start new chat")
+- Routes synced dynamically from frontend — no hardcoded aliases
+- LLM decides the best route/action match based on user intent
+
+**Available Tools:**
+- `navigate_to_route` - Navigate to a page or trigger a UI action
+- `list_available_routes` - List all available routes and actions
+
+**Use Cases:**
+- Voice-driven page navigation
+- Text commands for UI actions (delete, share, rename sessions)
+- Accessibility — hands-free app control
+- Combined navigation + action ("go to dashboard and start new chat")
+
+---
+
 ### Knowledge Management
 
 #### **[Vector Store Tools](./vector-store-tools.md)**
@@ -188,39 +211,59 @@ All tools are configured in `resources/application-tools.yaml`:
 
 ```yaml
 tools:
-confluence:
-enabled: true
-available_tools:
-# Tool configuration...
+  confluence:
+    enabled: true
+    available_tools:
+      # Tool configuration...
 
-jira:
-enabled: true
-available_tools:
-# Tool configuration...
+  jira:
+    enabled: true
+    available_tools:
+      # Tool configuration...
 
-github:
-enabled: true
-available_tools:
-# Tool configuration...
+  github:
+    enabled: true
+    available_tools:
+      # Tool configuration...
 
-datadog:
-enabled: true
-available_tools:
-# Tool configuration...
+  datadog:
+    enabled: true
+    available_tools:
+      # Tool configuration...
 
-vector:
-enabled: true
-available_tools:
-# Tool configuration...
+  vector:
+    enabled: true
+    available_tools:
+      # Tool configuration...
+
+  navigation:
+    enabled: true
+    available_tools:
+      # Tool configuration...
 ```
+
+### Intent Classifier (Performance Optimization) ⭐ **NEW**
+
+Before the LLM call, a zero-latency keyword-based classifier determines which tool categories to load. This reduces the number of tools sent to the LLM from 86 to ~23 for general queries.
+
+**File:** `src/app/services/intent_classifier.py`
+
+| User says | Categories loaded | Approximate tools |
+|-----------|------------------|-------------------|
+| "search jira bugs" | JIRA, NAVIGATION | ~15 |
+| "show me PRs" | GITHUB, NAVIGATION | ~65 |
+| "hello" | General (no GitHub) | ~23 |
+| "go to dashboard" | NAVIGATION | ~2 |
+
+The `_GENERAL_CATEGORIES` fallback **excludes GitHub** (63 tools, 7+s connection time). GitHub tools are only loaded when explicitly mentioned.
+
+See [Prompt Optimization](../../architecture/PROMPT-OPTIMIZATION-2026-04-07.md) for full details.
 
 ### LLM Guidance
 
-System prompts in `resources/application-prompt.yaml` guide the LLM on:
-- When to use each tool category
-- Decision criteria for tool selection
-- Examples of good tool choices
-- Fallback strategies
+Tool-specific guidance now lives in each tool's `description` field (the idiomatic OpenAI approach via `bind_tools()`), not in the system prompt. The system prompt (`resources/application-prompt.yaml`) provides only high-level principles.
+
+See [Prompt Optimization](../../architecture/PROMPT-OPTIMIZATION-2026-04-07.md) for the rationale.
 
 ---
 

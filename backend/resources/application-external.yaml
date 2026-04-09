@@ -26,8 +26,6 @@ github:
 
   # Repository access configuration
   allowed_repositories:
-    - name: "timothy-odofin/agenthub-be"
-      description: "AgentHub Backend API - Main application server with AI agent orchestration"
     - name: "timothy-odofin/car-mgt"
       description: "Car Management System - Vehicle fleet management application"
     - name: "timothy-odofin/accountmgt"

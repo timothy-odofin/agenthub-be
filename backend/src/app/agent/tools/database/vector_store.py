@@ -36,7 +36,13 @@ class VectorStoreTools:
         return [
             Tool(
                 name="retrieve_information",
-                description="Retrieve information from vector store based on semantic search. Use this to find relevant documents, confluence pages, knowledge base articles, and other stored information.",
+                description=(
+                    "Retrieve information from the vector store using semantic search across all embedded documents, "
+                    "including Confluence pages, uploaded files, and knowledge base articles. "
+                    "Best for cross-source semantic similarity search. "
+                    "For real-time Confluence content, prefer Confluence tools (search_confluence_pages) instead — "
+                    "vector store content may be stale."
+                ),
                 func=self._retrieve_information,
             )
         ]

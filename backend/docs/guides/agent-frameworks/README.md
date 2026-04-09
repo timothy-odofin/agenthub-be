@@ -67,6 +67,8 @@ Available tool categories:
 - **Confluence Tools** - Documentation management
 - **Datadog Tools** - Monitoring and observability
 - **Web Tools** - Web scraping and content extraction
+- **Navigation Tools** - Voice/text-driven page navigation and UI actions ⭐ **NEW**
+- **Vector Store** - Semantic search across knowledge base
 
 ### Tool Configuration
 
@@ -290,6 +292,18 @@ llm:
 See [LLM Providers Guide](../llm-providers/README.md) for details.
 
 ## Performance Considerations
+
+### System Prompt Optimization ⭐ **April 2026**
+
+The system prompt (`application-prompt.yaml`) has been reduced from **984 lines (~12,000 tokens) to 110 lines (~1,139 tokens)** — a 90% reduction. Tool-specific guidance now lives in tool `description` fields via `bind_tools()`, which is the idiomatic OpenAI approach.
+
+See [Prompt Optimization](../../architecture/PROMPT-OPTIMIZATION-2026-04-07.md) for details.
+
+### Intent Classifier ⭐ **April 2026**
+
+A zero-latency keyword-based classifier runs before the LLM call to determine which tool categories to load, reducing the tool count from 86 to ~23 for general queries. This cuts token usage and response time significantly.
+
+See [Prompt Optimization](../../architecture/PROMPT-OPTIMIZATION-2026-04-07.md#2-intent-classifier).
 
 ### Response Time
 

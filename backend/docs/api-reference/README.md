@@ -16,6 +16,7 @@
 - [Chat API](./chat.md) - Chat messages and session management
 - [Conversational Auth API](./conversational-auth.md) - Chatbot-style signup
 - [Ingestion API](./ingestion.md) - File and data ingestion
+- [Route Sync API](./routes.md) - Route sync and navigation actions
 - [Health API](./health.md) - System health checks
 - [External Services API](./external-services.md) - Jira, Confluence integration
 

@@ -1,0 +1,33 @@
+{
+  "routes": [
+    {
+      "actions": [],
+      "description": "Sign in to your account",
+      "label": "Login",
+      "path": "/",
+      "protected": false
+    },
+    {
+      "actions": [],
+      "description": "Create a new account via the conversational signup flow",
+      "label": "Sign Up",
+      "path": "/signup",
+      "protected": false
+    },
+    {
+      "actions": [
+        "NEW_CHAT",
+        "DELETE",
+        "SHARE",
+        "RENAME",
+        "LOAD_SESSION",
+        "SHOW_CAPABILITIES",
+        "LOGOUT"
+      ],
+      "description": "Main chat dashboard where you can chat with the AI agent, view sessions, manage conversations, share chats, and explore agent capabilities",
+      "label": "Dashboard",
+      "path": "/main-dashboard",
+      "protected": true
+    }
+  ]
+}

@@ -1,5 +1,5 @@
 from abc import abstractmethod
-from typing import Any, Dict, Optional, Set
+from typing import Any, Dict, List, Optional, Set
 
 from langchain.agents import AgentExecutor
 from langchain_core.prompts import ChatPromptTemplate
@@ -33,20 +33,49 @@ class LangChainAgent(BaseAgent):
         self.agent = None
         self.executor = None
 
-    async def initialize(self) -> None:
+    async def initialize(self, tool_categories: Optional[List[str]] = None) -> None:
         # Ensure LLM provider is initialized before accessing client
         await self.llm_provider._ensure_initialized()
 
         # Get the LangChain client (needed for bind_tools)
         self.llm = self.llm_provider.client
 
-        self.tools = ToolRegistry.get_instantiated_tools()
+        # Load tools — optionally filtered by categories for performance
+        if tool_categories:
+            self.tools = ToolRegistry.get_instantiated_tools(categories=tool_categories)
+        else:
+            self.tools = ToolRegistry.get_instantiated_tools()
+
         self.prompt = self._create_prompt_template()
         self.agent = self._create_agent_runnable()
         self.executor = AgentExecutor(
-            agent=self.agent, tools=self.tools, verbose=self.verbose
+            agent=self.agent,
+            tools=self.tools,
+            verbose=self.verbose,
+            return_intermediate_steps=True,
         )
         self._initialized = True
+
+    async def reinitialize_with_tools(self, tool_categories: List[str]) -> None:
+        """
+        Reinitialize the agent with a filtered set of tools.
+
+        This is used by the intent-based tool filtering system to swap out
+        the full tool set for a focused subset (e.g., just navigation + jira)
+        before executing a query. It reuses the already-initialized LLM client.
+
+        Args:
+            tool_categories: List of category names (e.g., ["navigation", "jira"])
+        """
+        self.tools = ToolRegistry.get_instantiated_tools(categories=tool_categories)
+        self.prompt = self._create_prompt_template()
+        self.agent = self._create_agent_runnable()
+        self.executor = AgentExecutor(
+            agent=self.agent,
+            tools=self.tools,
+            verbose=self.verbose,
+            return_intermediate_steps=True,
+        )
 
     @abstractmethod
     def _create_prompt_template(self) -> ChatPromptTemplate:
