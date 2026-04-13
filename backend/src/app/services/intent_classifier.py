@@ -58,6 +58,35 @@ _CATEGORY_PATTERNS: dict[ToolCategory, List[re.Pattern]] = {
         ),
         re.compile(r"\b(issue|bug)\b.*\b(repo|github|create|open|close)\b", re.I),
         re.compile(r"\b(accountmgt|oze|car-mgt)\b", re.I),  # Known repo names
+        # Codebase exploration / architecture queries — route to GitHub MCP tools,
+        # NOT the generic web URL reader which crawls HTML one page at a time.
+        re.compile(
+            r"\b(codebase|code\s*base|application\s*code|source\s*files?)\b", re.I
+        ),
+        re.compile(
+            r"\b(design\s*patterns?|architecture|architectural|software\s*design)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(how\s+is\s+.*(structured|organized|built|implemented|designed))\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(folder\s*structure|directory\s*structure|project\s*structure|file\s*structure)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(class\s*diagram|module|package|layer|dependency\s*injection|factory|singleton|observer|strategy|decorator)\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(what\s+.*(pattern|patterns|approach|approaches|technique|techniques)\s+.*(use|used|applied|implemented))\b",
+            re.I,
+        ),
+        re.compile(
+            r"\b(implementation|implemented|how\s+does|how\s+do)\b.*\b(work|work\?|implemented)\b",
+            re.I,
+        ),
     ],
     ToolCategory.JIRA: [
         re.compile(r"\b(jira|jql|sprint|epic|story|backlog)\b", re.I),
@@ -105,8 +134,8 @@ _CATEGORY_PATTERNS: dict[ToolCategory, List[re.Pattern]] = {
 _ALWAYS_INCLUDE: Set[ToolCategory] = {ToolCategory.NAVIGATION}
 
 # "General" fallback set — used when no specific intent is matched.
-# This EXCLUDES heavy categories like GitHub (63 tools, 7+ seconds to load,
-# and ~10k tokens of tool schemas that bloat every LLM request).
+# This EXCLUDES heavy categories like GitHub (MCP server connection overhead,
+# and tool schemas that bloat every LLM request).
 # GitHub tools are only loaded when the user explicitly mentions GitHub/repos/PRs.
 _GENERAL_CATEGORIES: Set[ToolCategory] = {
     ToolCategory.NAVIGATION,

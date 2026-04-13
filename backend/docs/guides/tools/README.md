@@ -113,16 +113,32 @@ System monitoring and performance metrics from Datadog.
 
 ### Version Control
 
-#### **GitHub Tools**
-*(Documentation to be added)*
+#### **[GitHub Tools](./github-tools.md)** ⭐ **MCP Integration**
+GitHub repositories, issues, pull requests, and code search via the Model Context Protocol.
 
-Access to GitHub repositories, issues, and pull requests.
+**Key Features:**
+- Full-text code search across any repository (`search_code`)
+- File and directory browsing with a known path (`get_file_contents`)
+- Issue and PR listing, details, and creation
+- Filtered to 10 focused tools (from ~34 available) for LLM efficiency
+- Agent-optimised tool descriptions that guide toward `search_code` first
+- SHA-as-path guardrail — LLM mistakes are corrected automatically
+- Errors return strings (not exceptions) so agent can self-correct
 
 **Available Tools:**
-- Repository information
-- Issue and PR management
-- Code search and navigation
-- Commit and branch operations
+- `search_code` — **Start here for codebase questions**
+- `search_repositories` — Find repos by name/topic
+- `get_file_contents` — Read a file or list a directory (known path only)
+- `list_issues` / `get_issue` — List and read issues
+- `list_pull_requests` / `get_pull_request` — List and read PRs
+- `create_pull_request` / `create_issue` / `add_issue_comment` — Mutating (confirmation required)
+
+**Use Cases:**
+- "What design patterns are used in the codebase?"
+- "Show me open issues related to performance"
+- "Find the implementation of the authentication service"
+- "List recent pull requests"
+- "Create a GitHub issue for this bug"
 
 ---
 
@@ -251,7 +267,9 @@ Before the LLM call, a zero-latency keyword-based classifier determines which to
 | User says | Categories loaded | Approximate tools |
 |-----------|------------------|-------------------|
 | "search jira bugs" | JIRA, NAVIGATION | ~15 |
-| "show me PRs" | GITHUB, NAVIGATION | ~65 |
+| "show me PRs" | GITHUB, NAVIGATION | ~12 |
+| "what design patterns are used?" | GITHUB, NAVIGATION | ~12 |
+| "how is the codebase structured?" | GITHUB, NAVIGATION | ~12 |
 | "hello" | General (no GitHub) | ~23 |
 | "go to dashboard" | NAVIGATION | ~2 |
 
@@ -392,7 +410,7 @@ pytest tests/unit/agent/tools/ --cov=src/app/agent/tools --cov-report=html
 |------|-----------|------|---------|----------|
 | **Confluence** | Yes | API calls | ~500ms | Latest documentation |
 | **Jira** | Yes | API calls | ~500ms | Current issue status |
-| **GitHub** | Yes | API calls | ~500ms | Repository data |
+| **GitHub (MCP)** | Yes | API calls | ~400–800ms | Repository data, code search |
 | **Datadog** | Yes | API calls | ~500ms | System metrics |
 | **Vector Store** | Embedded | Embedding | ~100ms | Cross-source search |
 

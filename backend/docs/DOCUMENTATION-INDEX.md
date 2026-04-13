@@ -2,7 +2,35 @@
 
 ## Recent Changes
 
-### Latest Updates - April 7, 2026
+### Latest Updates - April 9, 2026
+
+1. **[MCP-GITHUB-INTEGRATION-2026-04-09.md](./architecture/MCP-GITHUB-INTEGRATION-2026-04-09.md)** ⭐ **NEW - ARCHITECTURE**
+   - Full account of all MCP GitHub integration changes on this branch
+   - SHA-as-path guardrail (`_sanitize_github_args`) and error-as-string handling
+   - Tool list reduced 14 → 10; `search_code` reordered to first position
+   - `tool_descriptions` YAML override map — agent-optimised descriptions without code changes
+   - Intent classifier extended with codebase/architecture/design-pattern keywords
+   - `AgentExecutor` `max_iterations` and `max_execution_time` now wired correctly
+   - `early_stopping_method` removed (unsupported in LangChain 0.3.x)
+   - WebTools `_run_async()` helper fixing "coroutine never awaited" warning
+   - Redis `ensure_connected()` override with real async PING (fixes TCPTransport closed)
+   - Frontend `MarkdownRenderer.tsx` inline/block code fix + CSS cleanup
+
+2. **[GitHub Tools Guide](./guides/tools/github-tools.md)** ⭐ **NEW - GUIDE**
+   - Full reference for GitHub MCP tools (replaces stub "documentation to be added")
+   - Available tools table, configuration, intent classification patterns
+   - Usage examples — efficient 3-call flow vs slow directory-crawling anti-pattern
+   - Known pitfalls: SHA-as-path, error strings, Redis reconnects
+   - Architecture trade-off table: direct API vs MCP
+   - File reference and test coverage guide
+
+3. **Updated Existing Docs:**
+   - [Tools Guide README](./guides/tools/README.md) — GitHub section replaced stub with full entry; intent classifier table updated; tool comparison table updated
+   - [Documentation Index](./DOCUMENTATION-INDEX.md) — This file
+
+---
+
+### Previous Updates - April 7, 2026
 
 1. **[VOICE-NAVIGATION-ARCHITECTURE.md](./architecture/VOICE-NAVIGATION-ARCHITECTURE.md)** ⭐ **NEW - ARCHITECTURE**
    - Voice input and auto-sync route navigation architecture

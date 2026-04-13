@@ -192,46 +192,6 @@
   @apply block p-4 text-sm;
 }
 
-/* Force visible text color in code blocks - override highlight.js */
-.markdown-content pre code,
-.markdown-content pre code * {
-  color: #e6edf3 !important; /* Light text for dark code blocks */
-}
-
-/* Ensure syntax highlighting colors are visible */
-.markdown-content pre .hljs-comment,
-.markdown-content pre .hljs-quote {
-  color: #8b949e !important;
-}
-
-.markdown-content pre .hljs-keyword,
-.markdown-content pre .hljs-selector-tag,
-.markdown-content pre .hljs-literal,
-.markdown-content pre .hljs-type {
-  color: #ff7b72 !important;
-}
-
-.markdown-content pre .hljs-string,
-.markdown-content pre .hljs-attr {
-  color: #a5d6ff !important;
-}
-
-.markdown-content pre .hljs-number,
-.markdown-content pre .hljs-symbol,
-.markdown-content pre .hljs-bullet {
-  color: #79c0ff !important;
-}
-
-.markdown-content pre .hljs-title,
-.markdown-content pre .hljs-section {
-  color: #d2a8ff !important;
-}
-
-.markdown-content pre .hljs-variable,
-.markdown-content pre .hljs-template-variable {
-  color: #ffa657 !important;
-}
-
 .markdown-content :not(pre) > code {
   @apply bg-gray-100 dark:bg-gray-800 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded text-sm font-mono;
 }

@@ -1,8 +1,6 @@
 import React from 'react';
 import ReactMarkdown from 'react-markdown';
 import remarkGfm from 'remark-gfm';
-import rehypeHighlight from 'rehype-highlight';
-import 'highlight.js/styles/github-dark.css'; // You can change this theme
 
 interface MarkdownRendererProps {
   content: string;
@@ -14,30 +12,49 @@ const MarkdownRenderer: React.FC<MarkdownRendererProps> = ({ content, className 
     <div className={`markdown-content ${className}`}>
       <ReactMarkdown
         remarkPlugins={[remarkGfm]}
-        rehypePlugins={[rehypeHighlight]}
         components={{
-          // Customize code blocks
-          code({ node, inline, className, children, ...props }: any) {
-            return !inline ? (
-              <div className="relative group">
-                <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity">
+          // Block code: rendered inside a <pre> by react-markdown
+          pre({ children }) {
+            return (
+              <div className="relative group my-4">
+                <div className="absolute right-2 top-2 opacity-0 group-hover:opacity-100 transition-opacity z-10">
                   <button
-                    onClick={() => {
-                      navigator.clipboard.writeText(String(children).replace(/\n$/, ''));
+                    onClick={(e) => {
+                      const pre = (e.currentTarget as HTMLElement).closest('.group')?.querySelector('pre');
+                      navigator.clipboard.writeText(pre?.textContent?.replace(/\n$/, '') ?? '');
                     }}
-                    className="px-2 py-1 text-xs bg-gray-700 hover:bg-gray-600 text-white rounded"
+                    className="px-2 py-1 text-xs bg-gray-500 hover:bg-gray-400 text-white rounded"
                   >
                     Copy
                   </button>
                 </div>
-                <pre className="!bg-gray-900 dark:!bg-gray-950 !p-4 rounded-lg overflow-x-auto">
-                  <code className={className} {...props}>
-                    {children}
-                  </code>
+                <pre className="bg-gray-100 dark:bg-gray-800 text-gray-800 dark:text-gray-100 text-sm font-mono p-4 rounded-lg overflow-x-auto border border-gray-200 dark:border-gray-700 leading-relaxed">
+                  {children}
                 </pre>
               </div>
-            ) : (
-              <code className="bg-gray-100 dark:bg-gray-800 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded text-sm font-mono" {...props}>
+            );
+          },
+          // Inline code: <code> NOT inside a <pre> (react-markdown wraps block code in <pre><code>)
+          code({ node, className, children, ...props }: any) {
+            // If this <code> is a direct child of a <pre>, it's a block — render transparently
+            // so the parent <pre> controls all styling (background, text colour, font)
+            const isBlock =
+              node?.parent?.type === 'element' && node?.parent?.tagName === 'pre';
+
+            if (isBlock) {
+              return (
+                <code className="bg-transparent text-inherit font-mono text-sm" {...props}>
+                  {children}
+                </code>
+              );
+            }
+
+            // Inline code: styled as a pill
+            return (
+              <code
+                className="bg-gray-100 dark:bg-gray-800 text-red-600 dark:text-red-400 px-1.5 py-0.5 rounded text-sm font-mono"
+                {...props}
+              >
                 {children}
               </code>
             );

@@ -13,6 +13,8 @@ Features:
 - Content chunking: Handles large pages efficiently
 """
 
+import asyncio
+import concurrent.futures
 import json
 from typing import Any, Dict, List, Optional
 from urllib.parse import urlparse
@@ -27,6 +29,30 @@ from app.core.utils.web_content_chunker import WebContentChunker
 from app.infrastructure.cache.cache_factory import CacheFactory
 
 logger = get_logger(__name__)
+
+
+def _run_async(coro) -> str:
+    """
+    Run an async coroutine from a synchronous context.
+
+    Used by the sync `func` wrappers so LangChain's AgentExecutor.invoke()
+    (which calls tools synchronously) can execute async web-fetch methods.
+
+    If an event loop is already running (async agent / ainvoke path), we
+    submit the coroutine to a fresh thread-local event loop via
+    ThreadPoolExecutor so we don't block the running loop.
+    """
+    try:
+        loop = asyncio.get_running_loop()
+    except RuntimeError:
+        loop = None
+
+    if loop and loop.is_running():
+        with concurrent.futures.ThreadPoolExecutor(max_workers=1) as pool:
+            future = pool.submit(asyncio.run, coro)
+            return future.result(timeout=60)
+    else:
+        return asyncio.run(coro)
 
 
 # Pydantic input schemas for tool arguments
@@ -188,17 +214,21 @@ class WebTools:
             url = config["url"]
             description = config["description"]
 
-            # Create the tool function with closure over url
-            async def search_url(query: str) -> str:
+            # Async coroutine (used by async agents / ainvoke)
+            async def search_url_async(query: str) -> str:
                 return await self._read_static_url(
                     url, query, config.get("max_content_length")
                 )
 
+            # Sync wrapper (used by sync agents / invoke / AgentExecutor)
+            def search_url_sync(query: str) -> str:
+                return _run_async(search_url_async(query))
+
             tool = StructuredTool(
                 name=tool_name,
                 description=description,
-                func=search_url,
-                coroutine=search_url,
+                func=search_url_sync,
+                coroutine=search_url_async,
                 args_schema=SearchUrlInput,
             )
 
@@ -217,14 +247,21 @@ class WebTools:
             StructuredTool instance or None if creation fails
         """
         try:
+
+            async def read_url_async(url: str, query: str = "") -> str:
+                return await self._read_dynamic_url(url, query)
+
+            def read_url_sync(url: str, query: str = "") -> str:
+                return _run_async(read_url_async(url, query))
+
             tool = StructuredTool(
                 name="read_web_url",
                 description=self._generic_config.get(
                     "description",
                     "Read and search content from any whitelisted web URL",
                 ),
-                func=self._read_dynamic_url,
-                coroutine=self._read_dynamic_url,
+                func=read_url_sync,
+                coroutine=read_url_async,
                 args_schema=DynamicUrlInput,
             )
 

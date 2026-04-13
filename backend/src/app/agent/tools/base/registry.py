@@ -5,7 +5,7 @@ Provides a centralized registry for discovering and managing different
 categories of agent tools using the decorator pattern.
 
 Implements aggressive caching for tool instances to avoid expensive
-initialization (especially GitHub API calls that take 19+ seconds).
+initialization (especially MCP server connections and external API calls).
 """
 
 from typing import Any, Dict, List, Optional, Set

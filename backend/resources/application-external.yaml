@@ -9,32 +9,9 @@ atlassian:
   confluence_base_url: "${ATLASSIAN_BASE_URL_CONFLUENCE}"
   jira_base_url: "${ATLASSIAN_BASE_URL_JIRA}"
 
-# GitHub Integration
-github:
-  # Basic API access
-  api_key: "${GITHUB_API_KEY}"       # None if not set (for public repos)
-  base_url: "${GITHUB_BASE_URL:https://api.github.com}"
-  timeout: "${GITHUB_TIMEOUT:30}"
-
-  # GitHub App configuration (recommended for enhanced access)
-  app:
-    app_id: "${GITHUB_APP_ID}"                           # From GitHub App settings page
-    private_key_path: "${GITHUB_PRIVATE_KEY_PATH}"       # Path to downloaded .pem file (for local dev)
-    private_key: "${GITHUB_PRIVATE_KEY}"                 # Raw private key content (for production/Render)
-    installation_id: "${GITHUB_INSTALLATION_ID}"
-    client_secret: "${GITHUB_CLIENT_SECRET}"        # Get after installing app (optional - auto-detected if not provided)
-
-  # Repository access configuration
-  allowed_repositories:
-    - name: "timothy-odofin/car-mgt"
-      description: "Car Management System - Vehicle fleet management application"
-    - name: "timothy-odofin/accountmgt"
-      description: "Account Management System - User account and authentication service"
-    - name: "timothy-odofin/oze-assessment"
-      description: "OZE Assessment Platform - Technical evaluation and testing system"
-    - name: "timothy-odofin/cognizant-code-challenge-api"
-      description: "Cognizant Code Challenge - Technical assessment API backend"
-#    - name: "timothy-odofin/*"  # Wildcard for all user repos
+# GitHub Integration (via MCP Server)
+# Authentication is handled by the MCP server via GITHUB_TOKEN
+# configured in application-tools.yaml. No additional config needed here.
 
 
 # Bitbucket Integration
