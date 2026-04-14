@@ -5,6 +5,7 @@
 <?import javafx.scene.control.Hyperlink?>
 <?import javafx.scene.control.Label?>
 <?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
 <?import javafx.scene.control.Separator?>
 <?import javafx.scene.control.TextField?>
 <?import javafx.scene.layout.HBox?>
@@ -63,6 +64,12 @@
                                maxWidth="Infinity"/>
                     <PasswordField fx:id="passwordField" promptText="Password" styleClass="login-input"
                                    maxWidth="Infinity"/>
+                    <Label fx:id="errorLabel" styleClass="login-error" wrapText="true"
+                           maxWidth="Infinity" managed="false" visible="false"/>
+                    <HBox alignment="CENTER" maxWidth="Infinity">
+                        <ProgressIndicator fx:id="loadingIndicator" prefWidth="20" prefHeight="20"
+                                           managed="false" visible="false"/>
+                    </HBox>
                     <Button fx:id="signInBtn" text="Sign in" styleClass="login-submit-btn"
                             onAction="#handleEmailLogin" maxWidth="Infinity"/>
                 </VBox>

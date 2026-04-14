@@ -30,7 +30,7 @@
         <VBox styleClass="welcome-center" alignment="CENTER" spacing="12" maxWidth="680">
             <padding><Insets left="40" right="40"/></padding>
 
-            <Label fx:id="greetingLabel" text="Good evening, User" styleClass="welcome-greeting"/>
+            <Label fx:id="greetingLabel" text="" styleClass="welcome-greeting"/>
 
             <!-- Input box: StackPane overlay so controls never disappear -->
             <StackPane styleClass="welcome-input-box">

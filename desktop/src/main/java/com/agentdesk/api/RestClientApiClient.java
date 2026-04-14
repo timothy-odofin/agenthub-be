@@ -124,6 +124,15 @@ public class RestClientApiClient implements ApiClient {
     }
 
     @Override
+    public <T> CompletableFuture<T> putAsync(String path, @Nullable Object body, Class<T> responseType) {
+        return CompletableFuture.supplyAsync(() -> execute(() -> restClient.put()
+                .uri(normalizePath(path))
+                .body(body != null ? body : "")
+                .retrieve()
+                .body(responseType)), apiClientExecutor);
+    }
+
+    @Override
     public CompletableFuture<Void> deleteAsync(String path) {
         return CompletableFuture.runAsync(() -> delete(path), apiClientExecutor);
     }

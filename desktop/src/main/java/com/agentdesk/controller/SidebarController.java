@@ -2,6 +2,7 @@ package com.agentdesk.controller;
 
 import com.agentdesk.component.MaterialDialog;
 import com.agentdesk.component.ShareDialog;
+import com.agentdesk.config.TokenStore;
 import com.agentdesk.model.Conversation;
 import com.agentdesk.service.ConversationService;
 import javafx.fxml.FXML;
@@ -9,16 +10,18 @@ import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
 import javafx.scene.control.*;
+import javafx.scene.input.KeyCode;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
-import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.stage.Window;
+import javafx.animation.RotateTransition;
+import javafx.util.Duration;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
-import java.util.Optional;
 import java.util.function.Consumer;
 
 @Component
@@ -29,14 +32,19 @@ public class SidebarController {
     @FXML private ListView<Conversation> conversationList;
     @FXML private Button settingsBtn;
     @FXML private Button logoutBtn;
+    @FXML private Button reloadSessionsBtn;
+    @FXML private Label profileNameLabel;
+    @FXML private Label userAvatarLabel;
 
     private final ConversationService conversationService;
+    private final TokenStore tokenStore;
     private Consumer<Conversation> onConversationSelected;
     private Runnable onNewChat;
     private Runnable onLogout;
 
-    public SidebarController(ConversationService conversationService) {
+    public SidebarController(ConversationService conversationService, TokenStore tokenStore) {
         this.conversationService = conversationService;
+        this.tokenStore = tokenStore;
     }
 
     @FXML
@@ -54,12 +62,52 @@ public class SidebarController {
             conversationService.filterByQuery(query)
         );
 
+        // Populate the profile section with the logged-in user's name.
+        final String name = tokenStore.getUsername();
+        if (name != null && !name.isBlank()) {
+            if (profileNameLabel != null) {
+                profileNameLabel.setText(name);
+            }
+            if (userAvatarLabel != null) {
+                // Show the first character of the name as the avatar initial.
+                userAvatarLabel.setText(String.valueOf(name.charAt(0)).toUpperCase());
+            }
+        }
+
         if (logoutBtn != null) {
             FontIcon logoutIcon = new FontIcon(Feather.LOG_OUT);
             logoutIcon.setIconSize(16);
             logoutIcon.getStyleClass().add("icon-btn-icon");
             logoutBtn.setGraphic(logoutIcon);
         }
+
+        if (reloadSessionsBtn != null) {
+            FontIcon refreshIcon = new FontIcon(Feather.REFRESH_CW);
+            refreshIcon.setIconSize(13);
+            refreshIcon.getStyleClass().add("reload-sessions-icon");
+            reloadSessionsBtn.setGraphic(refreshIcon);
+        }
+    }
+
+    @FXML
+    private void handleReloadSessions() {
+        if (reloadSessionsBtn == null) return;
+
+        // Spin the icon while loading
+        FontIcon refreshIcon = (FontIcon) reloadSessionsBtn.getGraphic();
+        RotateTransition spin = new RotateTransition(Duration.millis(600), refreshIcon);
+        spin.setByAngle(360);
+        spin.setCycleCount(RotateTransition.INDEFINITE);
+        spin.play();
+        reloadSessionsBtn.setDisable(true);
+
+        Runnable stopSpin = () -> {
+            spin.stop();
+            refreshIcon.setRotate(0);
+            reloadSessionsBtn.setDisable(false);
+        };
+
+        conversationService.loadSessions(stopSpin, errorMsg -> stopSpin.run());
     }
 
     @FXML
@@ -107,13 +155,26 @@ public class SidebarController {
         conversationList.getSelectionModel().select(conversation);
     }
 
+    /**
+     * Returns the currently selected conversation, or {@code null} if none is selected.
+     */
+    @org.springframework.lang.Nullable
+    public Conversation getSelectedConversation() {
+        return conversationList.getSelectionModel().getSelectedItem();
+    }
+
     private class ConversationCell extends ListCell<Conversation> {
 
-        private final HBox row;
-        private final Label icon;
-        private final Label title;
-        private final Button moreBtn;
+        private final HBox      row;
+        private final Label     icon;
+        private final Label     titleLabel;
+        private final TextField titleField;
+        private final StackPane titleStack;
+        private final Button    moreBtn;
         private final ContextMenu moreMenu;
+
+        /** True while the inline rename field is visible. */
+        private boolean editing = false;
 
         ConversationCell() {
             row = new HBox(8);
@@ -127,14 +188,41 @@ public class SidebarController {
             chatIcon.getStyleClass().add("conv-cell-icon");
             icon.setGraphic(chatIcon);
 
-            title = new Label();
-            title.getStyleClass().add("conversation-cell-title");
-            title.setMaxWidth(140);
-            title.setEllipsisString("...");
-            HBox.setHgrow(title, Priority.ALWAYS);
+            // ---- title label (normal display) ----
+            titleLabel = new Label();
+            titleLabel.getStyleClass().add("conversation-cell-title");
+            titleLabel.setMaxWidth(Double.MAX_VALUE);
+            titleLabel.setEllipsisString("...");
 
-            Region spacer = new Region();
-            HBox.setHgrow(spacer, Priority.ALWAYS);
+            // ---- inline rename field ----
+            titleField = new TextField();
+            titleField.getStyleClass().add("conv-rename-field");
+            titleField.setVisible(false);
+            titleField.setManaged(false);
+            titleField.setMaxWidth(Double.MAX_VALUE);
+
+            // Commit on Enter, cancel on Escape.
+            titleField.setOnKeyPressed(e -> {
+                if (e.getCode() == KeyCode.ENTER) {
+                    e.consume();
+                    commitRename();
+                } else if (e.getCode() == KeyCode.ESCAPE) {
+                    e.consume();
+                    cancelRename();
+                }
+            });
+
+            // Commit when focus leaves the field (e.g. click elsewhere).
+            titleField.focusedProperty().addListener((obs, wasFocused, isFocused) -> {
+                if (wasFocused && !isFocused && editing) {
+                    commitRename();
+                }
+            });
+
+            // Stack label and field in the same slot so layout doesn't shift.
+            titleStack = new StackPane(titleLabel, titleField);
+            titleStack.setAlignment(Pos.CENTER_LEFT);
+            HBox.setHgrow(titleStack, Priority.ALWAYS);
 
             FontIcon dotsIcon = new FontIcon(Feather.MORE_HORIZONTAL);
             dotsIcon.setIconSize(14);
@@ -152,22 +240,70 @@ public class SidebarController {
                 moreMenu.show(moreBtn, Side.BOTTOM, 0, 4);
             });
 
-            row.getChildren().addAll(icon, title, spacer, moreBtn);
+            row.getChildren().addAll(icon, titleStack, moreBtn);
 
-            row.setOnMouseEntered(e -> moreBtn.setVisible(true));
+            row.setOnMouseEntered(e -> {
+                if (!editing) moreBtn.setVisible(true);
+            });
             row.setOnMouseExited(e -> {
-                if (!moreMenu.isShowing()) {
+                if (!moreMenu.isShowing() && !editing) {
                     moreBtn.setVisible(false);
                 }
             });
             moreMenu.setOnHidden(e -> {
-                if (!row.isHover()) {
+                if (!row.isHover() && !editing) {
                     moreBtn.setVisible(false);
                 }
             });
 
             selectedProperty().addListener((obs, was, now) -> updateIconVisibility());
         }
+
+        // ---- inline rename helpers ----------------------------------------
+
+        private void startRename() {
+            Conversation item = getItem();
+            if (item == null) return;
+            editing = true;
+
+            titleField.setText(item.getTitle());
+            titleField.setVisible(true);
+            titleField.setManaged(true);
+            titleLabel.setVisible(false);
+            titleLabel.setManaged(false);
+            moreBtn.setVisible(false);
+
+            // Ensure cell gets focus and text is fully selected for easy overwrite.
+            titleField.requestFocus();
+            titleField.selectAll();
+        }
+
+        private void commitRename() {
+            if (!editing) return;
+            editing = false;
+
+            String newTitle = titleField.getText().trim();
+            Conversation item = getItem();
+            if (item != null && !newTitle.isEmpty() && !newTitle.equals(item.getTitle())) {
+                conversationService.renameConversation(item, newTitle);
+            }
+            exitEditMode();
+        }
+
+        private void cancelRename() {
+            editing = false;
+            exitEditMode();
+        }
+
+        private void exitEditMode() {
+            titleField.setVisible(false);
+            titleField.setManaged(false);
+            titleLabel.setVisible(true);
+            titleLabel.setManaged(true);
+            moreBtn.setVisible(false);
+        }
+
+        // ---- existing helpers ---------------------------------------------
 
         private void updateIconVisibility() {
             boolean show = getItem() != null && !isEmpty() && isSelected();
@@ -183,7 +319,7 @@ public class SidebarController {
             renameIcon.setIconSize(14);
             MenuItem renameItem = new MenuItem("Rename");
             renameItem.setGraphic(renameIcon);
-            renameItem.setOnAction(e -> handleRename());
+            renameItem.setOnAction(e -> startRename());
 
             FontIcon shareIcon = new FontIcon(Feather.SHARE_2);
             shareIcon.setIconSize(14);
@@ -211,8 +347,10 @@ public class SidebarController {
             if (empty || item == null) {
                 setGraphic(null);
                 setText(null);
+                // Make sure a recycled cell isn't stuck in edit mode.
+                cancelRename();
             } else {
-                title.setText(item.getTitle());
+                titleLabel.setText(item.getTitle());
                 setGraphic(row);
                 setText(null);
                 updateIconVisibility();
@@ -223,25 +361,15 @@ public class SidebarController {
             return getScene() != null ? getScene().getWindow() : null;
         }
 
-        private void handleRename() {
-            Conversation item = getItem();
-            if (item == null) return;
-
-            Optional<String> result = MaterialDialog.showRenameDialog(getOwnerWindow(), item.getTitle());
-            result.ifPresent(name -> conversationService.renameConversation(item, name));
-        }
-
         private void handleShare() {
             Conversation item = getItem();
             if (item == null) return;
-
             ShareDialog.show(getOwnerWindow(), item.getTitle());
         }
 
         private void handleDelete() {
             Conversation item = getItem();
             if (item == null) return;
-
             boolean confirmed = MaterialDialog.showDeleteDialog(getOwnerWindow(), item.getTitle());
             if (confirmed) {
                 conversationService.deleteConversation(item);

@@ -11,12 +11,16 @@ import javafx.scene.input.MouseButton;
 import javafx.scene.input.MouseEvent;
 import javafx.scene.layout.HBox;
 import javafx.stage.Stage;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
 import org.springframework.context.annotation.Scope;
 import org.springframework.stereotype.Component;
 
 @Component
 @Scope("prototype")
 public class MainController {
+
+    private static final Logger log = LoggerFactory.getLogger(MainController.class);
 
     @FXML private HBox titleBar;
     @FXML private Label titleBarLabel;
@@ -49,11 +53,22 @@ public class MainController {
         sidebarController.setOnConversationSelected(this::loadConversation);
         sidebarController.setOnNewChat(this::createNewConversation);
 
-        if (!conversationService.getConversations().isEmpty()) {
-            Conversation first = conversationService.getConversations().get(0);
-            loadConversation(first);
-            sidebarController.selectConversation(first);
-        }
+        // Load sessions from the server; select the first one when the list arrives.
+        conversationService.loadSessions(errorMsg -> {
+            log.warn("Could not load sessions on startup: {}", errorMsg);
+            // Show an empty sidebar — the user can still start a new conversation.
+        });
+
+        // When the server populates the list, auto-select the first entry.
+        conversationService.getConversations().addListener(
+                (javafx.collections.ListChangeListener<Conversation>) change -> {
+                    if (!change.getList().isEmpty()
+                            && sidebarController.getSelectedConversation() == null) {
+                        final Conversation first = change.getList().get(0);
+                        loadConversation(first);
+                        sidebarController.selectConversation(first);
+                    }
+                });
     }
 
     private void loadConversation(Conversation conversation) {

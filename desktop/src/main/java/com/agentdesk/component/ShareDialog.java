@@ -21,8 +21,7 @@ import javafx.util.Duration;
 import org.kordamp.ikonli.feather.Feather;
 import org.kordamp.ikonli.javafx.FontIcon;
 
-import java.awt.Desktop;
-import java.net.URI;
+import com.agentdesk.util.BrowserUtil;
 import java.net.URLEncoder;
 import java.nio.charset.StandardCharsets;
 
@@ -173,11 +172,6 @@ public class ShareDialog {
     }
 
     private static void openUrl(String url) {
-        try {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-            }
-        } catch (Exception ignored) {
-        }
+        BrowserUtil.open(url);
     }
 }

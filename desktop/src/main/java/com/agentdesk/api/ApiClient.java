@@ -42,5 +42,7 @@ public interface ApiClient {
 
     <T> CompletableFuture<T> postAsync(String path, @Nullable Object body, Class<T> responseType);
 
+    <T> CompletableFuture<T> putAsync(String path, @Nullable Object body, Class<T> responseType);
+
     CompletableFuture<Void> deleteAsync(String path);
 }

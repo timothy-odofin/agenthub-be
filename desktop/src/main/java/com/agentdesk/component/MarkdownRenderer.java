@@ -1,5 +1,6 @@
 package com.agentdesk.component;
 
+import com.agentdesk.util.BrowserUtil;
 import javafx.geometry.Insets;
 import javafx.scene.Node;
 import javafx.scene.control.Hyperlink;
@@ -11,8 +12,6 @@ import javafx.scene.text.TextFlow;
 import org.commonmark.node.*;
 import org.commonmark.parser.Parser;
 
-import java.awt.Desktop;
-import java.net.URI;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Matcher;
@@ -266,11 +265,6 @@ public class MarkdownRenderer {
     }
 
     private static void openUrl(String url) {
-        try {
-            if (Desktop.isDesktopSupported() && Desktop.getDesktop().isSupported(Desktop.Action.BROWSE)) {
-                Desktop.getDesktop().browse(new URI(url));
-            }
-        } catch (Exception ignored) {
-        }
+        BrowserUtil.open(url);
     }
 }

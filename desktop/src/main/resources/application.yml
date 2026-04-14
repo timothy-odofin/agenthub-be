@@ -7,9 +7,9 @@ app:
     min-width: 800
     min-height: 600
   api:
-    base-url: https://api.example.com
+    base-url: ${AGENTDESK_API_URL:http://localhost:8000}
     connect-timeout: 10s
-    read-timeout: 30s
+    read-timeout: 300s
     # default-authorization: "Bearer ${API_TOKEN:}"
   stt:
     enabled: true

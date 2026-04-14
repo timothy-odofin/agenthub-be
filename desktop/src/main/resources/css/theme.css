@@ -100,6 +100,8 @@
     -fx-background-color: -color-bg-sidebar;
     -fx-border-color: transparent -color-border transparent transparent;
     -fx-border-width: 0 1px 0 0;
+    -fx-min-width: 240px;
+    -fx-pref-width: 280px;
 }
 
 .sidebar-top {
@@ -131,6 +133,26 @@
 .new-chat-icon-btn:hover {
     -fx-background-color: -color-accent;
     -fx-text-fill: -color-text-inverse;
+}
+
+.reload-sessions-btn {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent;
+    -fx-padding: 2px 4px;
+    -fx-cursor: hand;
+    -fx-background-radius: 6px;
+}
+
+.reload-sessions-btn:hover {
+    -fx-background-color: -color-bg-hover;
+}
+
+.reload-sessions-btn:disabled {
+    -fx-opacity: 0.5;
+}
+
+.reload-sessions-icon {
+    -fx-icon-color: -color-text-muted;
 }
 
 .search-field {
@@ -924,6 +946,25 @@
     -fx-fill: -color-text-primary;
 }
 
+/* Inline rename text field inside the conversation cell */
+.conv-rename-field {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-accent;
+    -fx-border-width: 1px;
+    -fx-border-radius: 6px;
+    -fx-background-radius: 6px;
+    -fx-text-fill: -color-text-primary;
+    -fx-font-size: 13.5px;
+    -fx-padding: 2px 6px;
+    -fx-pref-height: 26px;
+    -fx-max-width: Infinity;
+}
+
+.conv-rename-field:focused {
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(108, 92, 231, 0.35), 6, 0.2, 0, 0);
+}
+
 .conv-context-menu {
     -fx-background-color: -color-bg-elevated;
     -fx-border-color: -color-border;
@@ -1428,7 +1469,6 @@
     -fx-background-radius: 12px;
     -fx-border-width: 1px;
     -fx-cursor: hand;
-    -fx-pref-width: 420px;
 }
 
 .server-card:hover {
@@ -1465,7 +1505,7 @@
 .server-card-desc {
     -fx-font-size: 11.5px;
     -fx-text-fill: -color-text-secondary;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 
 .server-card-tool-count {
@@ -1639,16 +1679,6 @@
     -fx-border-color: -color-border;
 }
 
-.tool-card-icon-container {
-    -fx-background-color: -color-bg-input;
-    -fx-background-radius: 8px;
-}
-
-.tool-card-icon {
-    -fx-icon-color: -color-text-secondary;
-    -fx-fill: -color-text-secondary;
-}
-
 .tool-card-name {
     -fx-font-size: 12.5px;
     -fx-font-weight: 600;
@@ -1658,7 +1688,7 @@
 .tool-card-desc {
     -fx-font-size: 11px;
     -fx-text-fill: -color-text-secondary;
-    -fx-text-overrun: ellipsis;
+    -fx-wrap-text: true;
 }
 
 .tool-inspector-footer {
@@ -1996,6 +2026,24 @@
     -fx-background-color: #333333;
 }
 
+.login-submit-btn:disabled {
+    -fx-opacity: 0.55;
+    -fx-cursor: default;
+}
+
+/* ---- authentication error feedback ---- */
+.login-error {
+    -fx-text-fill: #e03c3c;
+    -fx-font-size: 12px;
+    -fx-font-weight: 400;
+    -fx-padding: 4 0 0 0;
+}
+
+.login-input-error {
+    -fx-border-color: #e03c3c;
+    -fx-border-width: 1.5px;
+}
+
 .login-link {
     -fx-text-fill: -color-accent;
     -fx-font-size: 13px;
@@ -2093,4 +2141,18 @@
     -fx-padding: 6px 12px;
     -fx-background-radius: 8px;
     -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.15), 8, 0, 0, 2);
+}
+
+/* ---- History loading / error states ------------------------------------ */
+
+.history-loading-spinner {
+    -fx-progress-color: #6c63ff;
+}
+
+.history-error-label {
+    -fx-text-fill: #e06c75;
+    -fx-font-size: 13px;
+    -fx-padding: 24px 16px;
+    -fx-wrap-text: true;
+    -fx-alignment: center;
 }

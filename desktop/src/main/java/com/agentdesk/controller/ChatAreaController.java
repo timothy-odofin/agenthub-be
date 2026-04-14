@@ -7,12 +7,16 @@ import com.agentdesk.component.SelectionBadge;
 import com.agentdesk.component.ShareDialog;
 import com.agentdesk.component.ToolInspectorPopup;
 import com.agentdesk.config.SpringFXMLLoader;
+import com.agentdesk.config.TokenStore;
 import com.agentdesk.model.Artifact;
 import com.agentdesk.model.ChatMessage;
 import com.agentdesk.model.Conversation;
 import com.agentdesk.model.McpServer;
+import com.agentdesk.model.dto.SendMessageResponse;
 import com.agentdesk.service.ChatService;
+import com.agentdesk.service.ConversationService;
 import com.agentdesk.service.McpServerRegistry;
+import com.agentdesk.service.ProviderService;
 import com.agentdesk.service.SpeechToTextService;
 import javafx.animation.FadeTransition;
 import javafx.animation.KeyFrame;
@@ -83,6 +87,9 @@ public class ChatAreaController {
     private final SpringFXMLLoader fxmlLoader;
     private final McpServerRegistry mcpServerRegistry;
     private final SpeechToTextService speechToTextService;
+    private final ConversationService conversationService;
+    private final ProviderService providerService;
+    private final TokenStore tokenStore;
     private Conversation currentConversation;
     private Task<?> currentStreamTask;
     private MessageBubble streamingBubble;
@@ -102,20 +109,32 @@ public class ChatAreaController {
 
     public ChatAreaController(ChatService chatService, SpringFXMLLoader fxmlLoader,
                               McpServerRegistry mcpServerRegistry,
-                              SpeechToTextService speechToTextService) {
+                              SpeechToTextService speechToTextService,
+                              ConversationService conversationService,
+                              ProviderService providerService,
+                              TokenStore tokenStore) {
         this.chatService = chatService;
         this.fxmlLoader = fxmlLoader;
         this.mcpServerRegistry = mcpServerRegistry;
         this.speechToTextService = speechToTextService;
+        this.conversationService = conversationService;
+        this.providerService = providerService;
+        this.tokenStore = tokenStore;
     }
 
     @FXML
     public void initialize() {
-        String[] models = {"Sonnet 4.6", "Opus 4.5", "Haiku 4.5"};
-        welcomeModelSelector.getItems().addAll(models);
-        welcomeModelSelector.setValue("Sonnet 4.6");
-        chatModelSelector.getItems().addAll(models);
-        chatModelSelector.setValue("Sonnet 4.6");
+        // Seed the model selectors with whatever is already known (fallback or prior load).
+        populateModelSelectors(providerService.getModelNamesFlat());
+
+        // Refresh from backend; selectors update when the response arrives.
+        providerService.refresh(this::populateModelSelectors, err ->
+                System.err.println("[ChatArea] Could not load providers: " + err));
+
+        // Refresh the MCP server catalogue from the backend (GET /api/v1/tools/mcp).
+        // Falls back to the built-in static catalogue when the backend is unreachable.
+        mcpServerRegistry.refresh(err ->
+                System.err.println("[ChatArea] Could not load MCP tools: " + err));
 
         greetingLabel.setText(buildGreeting());
 
@@ -325,13 +344,28 @@ public class ChatAreaController {
         chatBadge.setCount(count);
     }
 
+    private void populateModelSelectors(java.util.List<String> models) {
+        final String currentWelcome = welcomeModelSelector.getValue();
+        final String currentChat    = chatModelSelector.getValue();
+
+        welcomeModelSelector.getItems().setAll(models);
+        chatModelSelector.getItems().setAll(models);
+
+        final String firstModel = models.isEmpty() ? null : models.get(0);
+        welcomeModelSelector.setValue(
+                currentWelcome != null && models.contains(currentWelcome) ? currentWelcome : firstModel);
+        chatModelSelector.setValue(
+                currentChat != null && models.contains(currentChat) ? currentChat : firstModel);
+    }
+
     private String buildGreeting() {
         int hour = LocalTime.now().getHour();
         String timeOfDay;
         if (hour < 12) timeOfDay = "Good morning";
         else if (hour < 17) timeOfDay = "Good afternoon";
         else timeOfDay = "Good evening";
-        return timeOfDay + ", User";
+        final String name = tokenStore.getUsername();
+        return timeOfDay + (name != null && !name.isBlank() ? ", " + name : "");
     }
 
     private void handleSendFromWelcome() {
@@ -435,9 +469,16 @@ public class ChatAreaController {
         sendButton.setDisable(true);
         sendButton.setText("\u25FC");
 
-        List<McpServer> serversForRequest = new ArrayList<>(selectedServers);
+        final String sessionId    = currentConversation.getServerSessionId();
+        final String selectedModel = chatSplitPane.isVisible() && chatSplitPane.isManaged()
+                ? chatModelSelector.getValue() : welcomeModelSelector.getValue();
+        final List<McpServer> serversForRequest = new ArrayList<>(selectedServers);
+
         currentStreamTask = chatService.streamResponse(
             text,
+            sessionId,
+            null,           // provider — Phase 7 will wire this from ProviderService
+            selectedModel,
             serversForRequest,
             chunk -> {
                 streamingBubble.showTypingIndicator(false);
@@ -445,7 +486,7 @@ public class ChatAreaController {
                 streamingBubble.updateText(chunk);
                 scrollToBottom();
             },
-            done -> {
+            response -> {
                 isStreaming = false;
                 sendButton.setDisable(false);
                 sendButton.setText("\u2191");
@@ -455,9 +496,11 @@ public class ChatAreaController {
                 }
                 streamingBubble = null;
 
-                Artifact artifact = chatService.getLastArtifact();
-                if (artifact != null) {
-                    showArtifact(artifact);
+                // Capture the server-assigned session id on the first message.
+                if (response.sessionId() != null
+                        && !response.sessionId().isBlank()
+                        && !response.sessionId().equals(currentConversation.getServerSessionId())) {
+                    currentConversation.setServerSessionId(response.sessionId());
                 }
             }
         );
@@ -497,8 +540,15 @@ public class ChatAreaController {
 
         String userInput = lastUserText;
         List<McpServer> serversForRetry = new ArrayList<>(selectedServers);
+        final String retrySessionId    = currentConversation.getServerSessionId();
+        final String retryModel = chatSplitPane.isVisible() && chatSplitPane.isManaged()
+                ? chatModelSelector.getValue() : welcomeModelSelector.getValue();
+
         currentStreamTask = chatService.streamResponse(
             userInput,
+            retrySessionId,
+            null,
+            retryModel,
             serversForRetry,
             chunk -> {
                 streamingBubble.showTypingIndicator(false);
@@ -506,7 +556,7 @@ public class ChatAreaController {
                 streamingBubble.updateText(chunk);
                 scrollToBottom();
             },
-            done -> {
+            response -> {
                 isStreaming = false;
                 sendButton.setDisable(false);
                 sendButton.setText("\u2191");
@@ -516,9 +566,10 @@ public class ChatAreaController {
                 }
                 streamingBubble = null;
 
-                Artifact artifact = chatService.getLastArtifact();
-                if (artifact != null) {
-                    showArtifact(artifact);
+                if (response.sessionId() != null
+                        && !response.sessionId().isBlank()
+                        && !response.sessionId().equals(currentConversation.getServerSessionId())) {
+                    currentConversation.setServerSessionId(response.sessionId());
                 }
             }
         );
@@ -623,23 +674,73 @@ public class ChatAreaController {
         selectedServers.clear();
         updateBadges();
 
-        if (conversation.getMessages().isEmpty()) {
-            showWelcomeView();
-        } else {
+        if (conversation.isSynced()) {
+            // Always re-fetch from the server so the view is never stale.
             showChatView();
-            for (ChatMessage msg : conversation.getMessages()) {
-                if (msg.isUser()) {
-                    addUserBubble(msg);
-                } else {
-                    MessageBubble bubble = MessageBubble.createAssistantBubble(msg);
-                    bubble.renderMarkdown();
-                    bubble.showActionButtons(true);
-                    bubble.setOnRetry(content -> retryLastMessage());
-                    messagesContainer.getChildren().add(bubble.getRoot());
+            showHistoryLoading();
+            conversationService.loadHistory(
+                conversation,
+                () -> {
+                    // onComplete — called on the JAT after the list is populated.
+                    messagesContainer.getChildren().clear();
+                    if (conversation.getMessages().isEmpty()) {
+                        // Synced session with no messages yet — ready to type.
+                        chatInputArea.requestFocus();
+                    } else {
+                        renderMessages(conversation);
+                        scrollToBottom();
+                        chatInputArea.requestFocus();
+                    }
+                },
+                errorMsg -> {
+                    // onError — called on the JAT if the fetch fails.
+                    messagesContainer.getChildren().clear();
+                    Label errLabel = new Label("Could not load history: " + errorMsg);
+                    errLabel.getStyleClass().add("history-error-label");
+                    messagesContainer.getChildren().add(errLabel);
                 }
-            }
-            scrollToBottom();
+            );
+
+        } else if (!conversation.getMessages().isEmpty()) {
+            // Brand-new local conversation that already has in-memory messages (mid-session).
+            showChatView();
+            renderMessages(conversation);
             chatInputArea.requestFocus();
+
+        } else {
+            // Brand-new local conversation with no messages yet — show the welcome view.
+            showWelcomeView();
+        }
+    }
+
+    /**
+     * Adds a centred spinner to the messages container while history is being fetched.
+     */
+    private void showHistoryLoading() {
+        javafx.scene.control.ProgressIndicator spinner =
+                new javafx.scene.control.ProgressIndicator();
+        spinner.setPrefSize(40, 40);
+        spinner.getStyleClass().add("history-loading-spinner");
+        javafx.scene.layout.StackPane centred = new javafx.scene.layout.StackPane(spinner);
+        centred.setPrefHeight(200);
+        messagesContainer.getChildren().add(centred);
+    }
+
+    /**
+     * Renders all messages currently in {@code conversation} into the
+     * {@code messagesContainer}.  Caller must ensure this runs on the JAT.
+     */
+    private void renderMessages(Conversation conversation) {
+        for (ChatMessage msg : conversation.getMessages()) {
+            if (msg.isUser()) {
+                addUserBubble(msg);
+            } else {
+                MessageBubble bubble = MessageBubble.createAssistantBubble(msg);
+                bubble.renderMarkdown();
+                bubble.showActionButtons(true);
+                bubble.setOnRetry(content -> retryLastMessage());
+                messagesContainer.getChildren().add(bubble.getRoot());
+            }
         }
     }
 

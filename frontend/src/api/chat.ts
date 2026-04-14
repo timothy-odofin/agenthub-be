@@ -21,3 +21,6 @@ export const deleteSession = (sessionId: string) =>
 
 export const getLLMProviders = () =>
   api.get<ProvidersResponse>("/api/v1/llm/providers");
+
+export const getMcpTools = () =>
+  api.get("/api/v1/tools/mcp");

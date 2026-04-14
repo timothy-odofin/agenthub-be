@@ -31,9 +31,9 @@ public class ToolInspectorPopup extends Popup {
 
         root = new VBox(0);
         root.getStyleClass().add("tool-inspector");
-        root.setPrefWidth(380);
-        root.setMaxWidth(380);
-        root.setMaxHeight(420);
+        root.setPrefWidth(520);
+        root.setMaxWidth(520);
+        root.setMaxHeight(520);
 
         // Header
         FontIcon serverIcon = new FontIcon(server.getIcon());
@@ -85,7 +85,7 @@ public class ToolInspectorPopup extends Popup {
         scrollPane.setFitToWidth(true);
         scrollPane.setHbarPolicy(ScrollPane.ScrollBarPolicy.NEVER);
         scrollPane.setVbarPolicy(ScrollPane.ScrollBarPolicy.AS_NEEDED);
-        scrollPane.setMaxHeight(300);
+        scrollPane.setMaxHeight(400);
         VBox.setVgrow(scrollPane, Priority.ALWAYS);
 
         // Footer

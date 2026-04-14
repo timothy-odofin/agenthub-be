@@ -38,10 +38,15 @@
                    styleClass="search-field" HBox.hgrow="ALWAYS"/>
     </HBox>
 
-    <!-- Section label -->
-    <Label text="Recent" styleClass="sidebar-section-label">
+    <!-- Section label + reload button -->
+    <HBox alignment="CENTER_LEFT" spacing="4">
         <VBox.margin><Insets top="16" right="16" bottom="4" left="16"/></VBox.margin>
-    </Label>
+        <Label text="Recent" styleClass="sidebar-section-label" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="reloadSessionsBtn" styleClass="reload-sessions-btn"
+                onAction="#handleReloadSessions">
+            <tooltip><Tooltip text="Reload sessions"/></tooltip>
+        </Button>
+    </HBox>
 
     <!-- Conversation list -->
     <ListView fx:id="conversationList" styleClass="conversation-list" VBox.vgrow="ALWAYS"/>
@@ -50,10 +55,10 @@
     <HBox fx:id="profileSection" styleClass="profile-section" alignment="CENTER_LEFT" spacing="10">
         <padding><Insets top="12" right="16" bottom="16" left="16"/></padding>
         <StackPane styleClass="user-avatar" minWidth="32" minHeight="32" maxWidth="32" maxHeight="32">
-            <Label text="U" styleClass="user-avatar-text"/>
+            <Label fx:id="userAvatarLabel" text="U" styleClass="user-avatar-text"/>
         </StackPane>
         <VBox spacing="1">
-            <Label text="You" styleClass="profile-name-label"/>
+            <Label fx:id="profileNameLabel" text="You" styleClass="profile-name-label"/>
             <Label text="Pro plan" styleClass="profile-plan-label"/>
         </VBox>
         <Region HBox.hgrow="ALWAYS"/>

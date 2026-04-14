@@ -421,6 +421,17 @@
     -fx-fill: -color-text-primary;
 }
 
+/* Inline rename field — dark theme override */
+.conv-rename-field {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-accent;
+    -fx-text-fill: -color-text-primary;
+}
+
+.conv-rename-field:focused {
+    -fx-effect: dropshadow(gaussian, rgba(108, 92, 231, 0.45), 6, 0.25, 0, 0);
+}
+
 .conv-context-menu {
     -fx-background-color: -color-bg-elevated;
     -fx-border-color: -color-border;

@@ -31,6 +31,8 @@ public class ServerCard extends HBox {
         setAlignment(Pos.CENTER_LEFT);
         setSpacing(12);
         setPadding(new Insets(12, 14, 12, 14));
+        setPrefWidth(200);
+        setMaxWidth(Double.MAX_VALUE);
 
         FontIcon serverIcon = new FontIcon(server.getIcon());
         serverIcon.setIconSize(20);
@@ -46,7 +48,7 @@ public class ServerCard extends HBox {
 
         Label descLabel = new Label(server.getDescription());
         descLabel.getStyleClass().add("server-card-desc");
-        descLabel.setWrapText(false);
+        descLabel.setWrapText(true);
 
         Label toolCountLabel = new Label(server.getToolCount() + " tools");
         toolCountLabel.getStyleClass().add("server-card-tool-count");

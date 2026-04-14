@@ -1,18 +1,28 @@
-import { Mic, MicOff, Paperclip, SendHorizonal } from "lucide-react";
+import { Mic, MicOff, Plus, SendHorizonal } from "lucide-react";
 import React, { useCallback, useEffect, useRef, useState } from "react";
+import McpServerPicker from "./McpServerPicker";
+import type { McpGroupInfo } from "@/types";
 
 interface ChatInputProps {
   onSend: (msg: string) => void;
   isEmpty: boolean;
   isLoading?: boolean;
+  mcpGroups?: McpGroupInfo[];
+  selectedServerIds?: Set<string>;
+  onServerSelectionChange?: (ids: Set<string>) => void;
 }
 
 export default function ChatInput({
   onSend,
   isLoading = false,
+  mcpGroups = [],
+  selectedServerIds = new Set(),
+  onServerSelectionChange,
 }: ChatInputProps) {
   const [input, setInput] = useState("");
   const textareaRef = useRef<HTMLTextAreaElement | null>(null);
+  const plusBtnRef = useRef<HTMLButtonElement | null>(null);
+  const [pickerOpen, setPickerOpen] = useState(false);
   const MAX_HEIGHT = 160;
 
   // Voice input state
@@ -109,8 +119,21 @@ export default function ChatInput({
     }
   };
 
+  const selectionCount = selectedServerIds.size;
+
   return (
     <div className="relative">
+      {/* MCP Server Picker popup */}
+      {pickerOpen && mcpGroups.length > 0 && (
+        <McpServerPicker
+          groups={mcpGroups}
+          selected={selectedServerIds}
+          onApply={(ids) => onServerSelectionChange?.(ids)}
+          onClose={() => setPickerOpen(false)}
+          anchorRef={plusBtnRef}
+        />
+      )}
+
       {/* Chat Input */}
       <div className="flex flex-col gap-2 border-2 border-gray-200 dark:border-gray-700 rounded-2xl p-3 shadow-lg bg-white dark:bg-gray-800 hover:border-blue-300 dark:hover:border-blue-600 transition-colors focus-within:border-blue-500 dark:focus-within:border-blue-500 focus-within:shadow-xl">
         <textarea
@@ -133,13 +156,28 @@ export default function ChatInput({
 
         <div className="flex justify-between items-center">
           <div className="flex items-center gap-1">
-            <button
-              type="button"
-              className="text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 rounded-full p-2 hover:bg-gray-100 dark:hover:bg-gray-700 transition"
-              title="Attach file (coming soon)"
-            >
-              <Paperclip size={18} />
-            </button>
+            {/* Plus / MCP server picker button */}
+            <div className="relative">
+              <button
+                ref={plusBtnRef}
+                type="button"
+                onClick={() => setPickerOpen((v) => !v)}
+                title="Select MCP servers"
+                className={`relative rounded-full p-2 transition-all ${
+                  pickerOpen
+                    ? "text-blue-600 bg-blue-50 dark:bg-blue-900/30"
+                    : "text-gray-400 dark:text-gray-500 hover:text-gray-600 dark:hover:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700"
+                }`}
+              >
+                <Plus size={18} />
+                {/* Badge showing count of selected servers */}
+                {selectionCount > 0 && (
+                  <span className="absolute -top-1 -right-1 min-w-[16px] h-4 px-1 bg-blue-600 text-white text-[9px] font-bold rounded-full flex items-center justify-center">
+                    {selectionCount}
+                  </span>
+                )}
+              </button>
+            </div>
 
             {isVoiceSupported && (
               <button
@@ -155,6 +193,30 @@ export default function ChatInput({
               >
                 {isListening ? <MicOff size={18} /> : <Mic size={18} />}
               </button>
+            )}
+
+            {/* Show selected server chips when servers are selected */}
+            {selectionCount > 0 && (
+              <div className="flex items-center gap-1 ml-1 flex-wrap max-w-xs">
+                {Array.from(selectedServerIds).map((id) => (
+                  <span
+                    key={id}
+                    className="inline-flex items-center gap-1 text-[10px] bg-blue-100 text-blue-700 dark:bg-blue-900/40 dark:text-blue-300 px-2 py-0.5 rounded-full"
+                  >
+                    {id}
+                    <button
+                      onClick={() => {
+                        const next = new Set(selectedServerIds);
+                        next.delete(id);
+                        onServerSelectionChange?.(next);
+                      }}
+                      className="hover:text-blue-900 dark:hover:text-blue-100"
+                    >
+                      ×
+                    </button>
+                  </span>
+                ))}
+              </div>
             )}
           </div>
 
@@ -196,10 +258,12 @@ export default function ChatInput({
           </button>
         </div>
       )}
-      
+
       {!isListening && (
         <p className="text-xs text-gray-400 dark:text-gray-500 mt-2 text-center">
-          Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Enter</kbd> to send, <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Shift + Enter</kbd> for new line{isVoiceSupported && ", or click 🎤 to speak"}
+          Press <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Enter</kbd> to send,{" "}
+          <kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-gray-600 dark:text-gray-300">Shift + Enter</kbd> for new line
+          {isVoiceSupported && ", or click 🎤 to speak"}
         </p>
       )}
     </div>

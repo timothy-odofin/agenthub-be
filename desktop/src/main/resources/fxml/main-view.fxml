@@ -37,7 +37,7 @@
 
     <center>
         <SplitPane fx:id="splitPane" orientation="HORIZONTAL"
-                   dividerPositions="0.22" styleClass="main-split">
+                   dividerPositions="0.27" styleClass="main-split">
             <fx:include source="sidebar.fxml" fx:id="sidebar"/>
             <fx:include source="chat-area.fxml" fx:id="chatArea"/>
         </SplitPane>
