@@ -1,0 +1,98 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Hyperlink?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.PasswordField?>
+<?import javafx.scene.control.ProgressIndicator?>
+<?import javafx.scene.control.Separator?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.agentdesk.controller.LoginController"
+           styleClass="login-root">
+
+    <HBox alignment="CENTER_RIGHT" spacing="0" StackPane.alignment="TOP_RIGHT">
+        <padding><Insets top="10" right="10"/></padding>
+        <Button text="—" styleClass="title-bar-btn" onAction="#handleMinimize"/>
+        <Button text="✕" styleClass="title-bar-btn, title-bar-close-btn" onAction="#handleClose"/>
+    </HBox>
+
+    <VBox styleClass="login-shell" alignment="TOP_CENTER" maxWidth="400" fillWidth="true"
+          StackPane.alignment="TOP_CENTER">
+        <StackPane.margin>
+            <Insets top="44" right="24" bottom="20" left="24"/>
+        </StackPane.margin>
+
+        <VBox styleClass="login-card" alignment="TOP_CENTER" spacing="0" fillWidth="true">
+            <Region styleClass="login-card-accent" maxWidth="Infinity"/>
+
+            <VBox alignment="TOP_CENTER" spacing="0" fillWidth="true">
+                <padding><Insets top="22" right="30" bottom="24" left="30"/></padding>
+
+                <Label text="⚡" styleClass="login-logo"/>
+                <Label text="AgentDesk" styleClass="login-brand"/>
+                <Label text="Sign in to continue" styleClass="login-subtitle"/>
+
+                <Region prefHeight="18"/>
+
+                <VBox spacing="8" fillWidth="true">
+                    <Button fx:id="ssoBtn" text="Continue with Okta SSO" styleClass="login-sso-btn"
+                            onAction="#handleSsoLogin" maxWidth="Infinity"/>
+                    <Button fx:id="googleBtn" text="Continue with Google" styleClass="login-google-btn"
+                            onAction="#handleGoogleLogin" maxWidth="Infinity"/>
+                </VBox>
+
+                <Region prefHeight="14"/>
+
+                <HBox alignment="CENTER" spacing="10" styleClass="login-divider-row">
+                    <Separator HBox.hgrow="ALWAYS"/>
+                    <Label text="or use email" styleClass="login-divider-text"/>
+                    <Separator HBox.hgrow="ALWAYS"/>
+                </HBox>
+
+                <Region prefHeight="14"/>
+
+                <VBox spacing="10" fillWidth="true">
+                    <TextField fx:id="emailField" promptText="Work email" styleClass="login-input"
+                               maxWidth="Infinity"/>
+                    <PasswordField fx:id="passwordField" promptText="Password" styleClass="login-input"
+                                   maxWidth="Infinity"/>
+                    <Label fx:id="errorLabel" styleClass="login-error" wrapText="true"
+                           maxWidth="Infinity" managed="false" visible="false"/>
+                    <HBox alignment="CENTER" maxWidth="Infinity">
+                        <ProgressIndicator fx:id="loadingIndicator" prefWidth="20" prefHeight="20"
+                                           managed="false" visible="false"/>
+                    </HBox>
+                    <Button fx:id="signInBtn" text="Sign in" styleClass="login-submit-btn"
+                            onAction="#handleEmailLogin" maxWidth="Infinity"/>
+                </VBox>
+
+                <Region prefHeight="10"/>
+
+                <Hyperlink text="Forgot password?" styleClass="login-link"/>
+
+                <Region prefHeight="18"/>
+
+                <HBox alignment="CENTER" spacing="6">
+                    <Label text="New to AgentDesk?" styleClass="login-footer-text"/>
+                    <Hyperlink text="Create account" styleClass="login-link"/>
+                </HBox>
+
+                <Region prefHeight="16"/>
+
+                <HBox alignment="CENTER" spacing="10" styleClass="login-terms-row">
+                    <Hyperlink text="Terms" styleClass="login-terms-link"/>
+                    <Label text="·" styleClass="login-footer-text"/>
+                    <Hyperlink text="Privacy" styleClass="login-terms-link"/>
+                </HBox>
+            </VBox>
+        </VBox>
+    </VBox>
+</StackPane>

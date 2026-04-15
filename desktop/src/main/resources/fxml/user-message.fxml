@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      alignment="TOP_RIGHT" spacing="4">
+    <padding><Insets top="4" right="24" bottom="4" left="24"/></padding>
+
+    <TextFlow fx:id="textFlow" styleClass="user-bubble" maxWidth="560">
+        <padding><Insets top="10" right="16" bottom="10" left="16"/></padding>
+        <Text fx:id="messageText" styleClass="user-message-text"/>
+    </TextFlow>
+
+    <!-- Action buttons (Edit + Retry) -->
+    <HBox fx:id="userActionButtons" styleClass="message-actions user-message-actions"
+          spacing="2" alignment="CENTER_RIGHT" visible="false" managed="false">
+        <Button fx:id="editBtn" styleClass="msg-action-btn">
+            <tooltip><Tooltip text="Edit message"/></tooltip>
+        </Button>
+        <Button fx:id="retryUserBtn" styleClass="msg-action-btn">
+            <tooltip><Tooltip text="Retry"/></tooltip>
+        </Button>
+    </HBox>
+</VBox>

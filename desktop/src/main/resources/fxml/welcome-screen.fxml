@@ -1,0 +1,26 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      alignment="CENTER" spacing="20" VBox.vgrow="ALWAYS">
+    <padding><Insets top="80" right="40" bottom="40" left="40"/></padding>
+
+    <Label text="◆" styleClass="welcome-logo"/>
+    <Label text="How can I help you today?" styleClass="welcome-title"/>
+    <Label text="Ask me anything — I'm here to help with writing, analysis, coding, and more."
+           styleClass="welcome-subtitle" wrapText="true" maxWidth="480"/>
+
+    <HBox fx:id="chipsContainer" alignment="CENTER" spacing="10">
+        <padding><Insets top="16"/></padding>
+        <Button text="Write some code" styleClass="suggestion-chip"/>
+        <Button text="Explain a concept" styleClass="suggestion-chip"/>
+        <Button text="Summarize text" styleClass="suggestion-chip"/>
+        <Button text="Brainstorm ideas" styleClass="suggestion-chip"/>
+    </HBox>
+</VBox>

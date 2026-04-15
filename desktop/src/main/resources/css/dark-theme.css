@@ -1,0 +1,1065 @@
+/* =============================================
+   AgentDesk — Dark Mode Override
+   Loaded on top of theme.css
+   ============================================= */
+
+.root {
+    -fx-background-color: #0f0f11;
+    -color-bg-primary: #0f0f11;
+    -color-bg-sidebar: #131316;
+    -color-bg-surface: #1a1a1e;
+    -color-bg-input: #1e1e22;
+    -color-bg-elevated: #1a1a1e;
+    -color-bg-user-bubble: #2a2a2e;
+    -color-accent: #a29bfe;
+    -color-accent-soft: #6c5ce7;
+    -color-accent-bg: rgba(108, 92, 231, 0.12);
+    -color-text-primary: #f0f0f2;
+    -color-text-secondary: #9ca3af;
+    -color-text-muted: #6b7280;
+    -color-text-inverse: #0f0f11;
+    -color-border: #2a2a2e;
+    -color-border-light: #222226;
+    -color-hover: #1e1e22;
+    -color-selected: #222226;
+    -color-shadow: rgba(0, 0, 0, 0.2);
+    -color-shadow-md: rgba(0, 0, 0, 0.3);
+}
+
+/* Custom Title Bar */
+.custom-title-bar {
+    -fx-background-color: -color-bg-sidebar;
+    -fx-border-color: transparent transparent -color-border transparent;
+}
+
+.title-bar-title {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.title-bar-btn {
+    -fx-text-fill: -color-text-muted;
+}
+
+.title-bar-btn:hover {
+    -fx-background-color: -color-hover;
+    -fx-text-fill: -color-text-primary;
+}
+
+.title-bar-close-btn:hover {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+}
+
+/* Sidebar */
+.sidebar {
+    -fx-background-color: -color-bg-sidebar;
+    -fx-border-color: transparent -color-border transparent transparent;
+}
+
+.profile-section {
+    -fx-border-color: -color-border transparent transparent transparent;
+}
+
+.search-field {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.search-field:focused {
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.2), 6, 0, 0, 0);
+}
+
+.conversation-list .list-cell:selected {
+    -fx-background-color: -color-accent-bg;
+}
+
+.conversation-list .list-cell:selected .conversation-cell-title {
+    -fx-text-fill: -color-accent;
+}
+
+.conversation-cell-row:hover {
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.5), 20, 0.4, 0, 5);
+}
+
+.conversation-list .list-cell:selected .conversation-cell-row:hover {
+    -fx-effect: dropshadow(gaussian, rgba(162, 155, 254, 0.38), 22, 0.45, 0, 4);
+}
+
+/* Welcome view */
+.welcome-view {
+    -fx-background-color: -color-bg-primary;
+}
+
+.plan-badge {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+}
+
+.plan-upgrade-btn {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.plan-upgrade-btn:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.welcome-input-box {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-effect: dropshadow(gaussian, -color-shadow-md, 16, 0, 0, 4);
+}
+
+.welcome-input-box:focused-within {
+    -fx-border-color: -color-accent-soft;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.15), 20, 0, 0, 4);
+}
+
+.welcome-attach-btn {
+    -fx-background-color: -color-bg-input;
+    -fx-text-fill: -color-text-secondary;
+}
+
+.welcome-attach-btn:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+}
+
+.welcome-input {
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.welcome-model-selector {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-secondary;
+}
+
+.mic-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.welcome-mic-btn:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+}
+
+.welcome-mic-btn:hover .mic-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.welcome-mic-btn.mic-listening {
+    -fx-background-color: -color-accent-bg;
+    -fx-effect: dropshadow(gaussian, rgba(162, 155, 254, 0.35), 14, 0.35, 0, 2);
+}
+
+.welcome-mic-btn.mic-listening .mic-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.quick-action-chip {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-secondary;
+    -fx-effect: dropshadow(gaussian, -color-shadow, 4, 0, 0, 1);
+}
+
+.quick-action-chip:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+    -fx-border-color: -color-accent-soft;
+}
+
+/* Chat view */
+.chat-view {
+    -fx-background-color: -color-bg-primary;
+}
+
+.chat-toolbar {
+    -fx-border-color: transparent transparent -color-border transparent;
+}
+
+.model-selector {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-primary;
+}
+
+.toolbar-btn {
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-secondary;
+}
+
+.toolbar-btn:hover {
+    -fx-background-color: -color-hover;
+    -fx-text-fill: -color-text-primary;
+}
+
+/* Message bubbles */
+.user-bubble {
+    -fx-background-color: -color-bg-user-bubble;
+}
+
+.user-message-text {
+    -fx-fill: -color-text-primary;
+}
+
+.assistant-message-text {
+    -fx-fill: #d1d5db;
+}
+
+.assistant-avatar {
+    -fx-background-color: linear-gradient(to bottom right, #6c5ce7, #a29bfe);
+}
+
+/* Chat input */
+.chat-input-box {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-effect: dropshadow(gaussian, -color-shadow-md, 12, 0, 0, 3);
+}
+
+.chat-input-box:focused-within {
+    -fx-border-color: -color-accent-soft;
+}
+
+.message-input {
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.send-button {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.send-button:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.send-button:disabled {
+    -fx-background-color: #3a3a4e;
+}
+
+/* Scrollbar */
+.scroll-bar .thumb {
+    -fx-background-color: #3a3a3e;
+}
+
+.messages-scroll .scroll-bar:vertical .thumb {
+    -fx-background-color: #3a3a3e;
+}
+
+/* Tooltip */
+.tooltip {
+    -fx-background-color: -color-text-primary;
+    -fx-text-fill: -color-text-inverse;
+}
+
+/* Typing indicator */
+.typing-dot {
+    -fx-text-fill: -color-accent;
+}
+
+.user-avatar {
+    -fx-background-color: -color-accent;
+}
+
+.new-chat-icon-btn {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+}
+
+.new-chat-icon-btn:hover {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+/* Message action buttons */
+.msg-action-btn {
+    -fx-text-fill: -color-text-muted;
+}
+
+.msg-action-btn:hover {
+    -fx-background-color: -color-bg-input;
+    -fx-text-fill: -color-text-secondary;
+}
+
+.msg-action-active {
+    -fx-text-fill: -color-accent;
+}
+
+.msg-action-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.msg-action-btn:hover .msg-action-icon {
+    -fx-icon-color: -color-text-secondary;
+    -fx-fill: -color-text-secondary;
+}
+
+.msg-action-active .msg-action-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+/* Inline edit dark overrides */
+.inline-edit-area {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-accent-soft;
+    -fx-text-fill: -color-text-primary;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.12), 8, 0, 0, 2);
+}
+
+.inline-edit-area:focused {
+    -fx-border-color: -color-accent;
+    -fx-background-color: -color-bg-input;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.2), 12, 0, 0, 2);
+}
+
+.inline-edit-btn-save {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.inline-edit-btn-save:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.inline-edit-send-icon {
+    -fx-icon-color: #0f0f11;
+    -fx-fill: #0f0f11;
+}
+
+.inline-edit-btn-cancel {
+    -fx-text-fill: -color-text-secondary;
+    -fx-border-color: -color-border;
+}
+
+.inline-edit-btn-cancel:hover {
+    -fx-background-color: -color-hover;
+    -fx-text-fill: -color-text-primary;
+}
+
+/* Chat attach button */
+.chat-attach-btn {
+    -fx-background-color: -color-bg-input;
+    -fx-text-fill: -color-text-secondary;
+}
+
+.chat-attach-btn:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+}
+
+/* ComboBox dark overrides */
+.combo-box {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+}
+
+.combo-box:hover {
+    -fx-background-color: -color-hover;
+    -fx-border-color: -color-accent-soft;
+}
+
+.combo-box:focused {
+    -fx-border-color: -color-accent;
+}
+
+.combo-box .arrow {
+    -fx-background-color: -color-text-muted;
+}
+
+.combo-box .list-cell {
+    -fx-text-fill: -color-text-primary;
+}
+
+.combo-box-popup > .list-view {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell {
+    -fx-text-fill: -color-text-primary;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:hover {
+    -fx-background-color: -color-hover;
+}
+
+.combo-box-popup > .list-view > .virtual-flow > .clipped-container > .sheet > .list-cell:selected {
+    -fx-background-color: -color-accent-bg;
+    -fx-text-fill: -color-accent;
+}
+
+/* Conversation cell dark overrides */
+.conv-cell-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.conv-more-btn:hover {
+    -fx-background-color: -color-bg-input;
+}
+
+.conv-more-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.conv-more-btn:hover .conv-more-icon {
+    -fx-icon-color: -color-text-primary;
+    -fx-fill: -color-text-primary;
+}
+
+/* Inline rename field — dark theme override */
+.conv-rename-field {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-accent;
+    -fx-text-fill: -color-text-primary;
+}
+
+.conv-rename-field:focused {
+    -fx-effect: dropshadow(gaussian, rgba(108, 92, 231, 0.45), 6, 0.25, 0, 0);
+}
+
+.conv-context-menu {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+}
+
+.conv-context-menu .menu-item:hover,
+.conv-context-menu .menu-item:focused {
+    -fx-background-color: -color-hover;
+}
+
+.conv-context-menu .menu-item .label {
+    -fx-text-fill: -color-text-primary;
+}
+
+.conv-context-menu .separator .line {
+    -fx-border-color: -color-border;
+}
+
+/* Material Dialog dark overrides */
+.dialog-backdrop {
+    -fx-background-color: rgba(0, 0, 0, 0.55);
+}
+
+.dialog-card {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.4), 32, 0, 0, 8);
+}
+
+.dialog-title {
+    -fx-text-fill: -color-text-primary;
+}
+
+.dialog-subtitle {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.dialog-message {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.dialog-input {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.dialog-input:focused {
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.2), 6, 0, 0, 0);
+}
+
+.dialog-btn-primary {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.dialog-btn-primary:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.dialog-btn-secondary {
+    -fx-text-fill: -color-text-secondary;
+    -fx-border-color: -color-border;
+}
+
+.dialog-btn-secondary:hover {
+    -fx-background-color: -color-hover;
+    -fx-text-fill: -color-text-primary;
+}
+
+.dialog-btn-danger {
+    -fx-background-color: #ef4444;
+    -fx-text-fill: white;
+}
+
+.dialog-btn-danger:hover {
+    -fx-background-color: #f87171;
+}
+
+.dialog-icon-circle-danger {
+    -fx-background-color: rgba(239, 68, 68, 0.12);
+}
+
+.dialog-header-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+/* Chat split pane dark overrides */
+.chat-split-pane > .split-pane-divider {
+    -fx-background-color: -color-border;
+}
+
+/* Artifact panel dark overrides */
+.artifact-panel {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: transparent transparent transparent -color-border;
+}
+
+.artifact-header {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: transparent transparent -color-border transparent;
+}
+
+.artifact-type-feather-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.artifact-title {
+    -fx-text-fill: -color-text-primary;
+}
+
+.artifact-subtitle {
+    -fx-text-fill: -color-text-muted;
+}
+
+.artifact-close-btn:hover {
+    -fx-background-color: -color-hover;
+}
+
+.artifact-close-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.artifact-close-btn:hover .artifact-close-icon {
+    -fx-icon-color: -color-text-primary;
+    -fx-fill: -color-text-primary;
+}
+
+.artifact-content {
+    -fx-background-color: -color-bg-primary;
+}
+
+.artifact-code-area {
+    -fx-background-color: #11111b;
+    -fx-text-fill: #cdd6f4;
+    -fx-control-inner-background: #11111b;
+}
+
+.artifact-code-area .content {
+    -fx-background-color: #11111b;
+}
+
+.artifact-code-area .scroll-pane {
+    -fx-background-color: #11111b;
+}
+
+.artifact-code-area .scroll-pane .viewport {
+    -fx-background-color: #11111b;
+}
+
+.artifact-code-area:focused {
+    -fx-background-color: #11111b;
+    -fx-control-inner-background: #11111b;
+}
+
+.artifact-doc-container {
+    -fx-background-color: -color-bg-primary;
+}
+
+.artifact-doc-text {
+    -fx-text-fill: -color-text-primary;
+}
+
+.artifact-download-card {
+    -fx-background-color: -color-bg-primary;
+}
+
+.artifact-download-file-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.artifact-download-filename {
+    -fx-text-fill: -color-text-primary;
+}
+
+.artifact-download-size {
+    -fx-text-fill: -color-text-muted;
+}
+
+.artifact-download-btn {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.artifact-download-btn:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.artifact-footer {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: -color-border transparent transparent transparent;
+}
+
+.artifact-action-btn:hover {
+    -fx-background-color: -color-hover;
+}
+
+.artifact-action-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.artifact-action-btn:hover .artifact-action-icon {
+    -fx-icon-color: -color-text-primary;
+    -fx-fill: -color-text-primary;
+}
+
+.artifact-footer-status {
+    -fx-text-fill: -color-accent;
+}
+
+/* =============================================
+   TOOL PICKER — Dark overrides
+   ============================================= */
+.tool-picker {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 24, 0, 0, 8);
+}
+
+.picker-search-field {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+}
+
+.picker-search-field:focused-within {
+    -fx-border-color: -color-accent-soft;
+}
+
+.picker-search-input {
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.picker-search-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.picker-search-clear:hover {
+    -fx-background-color: -color-hover;
+}
+
+.picker-search-clear-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.picker-group-title {
+    -fx-text-fill: -color-text-muted;
+}
+
+.picker-group-count {
+    -fx-text-fill: -color-text-muted;
+    -fx-background-color: -color-bg-input;
+}
+
+.server-card {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: -color-border;
+}
+
+.server-card:hover {
+    -fx-background-color: -color-hover;
+    -fx-border-color: -color-accent-soft;
+}
+
+.server-card-selected {
+    -fx-background-color: -color-accent-bg;
+    -fx-border-color: -color-accent;
+}
+
+.server-card-selected:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-border-color: -color-accent;
+}
+
+.server-card-icon-container {
+    -fx-background-color: -color-accent-bg;
+}
+
+.server-card-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.server-card-name {
+    -fx-text-fill: -color-text-primary;
+}
+
+.server-card-desc {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.server-card-tool-count {
+    -fx-text-fill: -color-text-muted;
+}
+
+.server-card-check {
+    -fx-background-color: -color-accent;
+}
+
+.server-card-check-icon {
+    -fx-icon-color: #0f0f11;
+    -fx-fill: #0f0f11;
+}
+
+.server-card-action:hover {
+    -fx-background-color: -color-bg-input;
+}
+
+.server-card-action-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.server-card-action:hover .server-card-action-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.tool-picker-footer {
+    -fx-border-color: -color-border transparent transparent transparent;
+}
+
+.tool-picker-count {
+    -fx-text-fill: -color-text-muted;
+}
+
+.tool-picker-apply {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.tool-picker-apply:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.selection-badge {
+    -fx-background-color: -color-accent;
+}
+
+.selection-badge-label {
+    -fx-text-fill: #0f0f11;
+}
+
+/* Tool Inspector dark overrides */
+.tool-inspector {
+    -fx-background-color: -color-bg-elevated;
+    -fx-border-color: -color-border;
+    -fx-effect: dropshadow(gaussian, rgba(0,0,0,0.45), 24, 0, 0, 8);
+}
+
+.tool-inspector-drawer {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: transparent transparent transparent -color-border;
+}
+
+.tool-inspector-header {
+    -fx-border-color: transparent transparent -color-border transparent;
+}
+
+.tool-inspector-header-icon {
+    -fx-icon-color: -color-accent;
+    -fx-fill: -color-accent;
+}
+
+.tool-inspector-title {
+    -fx-text-fill: -color-text-primary;
+}
+
+.tool-inspector-subtitle {
+    -fx-text-fill: -color-text-muted;
+}
+
+.tool-inspector-close-btn:hover {
+    -fx-background-color: -color-hover;
+}
+
+.tool-inspector-close-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.tool-inspector-close-btn:hover .tool-inspector-close-icon {
+    -fx-icon-color: -color-text-primary;
+    -fx-fill: -color-text-primary;
+}
+
+.tool-card {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: -color-border;
+}
+
+.tool-card:hover {
+    -fx-background-color: -color-hover;
+    -fx-border-color: -color-border;
+}
+
+.tool-card-icon-container {
+    -fx-background-color: -color-bg-input;
+}
+
+.tool-card-icon {
+    -fx-icon-color: -color-text-secondary;
+    -fx-fill: -color-text-secondary;
+}
+
+.tool-card-name {
+    -fx-text-fill: -color-text-primary;
+}
+
+.tool-card-desc {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.tool-inspector-footer {
+    -fx-border-color: -color-border transparent transparent transparent;
+}
+
+.tool-inspector-footer-count {
+    -fx-text-fill: -color-text-muted;
+}
+
+/* =============================================
+   LOGIN PAGE — Dark overrides
+   ============================================= */
+.login-root {
+    -fx-background-color: linear-gradient(to bottom, #08080a 0%, #0c0c10 50%, #101014 100%);
+}
+
+.login-card {
+    -fx-background-color: rgba(22, 22, 28, 0.94);
+    -fx-border-color: rgba(255, 255, 255, 0.08);
+    -fx-effect: dropshadow(gaussian, rgba(0, 0, 0, 0.55), 48, 0, 0, 16);
+}
+
+.login-card-accent {
+    -fx-background-color: linear-gradient(to right, #818cf8, #c084fc 55%, #f472b6);
+}
+
+.login-brand {
+    -fx-text-fill: -color-text-primary;
+}
+
+.login-subtitle {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.login-sso-btn {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: #0f0f11;
+}
+
+.login-sso-btn:hover {
+    -fx-background-color: #b8b2ff;
+}
+
+.login-google-btn {
+    -fx-background-color: rgba(30, 30, 38, 0.95);
+    -fx-text-fill: -color-text-primary;
+    -fx-border-color: -color-border;
+}
+
+.login-google-btn:hover {
+    -fx-background-color: -color-hover;
+    -fx-border-color: -color-accent-soft;
+}
+
+.login-divider-row .separator .line {
+    -fx-border-color: -color-border;
+}
+
+.login-divider-text {
+    -fx-text-fill: -color-text-muted;
+}
+
+.login-input {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-border;
+    -fx-text-fill: -color-text-primary;
+    -fx-prompt-text-fill: -color-text-muted;
+}
+
+.login-input:focused {
+    -fx-border-color: -color-accent;
+    -fx-effect: dropshadow(gaussian, rgba(162,155,254,0.2), 6, 0, 0, 0);
+}
+
+.login-submit-btn {
+    -fx-background-color: -color-text-primary;
+    -fx-text-fill: -color-text-inverse;
+}
+
+.login-submit-btn:hover {
+    -fx-background-color: #d4d4d8;
+}
+
+.login-link {
+    -fx-text-fill: -color-accent;
+}
+
+.login-footer-text {
+    -fx-text-fill: -color-text-secondary;
+}
+
+.login-terms-link {
+    -fx-text-fill: -color-text-muted;
+}
+
+.login-terms-link:hover {
+    -fx-text-fill: -color-text-secondary;
+}
+
+/* Toolbar icon buttons dark */
+.toolbar-icon-btn:hover {
+    -fx-background-color: -color-hover;
+}
+
+.toolbar-icon-btn .ikonli-font-icon {
+    -fx-icon-color: -color-text-muted;
+    -fx-fill: -color-text-muted;
+}
+
+.toolbar-icon-btn:hover .ikonli-font-icon {
+    -fx-icon-color: -color-text-primary;
+    -fx-fill: -color-text-primary;
+}
+
+/* Share dialog dark */
+.share-option-card {
+    -fx-background-color: -color-bg-surface;
+    -fx-border-color: -color-border;
+}
+
+.share-option-card:hover {
+    -fx-background-color: -color-accent-bg;
+    -fx-border-color: -color-accent-soft;
+}
+
+.share-option-label {
+    -fx-text-fill: -color-text-primary;
+}
+
+/* =============================================
+   MARKDOWN RENDERER — Dark overrides
+   ============================================= */
+.md-h1, .md-h2, .md-h3, .md-h4 {
+    -fx-text-fill: -color-text-primary;
+}
+
+.md-inline-code {
+    -fx-text-fill: #f472b6;
+    -fx-background-color: #2a2033;
+    -fx-border-color: #3a2d44;
+}
+
+.md-link {
+    -fx-text-fill: -color-accent;
+}
+
+.md-code-block {
+    -fx-background-color: #11111b;
+    -fx-border-color: #1e1e2e;
+}
+
+.md-code-header {
+    -fx-background-color: #0d0d14;
+    -fx-border-color: transparent transparent #1e1e2e transparent;
+}
+
+.md-code-language {
+    -fx-text-fill: #585b70;
+}
+
+.md-code-copy {
+    -fx-text-fill: #585b70;
+}
+
+.md-code-copy:hover {
+    -fx-background-color: #1e1e2e;
+    -fx-text-fill: #cdd6f4;
+}
+
+.md-code-copy-icon {
+    -fx-icon-color: #585b70;
+    -fx-fill: #585b70;
+}
+
+.md-code-copy:hover .md-code-copy-icon {
+    -fx-icon-color: #cdd6f4;
+    -fx-fill: #cdd6f4;
+}
+
+.md-code-area {
+    -fx-background-color: #11111b;
+    -fx-text-fill: #cdd6f4;
+    -fx-control-inner-background: #11111b;
+}
+
+.md-code-area .content {
+    -fx-background-color: #11111b;
+}
+
+.md-code-area:focused {
+    -fx-background-color: #11111b;
+    -fx-control-inner-background: #11111b;
+}
+
+.md-code-area .scroll-bar .thumb {
+    -fx-background-color: #313244;
+}
+
+.md-blockquote {
+    -fx-background-color: -color-bg-input;
+    -fx-border-color: -color-accent-soft;
+}
+
+.md-list-bullet {
+    -fx-text-fill: -color-text-muted;
+}
+
+.md-hr .line {
+    -fx-border-color: -color-border;
+}

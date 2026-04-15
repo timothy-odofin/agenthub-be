@@ -1,0 +1,55 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+<?import javafx.scene.text.Text?>
+<?import javafx.scene.text.TextFlow?>
+
+<HBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      spacing="12" alignment="TOP_LEFT">
+    <padding><Insets top="4" right="24" bottom="4" left="24"/></padding>
+
+    <!-- Avatar -->
+    <StackPane styleClass="assistant-avatar" minWidth="32" minHeight="32" maxWidth="32" maxHeight="32">
+        <Label text="A" styleClass="assistant-avatar-text"/>
+    </StackPane>
+
+    <!-- Message content -->
+    <VBox spacing="6" alignment="TOP_LEFT">
+        <Label text="Assistant" styleClass="assistant-name-label"/>
+        <VBox fx:id="contentContainer" maxWidth="680">
+            <TextFlow fx:id="textFlow" styleClass="assistant-bubble">
+                <Text fx:id="messageText" styleClass="assistant-message-text"/>
+            </TextFlow>
+        </VBox>
+
+        <!-- Typing indicator (hidden by default) -->
+        <HBox fx:id="typingIndicator" styleClass="typing-indicator" spacing="4" visible="false" managed="false">
+            <Label styleClass="typing-dot" text="●"/>
+            <Label styleClass="typing-dot" text="●"/>
+            <Label styleClass="typing-dot" text="●"/>
+        </HBox>
+
+        <!-- Action buttons (hidden during streaming, shown after) -->
+        <HBox fx:id="actionButtons" styleClass="message-actions" spacing="2" visible="false" managed="false">
+            <Button fx:id="copyBtn" styleClass="msg-action-btn">
+                <tooltip><Tooltip text="Copy"/></tooltip>
+            </Button>
+            <Button fx:id="thumbsUpBtn" styleClass="msg-action-btn">
+                <tooltip><Tooltip text="Good response"/></tooltip>
+            </Button>
+            <Button fx:id="thumbsDownBtn" styleClass="msg-action-btn">
+                <tooltip><Tooltip text="Bad response"/></tooltip>
+            </Button>
+            <Button fx:id="retryBtn" styleClass="msg-action-btn">
+                <tooltip><Tooltip text="Retry"/></tooltip>
+            </Button>
+        </HBox>
+    </VBox>
+</HBox>

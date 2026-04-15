@@ -1,0 +1,141 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.ComboBox?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ScrollPane?>
+<?import javafx.scene.control.SplitPane?>
+<?import javafx.scene.control.TextArea?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.BorderPane?>
+<?import javafx.scene.layout.FlowPane?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<StackPane xmlns="http://javafx.com/javafx"
+           xmlns:fx="http://javafx.com/fxml"
+           fx:controller="com.agentdesk.controller.ChatAreaController"
+           styleClass="chat-area-root">
+
+    <!-- ==========================================
+         WELCOME VIEW (visible initially, centered layout)
+         ========================================== -->
+    <VBox fx:id="welcomeView" styleClass="welcome-view" alignment="TOP_CENTER">
+
+        <Region VBox.vgrow="ALWAYS"/>
+
+        <VBox styleClass="welcome-center" alignment="CENTER" spacing="12" maxWidth="680">
+            <padding><Insets left="40" right="40"/></padding>
+
+            <Label fx:id="greetingLabel" text="" styleClass="welcome-greeting"/>
+
+            <!-- Input box: StackPane overlay so controls never disappear -->
+            <StackPane styleClass="welcome-input-box">
+                <TextArea fx:id="welcomeInputArea" promptText="How can I help you today?"
+                          styleClass="welcome-input" wrapText="true"
+                          prefRowCount="1" prefHeight="36"/>
+
+                <!-- Left overlay: attach button with badge -->
+                <HBox alignment="CENTER_LEFT" pickOnBounds="false" mouseTransparent="false"
+                      StackPane.alignment="CENTER_LEFT">
+                    <padding><Insets left="8"/></padding>
+                    <StackPane>
+                        <Button fx:id="welcomeAttachBtn" text="+" styleClass="welcome-attach-btn"
+                                onAction="#handleAttach"/>
+                    </StackPane>
+                </HBox>
+
+                <!-- Right overlay: model + mic -->
+                <HBox alignment="CENTER_RIGHT" spacing="6" pickOnBounds="false" mouseTransparent="false"
+                      StackPane.alignment="CENTER_RIGHT">
+                    <padding><Insets right="8"/></padding>
+                    <ComboBox fx:id="welcomeModelSelector" styleClass="welcome-model-selector"/>
+                    <Button fx:id="welcomeMicBtn" styleClass="welcome-mic-btn"/>
+                </HBox>
+            </StackPane>
+
+            <!-- Quick action chips -->
+            <FlowPane fx:id="quickActionsPane" styleClass="quick-actions-pane"
+                       hgap="10" vgap="10" alignment="CENTER">
+                <padding><Insets top="16"/></padding>
+                <Button text="Knowledge Base" styleClass="quick-action-chip"/>
+                <Button text="Pricing" styleClass="quick-action-chip"/>
+                <Button text="Support" styleClass="quick-action-chip"/>
+                <Button text="Release Checkout" styleClass="quick-action-chip"/>
+                <Button text="PSM's choice" styleClass="quick-action-chip"/>
+            </FlowPane>
+        </VBox>
+
+        <Region VBox.vgrow="ALWAYS"/>
+    </VBox>
+
+    <!-- ==========================================
+         CHAT VIEW (hidden initially) wrapped in a SplitPane
+         for artifact panel support
+         ========================================== -->
+    <SplitPane fx:id="chatSplitPane" orientation="HORIZONTAL"
+               styleClass="chat-split-pane" visible="false" managed="false">
+
+        <BorderPane fx:id="chatView" styleClass="chat-view">
+
+            <top>
+                <HBox styleClass="chat-toolbar" alignment="CENTER_LEFT" spacing="12">
+                    <padding><Insets top="12" right="20" bottom="12" left="20"/></padding>
+                    <ComboBox fx:id="chatModelSelector" styleClass="model-selector"/>
+                    <Region HBox.hgrow="ALWAYS"/>
+                    <Button fx:id="chatShareBtn" styleClass="toolbar-icon-btn"
+                            onAction="#handleShareChat">
+                        <tooltip><Tooltip text="Share chat"/></tooltip>
+                    </Button>
+                    <Button fx:id="chatDownloadBtn" styleClass="toolbar-icon-btn"
+                            onAction="#handleDownloadChat">
+                        <tooltip><Tooltip text="Download chat"/></tooltip>
+                    </Button>
+                </HBox>
+            </top>
+
+            <center>
+                <ScrollPane fx:id="scrollPane" styleClass="messages-scroll"
+                            fitToWidth="true" hbarPolicy="NEVER" vbarPolicy="AS_NEEDED">
+                    <VBox fx:id="messagesContainer" styleClass="messages-container" spacing="8">
+                        <padding><Insets top="24" bottom="24"/></padding>
+                    </VBox>
+                </ScrollPane>
+            </center>
+
+            <bottom>
+                <VBox styleClass="chat-input-section" spacing="8">
+                    <padding><Insets top="12" right="24" bottom="20" left="24"/></padding>
+                    <StackPane styleClass="chat-input-box">
+                        <TextArea fx:id="chatInputArea" promptText="Message Assistant..."
+                                  styleClass="message-input" wrapText="true"
+                                  prefRowCount="1" prefHeight="36"/>
+
+                        <!-- Left: attach button with badge -->
+                        <HBox alignment="CENTER_LEFT" pickOnBounds="false" StackPane.alignment="CENTER_LEFT">
+                            <padding><Insets left="8"/></padding>
+                            <StackPane>
+                                <Button fx:id="chatAttachBtn" text="+" styleClass="chat-attach-btn"
+                                        onAction="#handleAttach"/>
+                            </StackPane>
+                        </HBox>
+
+                        <!-- Right: mic + send -->
+                        <HBox alignment="CENTER_RIGHT" spacing="6" pickOnBounds="false" StackPane.alignment="BOTTOM_RIGHT">
+                            <padding><Insets right="8" bottom="8"/></padding>
+                            <Button fx:id="chatMicBtn" styleClass="welcome-mic-btn"/>
+                            <Button fx:id="sendButton" text="↑" styleClass="send-button"
+                                    onAction="#handleSendFromChat"/>
+                        </HBox>
+                    </StackPane>
+                    <HBox spacing="8" alignment="CENTER_LEFT">
+                        <Label text="Shift+Enter for new line" styleClass="input-hint-label"/>
+                    </HBox>
+                </VBox>
+            </bottom>
+        </BorderPane>
+    </SplitPane>
+</StackPane>

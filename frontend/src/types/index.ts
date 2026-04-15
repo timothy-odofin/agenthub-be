@@ -23,6 +23,7 @@ export interface SendChatMessagePayload {
   session_id: string | null;
   provider: string;
   model: string;
+  mcp_server_ids?: string[];
   metadata?: {
     capability_id?: string;
     is_capability_selection?: boolean;
@@ -57,6 +58,34 @@ export interface ChatMessage {
   content: string;
   timestamp: string;
   id?: string;
+}
+
+// ─────────────────────────────────────────────────────────────────────
+// MCP tool picker types  (mirrors GET /api/v1/tools/mcp response)
+// ─────────────────────────────────────────────────────────────────────
+
+export interface McpToolInfo {
+  name: string;
+  description: string;
+}
+
+export interface McpServerInfo {
+  id: string;
+  name: string;
+  description: string;
+  tool_count: number;
+  tools: McpToolInfo[];
+}
+
+export interface McpGroupInfo {
+  category: string;
+  label: string;
+  servers: McpServerInfo[];
+}
+
+export interface McpToolsResponse {
+  success: boolean;
+  groups: McpGroupInfo[];
 }
 
 // ─────────────────────────────────────────────────────────────────────

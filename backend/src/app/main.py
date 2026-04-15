@@ -41,7 +41,7 @@ from starlette.exceptions import HTTPException as StarletteHTTPException
 
 from app.api.v1 import auth, chat, conversational_auth, health
 from app.api.v1 import ingest_data as ingest
-from app.api.v1 import llm, resilience, routes
+from app.api.v1 import llm, resilience, routes, tools
 from app.core.exceptions import BaseAppException
 from app.core.handlers import (
     base_app_exception_handler,
@@ -191,6 +191,7 @@ app.include_router(health.router, prefix="/api/v1/health", tags=["health"])
 app.include_router(ingest.router, prefix="/api/v1/data", tags=["ingest"])
 app.include_router(resilience.router, prefix="/api/v1", tags=["resilience"])
 app.include_router(llm.router, prefix="/api/v1/llm", tags=["llm-providers"])
+app.include_router(tools.router, prefix="/api/v1/tools", tags=["tools"])
 
 
 @app.get("/")

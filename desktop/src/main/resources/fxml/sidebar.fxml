@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<?import javafx.geometry.Insets?>
+<?import javafx.scene.control.Button?>
+<?import javafx.scene.control.Label?>
+<?import javafx.scene.control.ListView?>
+<?import javafx.scene.control.TextField?>
+<?import javafx.scene.control.Tooltip?>
+<?import javafx.scene.layout.HBox?>
+<?import javafx.scene.layout.Region?>
+<?import javafx.scene.layout.StackPane?>
+<?import javafx.scene.layout.VBox?>
+
+<VBox xmlns="http://javafx.com/javafx"
+      xmlns:fx="http://javafx.com/fxml"
+      fx:controller="com.agentdesk.controller.SidebarController"
+      styleClass="sidebar"
+      prefWidth="260" minWidth="200" maxWidth="320">
+
+    <!-- Top section: logo + new chat -->
+    <VBox styleClass="sidebar-top" spacing="0">
+        <padding><Insets top="16" right="12" bottom="8" left="12"/></padding>
+        <HBox spacing="10" alignment="CENTER_LEFT">
+            <Label text="◆" styleClass="app-icon-label"/>
+            <Label text="Assistant" styleClass="app-title-label"/>
+            <Region HBox.hgrow="ALWAYS"/>
+            <Button fx:id="newChatBtn" text="+" styleClass="new-chat-icon-btn"
+                    onAction="#handleNewChat">
+                <tooltip><Tooltip text="New chat"/></tooltip>
+            </Button>
+        </HBox>
+    </VBox>
+
+    <!-- Search bar -->
+    <HBox styleClass="search-box-container" alignment="CENTER_LEFT" spacing="8">
+        <padding><Insets top="0" right="12" bottom="8" left="12"/></padding>
+        <TextField fx:id="searchField" promptText="Search conversations..."
+                   styleClass="search-field" HBox.hgrow="ALWAYS"/>
+    </HBox>
+
+    <!-- Section label + reload button -->
+    <HBox alignment="CENTER_LEFT" spacing="4">
+        <VBox.margin><Insets top="16" right="16" bottom="4" left="16"/></VBox.margin>
+        <Label text="Recent" styleClass="sidebar-section-label" HBox.hgrow="ALWAYS"/>
+        <Button fx:id="reloadSessionsBtn" styleClass="reload-sessions-btn"
+                onAction="#handleReloadSessions">
+            <tooltip><Tooltip text="Reload sessions"/></tooltip>
+        </Button>
+    </HBox>
+
+    <!-- Conversation list -->
+    <ListView fx:id="conversationList" styleClass="conversation-list" VBox.vgrow="ALWAYS"/>
+
+    <!-- Profile section -->
+    <HBox fx:id="profileSection" styleClass="profile-section" alignment="CENTER_LEFT" spacing="10">
+        <padding><Insets top="12" right="16" bottom="16" left="16"/></padding>
+        <StackPane styleClass="user-avatar" minWidth="32" minHeight="32" maxWidth="32" maxHeight="32">
+            <Label fx:id="userAvatarLabel" text="U" styleClass="user-avatar-text"/>
+        </StackPane>
+        <VBox spacing="1">
+            <Label fx:id="profileNameLabel" text="You" styleClass="profile-name-label"/>
+            <Label text="Pro plan" styleClass="profile-plan-label"/>
+        </VBox>
+        <Region HBox.hgrow="ALWAYS"/>
+        <Button fx:id="settingsBtn" text="⚙" styleClass="icon-btn"
+                onAction="#handleSettings">
+            <tooltip><Tooltip text="Settings"/></tooltip>
+        </Button>
+        <Button fx:id="logoutBtn" styleClass="icon-btn"
+                onAction="#handleLogout">
+            <tooltip><Tooltip text="Logout"/></tooltip>
+        </Button>
+    </HBox>
+</VBox>

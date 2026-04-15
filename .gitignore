@@ -34,6 +34,9 @@ logs/
 dist/
 build/
 
+# Java / Maven build output
+desktop/target/
+
 # Coverage reports (global)
 coverage/
 *.lcov
@@ -53,3 +56,5 @@ __pycache__/
 *.py[cod]
 *$py.class
 ../.venv/
+/desktop/modules
+/desktop/models/

@@ -1,0 +1,35 @@
+app:
+  title: AgentDesk
+  theme: light
+  window:
+    width: 1200
+    height: 800
+    min-width: 800
+    min-height: 600
+  api:
+    base-url: ${AGENTDESK_API_URL:http://localhost:8000}
+    connect-timeout: 10s
+    read-timeout: 300s
+    # default-authorization: "Bearer ${API_TOKEN:}"
+  stt:
+    enabled: true
+    provider: vosk
+    # Path to the extracted Vosk model directory (auto-downloaded on first run if missing)
+    model-path: ${user.dir}/models/vosk-model-small-en-us-0.15
+    # Automatically download the model on first run when model-path directory is missing
+    auto-download-model: true
+    auto-download-model-url: https://alphacephei.com/vosk/models/vosk-model-small-en-us-0.15.zip
+    sample-rate: 16000
+    # If the bundled Vosk native library fails to load, set this to a folder containing a compatible libvosk.dylib
+    # native-library-path:
+
+spring:
+  main:
+    web-application-type: none
+    allow-bean-definition-overriding: true
+    banner-mode: off
+
+logging:
+  level:
+    com.sun.javafx.application.PlatformImpl: ERROR
+    com.agentdesk.stt: DEBUG

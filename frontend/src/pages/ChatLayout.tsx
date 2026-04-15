@@ -18,10 +18,11 @@ import {
   updateSessionTitle,
   deleteSession,
   getLLMProviders,
+  getMcpTools,
 } from "@/api/chat";
 import { API_BASE_URL } from "@/api/axiosConfig";
 
-import type { ChatSession, ChatMessage, ModelVersion } from "@/types";
+import type { ChatSession, ChatMessage, ModelVersion, McpGroupInfo } from "@/types";
 
 export default function ChatLayout() {
   const { sessionId: urlSessionId } = useParams<{ sessionId?: string }>();
@@ -71,11 +72,16 @@ export default function ChatLayout() {
   const [selectedProvider, setSelectedProvider] = useState<string>("");
   const [selectedModelVersion, setSelectedModelVersion] = useState<string>("");
 
+  // MCP server state
+  const [mcpGroups, setMcpGroups] = useState<McpGroupInfo[]>([]);
+  const [selectedServerIds, setSelectedServerIds] = useState<Set<string>>(new Set());
+
   useEffect(() => {
     console.log('=== ChatLayout mounted - Starting initial load ===');
     loadSessions();
     loadCapabilities();
     loadProviders();
+    loadMcpTools();
   }, []);
 
   // Load session from URL parameter if present
@@ -133,8 +139,7 @@ export default function ChatLayout() {
 
   const loadProviders = async () => {
     try{
-      const res = await getLLMProviders();
-      
+      const res = await getLLMProviders();      
       if (res.data?.success && res.data.providers) {
         setProviders(res.data.providers);
         
@@ -151,6 +156,17 @@ export default function ChatLayout() {
       console.error('❌ Failed to load providers:', err);
       // Set fallback to empty array to avoid breaking the UI
       setProviders([]);
+    }
+  };
+
+  const loadMcpTools = async () => {
+    try {
+      const res = await getMcpTools();
+      if (res.data?.success) {
+        setMcpGroups(res.data.groups ?? []);
+      }
+    } catch (err) {
+      console.error("Failed to load MCP tools:", err);
     }
   };
 
@@ -363,6 +379,47 @@ export default function ChatLayout() {
     await handleSend(prompt);
   };
 
+  // ─────────────────────────────────────────────────────────────────
+  // Message action handlers (retry, edit, feedback)
+  // ─────────────────────────────────────────────────────────────────
+
+  /**
+   * Retry: re-send the user message at `messageIndex` and replace
+   * everything after it with the new assistant response.
+   */
+  const handleRetry = async (messageIndex: number) => {
+    const msg = messages[messageIndex];
+    if (!msg) return;
+
+    // Find the nearest user message at or before the given index
+    const userMsg = msg.role === "user" ? msg : messages.slice(0, messageIndex + 1).reverse().find(m => m.role === "user");
+    if (!userMsg) return;
+
+    // Truncate messages up to (but not including) the retried user message
+    const userMsgIndex = messages.lastIndexOf(userMsg);
+    setMessages((prev) => prev.slice(0, userMsgIndex));
+
+    await handleSend(userMsg.content);
+  };
+
+  /**
+   * Edit: replace the user message at `messageIndex` with `newContent`,
+   * drop all subsequent messages, and re-send.
+   */
+  const handleEditMessage = async (messageIndex: number, newContent: string) => {
+    // Keep messages before the edited one, then re-send
+    setMessages((prev) => prev.slice(0, messageIndex));
+    await handleSend(newContent);
+  };
+
+  /**
+   * Feedback: log good/bad rating (extend with API call when endpoint is available).
+   */
+  const handleFeedback = (_messageIndex: number, feedback: "good" | "bad") => {
+    console.log(`Message feedback: ${feedback} for index ${_messageIndex}`);
+    // TODO: POST /api/v1/chat/feedback when backend endpoint is ready
+  };
+
   const handleSend = async (text: string) => {
     if (!text.trim() && !selectedCapability) return;
 
@@ -410,6 +467,7 @@ export default function ChatLayout() {
         session_id: currentSession,
         provider: selectedProvider,
         model: selectedModelVersion,
+        ...(selectedServerIds.size > 0 && { mcp_server_ids: [...selectedServerIds] }),
       };
 
       // Only include metadata if it exists (Scenarios 1 & 2)
@@ -606,6 +664,9 @@ export default function ChatLayout() {
                   onSend={handleSend} 
                   isEmpty 
                   isLoading={isLoading}
+                  mcpGroups={mcpGroups}
+                  selectedServerIds={selectedServerIds}
+                  onServerSelectionChange={setSelectedServerIds}
                 />
               </div>
             </div>
@@ -618,6 +679,9 @@ export default function ChatLayout() {
               userName={userName} 
               isLoading={isLoading} 
               isLoadingSession={isLoadingSession}
+              onRetry={handleRetry}
+              onEditMessage={handleEditMessage}
+              onFeedback={handleFeedback}
             />
             <div className="sticky bottom-0 bg-white dark:bg-gray-900 border-t border-gray-200 dark:border-gray-700 p-4">
               <div className="w-full max-w-5xl mx-auto px-6">
@@ -625,6 +689,9 @@ export default function ChatLayout() {
                   onSend={handleSend} 
                   isEmpty={false} 
                   isLoading={isLoading}
+                  mcpGroups={mcpGroups}
+                  selectedServerIds={selectedServerIds}
+                  onServerSelectionChange={setSelectedServerIds}
                 />
               </div>
             </div>
